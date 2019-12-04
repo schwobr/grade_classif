@@ -2,9 +2,44 @@
 
 __all__ = ["index", "modules", "custom_doc_links", "git_url"]
 
-index = {"ifnone": "00_core.ipynb"}
+index = {"hparams": "00_core.ipynb",
+         "ifnone": "00_core.ipynb",
+         "PROJECT": "00a_defaults.ipynb",
+         "LEVEL": "00a_defaults.ipynb",
+         "DATA": "00a_defaults.ipynb",
+         "NORM_CSV": "00a_defaults.ipynb",
+         "MODELS": "00a_defaults.ipynb",
+         "MODEL": "00a_defaults.ipynb",
+         "SIZE": "00a_defaults.ipynb",
+         "BATCH_SIZE": "00a_defaults.ipynb",
+         "LOSS": "00a_defaults.ipynb",
+         "REDUCTION": "00a_defaults.ipynb",
+         "EPOCHS": "00a_defaults.ipynb",
+         "DROPOUT": "00a_defaults.ipynb",
+         "LR": "00a_defaults.ipynb",
+         "WD": "00a_defaults.ipynb",
+         "WEIGHT": "00a_defaults.ipynb",
+         "NORMALIZER": "00a_defaults.ipynb",
+         "get_items": "01a_data_read.ipynb",
+         "ImageLoader": "01b_data_loaders.ipynb",
+         "MaskLoader": "01b_data_loaders.ipynb",
+         "CategoryLoader": "01b_data_loaders.ipynb",
+         "MyDataset": "01c_data_dataset.ipynb",
+         "ClassDataset": "01c_data_dataset.ipynb",
+         "ImageClassifDataset": "01c_data_dataset.ipynb",
+         "ImageSegmentDataset": "01c_data_dataset.ipynb",
+         "NormDataset": "01c_data_dataset.ipynb",
+         "SplitDataset": "01c_data_dataset.ipynb",
+         "np_to_tensor": "01c_data_dataset.ipynb",
+         "TensorDataset": "01c_data_dataset.ipynb",
+         "show_img": "01d_data_utils.ipynb"}
 
-modules = ["core.py"]
+modules = ["core.py",
+           "defaults.py",
+           "data/read.py",
+           "data/loaders.py",
+           "data/dataset.py",
+           "data/utils.py"]
 
 git_url = "https://github.com/schwobr/grade_classif_nbdev/tree/master/"
 
