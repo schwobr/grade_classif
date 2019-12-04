@@ -2,8 +2,7 @@
 
 __all__ = ["index", "modules", "custom_doc_links", "git_url"]
 
-index = {"hparams": "00_core.ipynb",
-         "ifnone": "00_core.ipynb",
+index = {"ifnone": "00_core.ipynb",
          "PROJECT": "00a_defaults.ipynb",
          "LEVEL": "00a_defaults.ipynb",
          "DATA": "00a_defaults.ipynb",
