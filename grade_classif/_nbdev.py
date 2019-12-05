@@ -46,7 +46,8 @@ index = {"ifnone": "00_core.ipynb",
          "DecoderBlock": "21_models_unet.ipynb",
          "DynamicUnet": "21_models_unet.ipynb",
          "named_leaf_modules": "22_models_utils.ipynb",
-         "get_sizes": "22_models_utils.ipynb"}
+         "get_sizes": "22_models_utils.ipynb",
+         "model": "_train_normalizer.ipynb"}
 
 modules = ["core.py",
            "defaults.py",
