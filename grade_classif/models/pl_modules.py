@@ -10,11 +10,14 @@ from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import OneCycleLR, CosineAnnealingLR, ReduceLROnPlateau
 from ..data.dataset import ImageClassifDataset, NormDataset
 from ..data.transforms import get_transforms
+from ..data.utils import show_img
 from .utils import named_leaf_modules, get_sizes
 from .unet import DynamicUnet
 from ..core import ifnone
 import timm
 from pathlib import Path
+import matplotlib.pyplot as plt
+import numpy as np
 
 #Cell
 def _get_loss(loss_name, weight, reduction):
@@ -126,7 +129,7 @@ class BaseModule(pl.LightningModule):
         return DataLoader(self.data.test, batch_size=self.bs) if self.data.test is not None else None
 
     def load(self, version):
-        save_dir = hparams.savedir/f'lightning_logs/version_{version}/checkpoints'
+        save_dir = self.hparams.savedir/f'lightning_logs/version_{version}/checkpoints'
         path = next(save_dir.iterdir())
         checkpoint = torch.load(path, map_location=lambda storage, loc: storage)
         self.load_state_dict(checkpoint['state_dict'])
