@@ -4,6 +4,7 @@ __all__ = ['ImageLoader', 'MaskLoader', 'CategoryLoader']
 
 #Cell
 import cv2
+import numpy as np
 
 #Cell
 class ImageLoader:

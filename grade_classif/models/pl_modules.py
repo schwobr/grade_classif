@@ -6,6 +6,7 @@ __all__ = ['BaseModule', 'GradesClassifModel', 'Normalizer']
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn
+from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import OneCycleLR, CosineAnnealingLR, ReduceLROnPlateau
 from ..data.dataset import ImageClassifDataset, NormDataset
 from ..data.transforms import get_transforms
@@ -92,7 +93,7 @@ class BaseModule(pl.LightningModule):
     def configure_optimizers(self):
         # REQUIRED
         opt = torch.optim.Adam(self.parameters(), lr=self.lr)
-        self.sched = _get_scheduler(opt, self.hparams.sched, self.lr, self.hparams.epochs*len(self.train_dataloader()))
+        self.sched = _get_scheduler(opt, self.hparams.sched, self.hparams.epochs*len(self.train_dataloader()), self.lr)
         return opt
 
     def on_after_backward(self):

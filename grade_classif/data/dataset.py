@@ -163,14 +163,14 @@ class TensorDataset(Dataset):
 
     def __getitem__(self, i):
         x, y = self._ds[i]
-        if tfms != []:
+        if self.tfms != []:
             aug = Compose(self.tfms)
             augmented = aug(image=x, mask=y if self.tfm_y else None)
             x = augmented['image']
             if self.tfm_y:
                 y = augmented['mask']
-        x = np_to_tensor(x, type(self._ds.item_loader.__name__.lower().replace('loader', '')))
-        y = np_to_tensor(x, type(self._ds.label_loader.__name__.lower().replace('loader', '')))
+        x = np_to_tensor(x, type(self._ds.item_loader).__name__.lower().replace('loader', ''))
+        y = np_to_tensor(y, type(self._ds.label_loader).__name__.lower().replace('loader', ''))
         return x, y
 
     def show(self, k, **kwargs):
