@@ -4,7 +4,10 @@ __all__ = ['ConvBnRelu', 'ConvBn', 'ConvRelu', 'icnr', 'PixelShuffleICNR', 'Deco
 
 #Cell
 import torch.nn as nn
+import torch
+from torch.nn.functional import interpolate
 import timm
+from .utils import get_sizes
 
 #Cell
 class ConvBnRelu(nn.Module):
@@ -105,25 +108,6 @@ class DecoderBlock(nn.Module):
             x = interpolate(x, ssh, mode='nearest')
         x = self.relu(torch.cat([x, self.bn(skipco)], dim=1))
         return self.conv2(self.conv1(x))
-
-#Cell
-def _get_sizes(model, input_shape=(3, 224, 224)):
-    sizes = []
-    size_handles = []
-    leaf_modules = named_leaf_modules('', model)
-
-    def _hook(model, input, output):
-        sizes.append((model, input[0].shape[1:], output.shape[1:]))
-
-    for n, m in leaf_modules:
-        m.name = n
-        size_handles.append(m.register_forward_hook(_hook))
-
-    x = torch.rand(2, *input_shape)
-    model.eval()(x)
-    for handle in size_handles:
-        handle.remove()
-    return np.array(sizes)
 
 #Cell
 class DynamicUnet(nn.Module):

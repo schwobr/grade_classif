@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from .loaders import ImageLoader, MaskLoader, CategoryLoader
 from .utils import show_img
+from .read import get_items
 from ..core import ifnone
 import pandas as pd
 from albumentations import Compose
@@ -135,7 +136,8 @@ class SplitDataset:
     valid: Dataset
     test: Dataset = None
 
-    def to_tensor(self, tfms=(None, None), tfm_y=True, test_tfms=None):
+    def to_tensor(self, tfms=None, tfm_y=True, test_tfms=None):
+        tfms = ifnone(tfms, (None, None))
         self.train = self.train.to_tensor(tfms=tfms[0], tfm_y=tfm_y)
         self.valid = self.valid.to_tensor(tfms=tfms[1], tfm_y=tfm_y)
         if self.test is not None:

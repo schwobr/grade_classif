@@ -11,6 +11,7 @@ from pathlib import Path
 _parser = HyperOptArgumentParser(strategy='random_search')
 _parser.add_argument('--file', '-f', help='notebook convenience')
 _parser.add_argument('--HistoryManager.hist_file', help='nbconvert convenience')
+_parser.add_argument('--sched', default=SCHED, choices=['one-cycle', 'cosine-anneal', 'reduce-on-plateau', 'none'], help='scheduler for the optimizer')
 _parser.add_argument('--data', default=DATA, help='path to folder containing data')
 _parser.add_argument('--batch-size', default=BATCH_SIZE, type=int, help='batch size')
 _parser.add_argument('--size', default=SIZE, type=int, help='size of the image (as an integer, image is supposed square)')
