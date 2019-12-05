@@ -32,7 +32,16 @@ index = {"ifnone": "00_core.ipynb",
          "SplitDataset": "05_data_dataset.ipynb",
          "np_to_tensor": "05_data_dataset.ipynb",
          "TensorDataset": "05_data_dataset.ipynb",
-         "show_img": "06_data_utils.ipynb"}
+         "show_img": "06_data_utils.ipynb",
+         "BaseModule": "07_models_pl_modules.ipynb",
+         "GradesClassifModel": "07_models_pl_modules.ipynb",
+         "ConvBnRelu": "08_models_unet.ipynb",
+         "ConvBn": "08_models_unet.ipynb",
+         "ConvRelu": "08_models_unet.ipynb",
+         "icnr": "08_models_unet.ipynb",
+         "PixelShuffleICNR": "08_models_unet.ipynb",
+         "DecoderBlock": "08_models_unet.ipynb",
+         "DynamicUnet": "08_models_unet.ipynb"}
 
 modules = ["core.py",
            "defaults.py",
@@ -40,7 +49,9 @@ modules = ["core.py",
            "data/read.py",
            "data/loaders.py",
            "data/dataset.py",
-           "data/utils.py"]
+           "data/utils.py",
+           "models/pl_modules.py",
+           "models/unet.py"]
 
 git_url = "https://github.com/schwobr/grade_classif_nbdev/tree/master/"
 
