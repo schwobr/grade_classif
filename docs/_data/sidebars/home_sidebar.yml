@@ -11,7 +11,7 @@ entries:
       url: /
     - output: web,pdf
       title: Title
-      url: /data_utils
+      url: /models_unet
     output: web
     title: grade_classif
   output: web
