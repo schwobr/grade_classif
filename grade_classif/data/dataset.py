@@ -84,10 +84,10 @@ class ImageClassifDataset(ClassDataset):
         self.show(k, ax=ax, figsize=figsize, hide_axis=hide_axis, cmap=cmap, **kwargs)
 
     @classmethod
-    def from_folder(cls, folder, label_func, n_classes=None, classes=None, recurse=True, extensions=None, include=None, exclude=None):
+    def from_folder(cls, folder, label_func, n_classes=None, classes=None, recurse=True, extensions=None, include=None, exclude=None, **kwargs):
         folder = Path(folder)
         items, labels = get_items(folder, label_func, recurse=recurse, extensions=extensions, include=include, exclude=exclude)
-        return cls(items, labels, ImageLoader(), CategoryLoader(n_classes, classes), n_classes=ifnone(n_classes, len(classes)))
+        return cls(items, labels, ImageLoader(**kwargs), CategoryLoader(n_classes, classes), n_classes=ifnone(n_classes, len(classes)))
 
 #Cell
 class ImageSegmentDataset(ClassDataset):

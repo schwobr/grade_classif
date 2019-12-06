@@ -151,7 +151,7 @@ class GradesClassifModel(BaseModule):
         super(GradesClassifModel, self).__init__(hparams)
         tfms = get_transforms(hparams.size)
         self.data = (ImageClassifDataset.
-                     from_folder(Path(hparams.data), lambda x: x.parts[-3], classes=['1', '3'], extensions=['.png'], include=['train', 'valid']).
+                     from_folder(Path(hparams.data), lambda x: x.parts[-3], classes=['1', '3'], extensions=['.png'], include=['train', 'valid'], open_mode='3G').
                      split_by_folder().
                      to_tensor(tfms=tfms, tfm_y=False))
         base_model = timm.create_model(hparams.model, pretrained=not hparams.rand_weights)
@@ -161,9 +161,25 @@ class GradesClassifModel(BaseModule):
         p = hparams.dropout
         head += bn_drop_lin(nf, 512, p=p/2) + bn_drop_lin(512, 2, p=p)
         self.head = nn.Sequential(*head)
+        self.create_normalizer()
         self.post_init()
 
+    def create_normalizer(self):
+        hparams = self.hparams
+        if hparams.normalizer is not None:
+            norm = DynamicUnet(hparams.normalizer, n_classes=3, input_shape=(3, hparams.size, hparams.size), pretrained=True)
+            if hparams.norm_version is not None:
+                save_dir = self.save_path.parent/'normalizer'/f'lightning_logs/version_{hparams.norm_version}/checkpoints'
+                path = next(save_dir.iterdir())
+                checkpoint = torch.load(path, map_location=lambda storage, loc: storage)
+                norm.load_state_dict(checkpoint['state_dict'])
+                for p in norm.parameters():
+                    p.requires_grad = False
+            self.norm = norm.__call__
+
     def forward(self, x):
+        if self.hparams.normalizer is not None:
+            x = self.norm(x)
         x = self.base_model(x)
         x = self.head(x)
         return x
