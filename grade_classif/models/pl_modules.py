@@ -51,6 +51,8 @@ class BaseModule(pl.LightningModule):
         self.bs = hparams.batch_size
         self.lr = hparams.lr
         self.wd = hparams.wd
+        model_type = 'normalizer' if isinstance(self, Normalizer) else 'classifier'
+        self.save_path = hparams.savedir/f'{model_type}/{hparams.model}'
 
     def post_init(self):
         self.leaf_modules = named_leaf_modules('', self)
@@ -129,7 +131,7 @@ class BaseModule(pl.LightningModule):
         return DataLoader(self.data.test, batch_size=self.bs) if self.data.test is not None else None
 
     def load(self, version):
-        save_dir = self.hparams.savedir/f'lightning_logs/version_{version}/checkpoints'
+        save_dir = self.save_path/f'lightning_logs/version_{version}/checkpoints'
         path = next(save_dir.iterdir())
         checkpoint = torch.load(path, map_location=lambda storage, loc: storage)
         self.load_state_dict(checkpoint['state_dict'])
@@ -138,9 +140,9 @@ class BaseModule(pl.LightningModule):
         summary = pd.DataFrame(self.sizes, columns=['Type', 'Name', 'Output Shape'])
         return summary
 
-    def fit(self, epochs=None, gpus=[0]):
-        epochs = ifnone(epochs, self.hparams.epochs)
-        trainer = pl.Trainer(gpus=gpus, default_save_path=self.hparams.savedir, min_nb_epochs=epochs, max_nb_epochs=epochs)
+    def fit(self):
+        trainer = pl.Trainer(gpus=self.hparams.gpus, default_save_path=self.save_path, min_nb_epochs=self.hparams.epochs, max_nb_epochs=self.hparams.epochs)
+        self.version = trainer.logger.version
         trainer.fit(self)
 
 #Cell
@@ -152,7 +154,7 @@ class GradesClassifModel(BaseModule):
                      from_folder(Path(hparams.data), lambda x: x.parts[-3], classes=['1', '3'], extensions=['.png'], include=['train', 'valid']).
                      split_by_folder().
                      to_tensor(tfms=tfms, tfm_y=False))
-        base_model = timm.create_model(hparams.model, pretrained=True)
+        base_model = timm.create_model(hparams.model, pretrained=not hparams.rand_weights)
         self.base_model = nn.Sequential(*list(base_model.children())[:-2])
         head = [nn.AdaptiveAvgPool2d(1), nn.Flatten()]
         nf = get_num_features(self.base_model)
@@ -171,7 +173,7 @@ class Normalizer(BaseModule):
     def __init__(self, hparams):
         super(Normalizer, self).__init__(hparams)
         input_shape = (3, hparams.size, hparams.size)
-        self.unet = DynamicUnet(hparams.model, n_classes=3, input_shape=input_shape, pretrained=hparams.pretrained)
+        self.unet = DynamicUnet(hparams.model, n_classes=3, input_shape=input_shape, pretrained=not hparams.rand_weights)
         # meta = cnn_config(resnet34)
         # body = create_body(resnet34, True, None)
         # size = (224, 224)

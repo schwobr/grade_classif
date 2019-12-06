@@ -4,10 +4,7 @@ __all__ = ['model']
 
 #Cell
 from .params import hparams
-from .models.pl_modules import Normalizer
+from .train import train_normalizer
 
 #Cell
-model = Normalizer(hparams)
-
-#Cell
-model.fit()
+model = train_normalizer()
