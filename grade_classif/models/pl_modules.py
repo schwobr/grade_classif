@@ -137,6 +137,9 @@ class BaseModule(pl.LightningModule):
         self.load_state_dict(checkpoint['state_dict'])
 
     def my_summarize(self):
+        """
+        TODO: change to make it work with `get_size` changes
+        """
         summary = pd.DataFrame(self.sizes, columns=['Type', 'Name', 'Output Shape'])
         return summary
 
@@ -232,8 +235,8 @@ class Normalizer(BaseModule):
         plt.show()
 
     def freeze_encoder(self):
-        for n, m in self.leaf_modules('', self):
-            if 'encoder' in n and not isinstance(m, nn.BatchNorm2d):
+        for m in self.leaf_modules('', self):
+            if 'encoder' in m.name and not isinstance(m, nn.BatchNorm2d):
                 for param in m.parameters():
                     param.requires_grad = False
 

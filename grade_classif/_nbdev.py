@@ -3,6 +3,7 @@
 __all__ = ["index", "modules", "custom_doc_links", "git_url"]
 
 index = {"ifnone": "00_core.ipynb",
+         "is_listy": "00_core.ipynb",
          "PROJECT": "01_defaults.ipynb",
          "LEVEL": "01_defaults.ipynb",
          "DATA": "01_defaults.ipynb",
@@ -50,7 +51,9 @@ index = {"ifnone": "00_core.ipynb",
          "DecoderBlock": "21_models_unet.ipynb",
          "DynamicUnet": "21_models_unet.ipynb",
          "named_leaf_modules": "22_models_utils.ipynb",
-         "get_sizes": "22_models_utils.ipynb"}
+         "get_sizes": "22_models_utils.ipynb",
+         "Hook": "23_models_hooks.ipynb",
+         "Hooks": "23_models_hooks.ipynb"}
 
 modules = ["core.py",
            "defaults.py",
@@ -63,7 +66,8 @@ modules = ["core.py",
            "data/transforms.py",
            "models/pl_modules.py",
            "models/unet.py",
-           "models/utils.py"]
+           "models/utils.py",
+           "models/hooks.py"]
 
 git_url = "https://github.com/schwobr/grade_classif_nbdev/tree/master/"
 

@@ -8,6 +8,8 @@ import torch
 from torch.nn.functional import interpolate
 import timm
 from .utils import get_sizes
+import numpy as np
+from .hooks import Hooks
 
 #Cell
 class ConvBnRelu(nn.Module):
@@ -89,9 +91,9 @@ class PixelShuffleICNR(nn.Module):
 
 #Cell
 class DecoderBlock(nn.Module):
-    def __init__(self, in_chans, skip_chans, skip_cos, final_div=True, **kwargs):
+    def __init__(self, in_chans, skip_chans, hook, final_div=True, **kwargs):
         super(DecoderBlock, self).__init__()
-        self.skip_cos = skip_cos
+        self.hook = hook
         self.shuf = PixelShuffleICNR(in_chans, in_chans//2, **kwargs)
         self.bn = nn.BatchNorm2d(skip_chans)
         ni = in_chans//2 + skip_chans
@@ -101,7 +103,7 @@ class DecoderBlock(nn.Module):
         self.conv2 = ConvBnRelu(nf, nf, 3, padding=1, **kwargs)
 
     def forward(self, x):
-        skipco = self.skip_cos.pop()
+        skipco = self.hook.stored
         x = self.shuf(x)
         ssh = skipco.shape[-2:]
         if ssh != x.shape[-2:]:
@@ -110,20 +112,24 @@ class DecoderBlock(nn.Module):
         return self.conv2(self.conv1(x))
 
 #Cell
+from torchvision.models import resnet34
+
+#Cell
 class DynamicUnet(nn.Module):
     def __init__(self, encoder_name, cut=-2, n_classes=2, input_shape=(3, 224, 224), pretrained=True):
         super(DynamicUnet, self).__init__()
-        encoder = timm.create_model(encoder_name, pretrained=pretrained)
+        # encoder = timm.create_model(encoder_name, pretrained=pretrained)
+        encoder = resnet34()
         self.encoder = nn.Sequential(*(list(encoder.children())[:cut]+[nn.ReLU()]))
         encoder_sizes, idxs = self.register_output_hooks(input_shape=input_shape)
-        n_chans = encoder_sizes[-1, 2][0]
+        n_chans = encoder_sizes[-1][1]
         middle_conv = nn.Sequential(ConvBnRelu(n_chans, n_chans//2, 3),
                                     ConvBnRelu(n_chans//2, n_chans, 3))
         decoder = [middle_conv]
         for k, idx in enumerate(idxs[::-1]):
-            skip_chans = encoder_sizes[idx, 1][0]
+            skip_chans = encoder_sizes[idx][1]
             final_div = (k != len(idxs)-1)
-            decoder.append(DecoderBlock(n_chans, skip_chans, self.skip_cos, final_div=final_div))
+            decoder.append(DecoderBlock(n_chans, skip_chans, self.hooks[k], final_div=final_div))
             n_chans = n_chans//2 + skip_chans
             n_chans = n_chans if not final_div else skip_chans
         self.decoder = nn.Sequential(*decoder, ConvBn(n_chans, n_classes, 1))
@@ -136,17 +142,20 @@ class DynamicUnet(nn.Module):
 
 
     def register_output_hooks(self, input_shape=(3, 224, 224)):
-        sizes = get_sizes(self.encoder, input_shape=input_shape)
-        self.skip_cos = []
-        self.handles = []
-        idxs = []
-
+        sizes, modules = get_sizes(self.encoder, input_shape=input_shape)
+        mods = []
+        idxs = np.where(sizes[:-1, -1] != sizes[1:, -1])[0]
         def _hook(model, input, output):
-            self.skip_cos.append(input[0])
+            return output
 
-        for k, (m, in_shape, out_shape) in enumerate(sizes):
-            if len(out_shape) == len(in_shape) == 3 and out_shape[1] != in_shape[1] and 'downsample' not in m.name:
-                self.handles.append(m.register_forward_hook(_hook))
-                idxs.append(k)
+        for k in idxs[::-1]:
+            out_shape = sizes[k]
+            m = modules[k]
+            if 'downsample' not in m.name:
+                mods.append(m)
+        self.hooks = Hooks(mods, _hook)
 
         return sizes, idxs
+
+    def __del__(self):
+        if hasattr(self, "hooks"): self.hooks.remove()

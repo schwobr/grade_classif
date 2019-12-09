@@ -5,13 +5,15 @@ __all__ = ['named_leaf_modules', 'get_sizes']
 #Cell
 import torch
 from ..core import ifnone
+from .hooks import Hooks
 import numpy as np
 
 #Cell
 def named_leaf_modules(name, model):
     named_children = list(model.named_children())
     if named_children==[]:
-        return [(name, model)]
+        model.name = name
+        return [model]
     else:
         res = []
         for n, m in named_children:
@@ -21,19 +23,14 @@ def named_leaf_modules(name, model):
 
 #Cell
 def get_sizes(model, input_shape=(3, 224, 224), leaf_modules=None):
-    sizes = []
-    size_handles = []
     leaf_modules = ifnone(leaf_modules, named_leaf_modules('', model))
 
     def _hook(model, input, output):
-        sizes.append((model, input[0].shape[1:], output.shape[1:]))
+        return output
 
-    for n, m in leaf_modules:
-        m.name = n
-        size_handles.append(m.register_forward_hook(_hook))
-
-    x = torch.rand(2, *input_shape)
-    model.eval()(x)
-    for handle in size_handles:
-        handle.remove()
-    return np.array(sizes)
+    mods = [m for m in leaf_modules]
+    with Hooks(mods, _hook) as hooks:
+        x = torch.rand(2, *input_shape)
+        model.eval()(x)
+        sizes = [hook.stored.shape for hook in hooks]
+    return np.array(sizes), leaf_modules
