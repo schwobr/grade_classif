@@ -126,12 +126,13 @@ class DynamicUnet(nn.Module):
         middle_conv = nn.Sequential(ConvBnRelu(n_chans, n_chans//2, 3),
                                     ConvBnRelu(n_chans//2, n_chans, 3))
         decoder = [middle_conv]
-        for k, idx in enumerate(idxs[::-1]):
+        for k, (idx, hook) in enumerate(zip(idxs[::-1], self.hooks)):
             skip_chans = encoder_sizes[idx][1]
             final_div = (k != len(idxs)-1)
-            decoder.append(DecoderBlock(n_chans, skip_chans, self.hooks[k], final_div=final_div))
+            decoder.append(DecoderBlock(n_chans, skip_chans, hook, final_div=final_div))
             n_chans = n_chans//2 + skip_chans
             n_chans = n_chans if not final_div else skip_chans
+        # TODO: add final layers to get right resolution
         self.decoder = nn.Sequential(*decoder, ConvBn(n_chans, n_classes, 1))
 
 
@@ -153,6 +154,7 @@ class DynamicUnet(nn.Module):
             m = modules[k]
             if 'downsample' not in m.name:
                 mods.append(m)
+                print(m.name)
         self.hooks = Hooks(mods, _hook)
 
         return sizes, idxs

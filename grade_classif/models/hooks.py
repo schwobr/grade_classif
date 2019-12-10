@@ -34,17 +34,21 @@ class Hook:
 class Hooks:
     "Create several hooks on the modules in `ms` with `hook_func`."
     def __init__(self, ms, hook_func, is_forward=True, detach=True):
-        self.hooks = [Hook(m, hook_func, is_forward, detach) for m in ms]
+        for k, m in enumerate(ms):
+            setattr(self, f'hook_{k}', Hook(m, hook_func, is_forward, detach))
+        #self.hooks = [Hook(m, hook_func, is_forward, detach) for m in ms]
+        self.n = len(ms)
 
-    def __getitem__(self,i): return self.hooks[i]
-    def __len__(self): return len(self.hooks)
-    def __iter__(self): return iter(self.hooks)
+    def __getitem__(self,i): return getattr(self, f'hook_{i}')
+    def __len__(self): return self.n
+    def __iter__(self): return iter([self[k] for k in range(len(self))])
+
     @property
     def stored(self): return [o.stored for o in self]
 
     def remove(self):
         "Remove the hooks from the model."
-        for h in self.hooks: h.remove()
+        for h in self: h.remove()
 
     def __enter__(self, *args): return self
     def __exit__ (self, *args): self.remove()

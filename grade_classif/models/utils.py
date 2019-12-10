@@ -25,12 +25,19 @@ def named_leaf_modules(name, model):
 def get_sizes(model, input_shape=(3, 224, 224), leaf_modules=None):
     leaf_modules = ifnone(leaf_modules, named_leaf_modules('', model))
 
+    class Count:
+        def __init__(self):
+            self.k = 0
+    count = Count()
     def _hook(model, input, output):
-        return output
+        model.k = count.k
+        count.k += 1
+        return model, output
 
-    mods = [m for m in leaf_modules]
-    with Hooks(mods, _hook) as hooks:
+    with Hooks(leaf_modules, _hook) as hooks:
         x = torch.rand(2, *input_shape)
         model.eval()(x)
-        sizes = [hook.stored.shape for hook in hooks]
-    return np.array(sizes), leaf_modules
+        sizes = [hook.stored[1].shape for hook in hooks]
+        mods = [hook.stored[0] for hook in hooks]
+    idxs = np.argsort([mod.k for mod in mods])
+    return np.array(sizes)[idxs], np.array(mods)[idxs]
