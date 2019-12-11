@@ -4,7 +4,7 @@ __all__ = ['hparams']
 
 #Cell
 from test_tube import HyperOptArgumentParser
-from ..defaults import *
+from .defaults import *
 from pathlib import Path
 
 #Cell

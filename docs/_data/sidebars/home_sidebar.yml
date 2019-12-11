@@ -11,7 +11,7 @@ entries:
       url: /
     - output: web,pdf
       title: Title
-      url: /models_utils
+      url: /params_predict
     output: web
     title: grade_classif
   output: web

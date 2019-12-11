@@ -47,7 +47,11 @@ class BaseModule(pl.LightningModule):
     def __init__(self, hparams):
         super(BaseModule, self).__init__()
         self.hparams = hparams
-        self.loss = _get_loss(hparams.loss, hparams.weight, hparams.reduction)
+        try:
+            weight = hparams.weight
+        except AttributeError:
+            weight = 1.
+        self.loss = _get_loss(hparams.loss, weight, hparams.reduction)
         self.bs = hparams.batch_size
         self.lr = hparams.lr
         self.wd = hparams.wd
@@ -144,7 +148,7 @@ class BaseModule(pl.LightningModule):
         return summary
 
     def fit(self):
-        trainer = pl.Trainer(gpus=self.hparams.gpus, default_save_path=self.save_path, min_nb_epochs=self.hparams.epochs, max_nb_epochs=self.hparams.epochs)
+        trainer = pl.Trainer(gpus=self.hparams.gpus, default_save_path=self.save_path, min_epochs=self.hparams.epochs, max_epochs=self.hparams.epochs)
         self.version = trainer.logger.version
         trainer.fit(self)
 

@@ -3,7 +3,6 @@
 __all__ = ['train_normalizer', 'train_classifier']
 
 #Cell
-from .params import hparams
 from .models.pl_modules import Normalizer, GradesClassifModel
 
 #Cell
