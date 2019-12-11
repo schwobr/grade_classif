@@ -12,7 +12,7 @@ from ..data.dataset import ImageClassifDataset, NormDataset
 from ..data.transforms import get_transforms
 from ..data.utils import show_img
 from .utils import named_leaf_modules, get_sizes
-from .unet import DynamicUnet
+from .modules import DynamicUnet, bn_drop_lin
 from ..core import ifnone
 import timm
 from pathlib import Path
@@ -52,7 +52,7 @@ class BaseModule(pl.LightningModule):
         self.lr = hparams.lr
         self.wd = hparams.wd
         model_type = 'normalizer' if isinstance(self, Normalizer) else 'classifier'
-        self.save_path = hparams.savedir/f'{model_type}/{hparams.model}'
+        self.save_path = hparams.savedir/f'level_{hparams.level}/{model_type}/{hparams.model}'
 
     def post_init(self):
         self.leaf_modules = named_leaf_modules('', self)
