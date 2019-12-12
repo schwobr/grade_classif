@@ -4,14 +4,20 @@ __all__ = ['hparams']
 
 #Cell
 from test_tube import HyperOptArgumentParser
+from test_tube.argparse_hopt import TTNamespace
 from .defaults import *
 from pathlib import Path
+
+#Cell
+def _getattr(self, name):
+    return None
+TTNamespace.__getattr__ = _getattr
 
 #Cell
 _parser = HyperOptArgumentParser(strategy='random_search')
 _parser.add_argument('--file', '-f', help='notebook convenience')
 _parser.add_argument('--HistoryManager.hist_file', help='nbconvert convenience')
-_parser.add_argument('--data', default=DATA, help='path to folder containing data')
+_parser.add_argument('--data', default=FULL_DATA, help='path to folder containing data')
 _parser.add_argument('--scan', default=SCAN, help='name of scan to predict. If not specified, all valid scans are predicted')
 _parser.add_argument('--levels', default=PRED_LEVELS, type=int, help='zoom levels to work on')
 _parser.add_argument('--batch-size', default=BATCH_SIZE, type=int, help='batch size')

@@ -11,7 +11,7 @@ from torch.optim.lr_scheduler import OneCycleLR, CosineAnnealingLR, ReduceLROnPl
 from ..data.dataset import ImageClassifDataset, NormDataset
 from ..data.transforms import get_transforms
 from ..data.utils import show_img
-from .utils import named_leaf_modules, get_sizes
+from .utils import named_leaf_modules, get_sizes, get_num_features
 from .modules import DynamicUnet, bn_drop_lin
 from ..core import ifnone
 import timm
@@ -61,6 +61,8 @@ class BaseModule(pl.LightningModule):
     def post_init(self):
         self.leaf_modules = named_leaf_modules('', self)
         self.sizes = get_sizes(self, input_shape=(3, self.hparams.size, self.hparams.size), leaf_modules=self.leaf_modules)
+        self.main_device = 'cpu' if self.hparams.gpus is None else f'cuda:{self.hparams.gpus[0]}'
+        self = self.to(self.main_device)
 
     def training_step(self, batch, batch_nb):
         # REQUIRED
@@ -152,6 +154,9 @@ class BaseModule(pl.LightningModule):
         self.version = trainer.logger.version
         trainer.fit(self)
 
+    def predict(self, x):
+        return self.eval()(x)
+
 #Cell
 class GradesClassifModel(BaseModule):
     def __init__(self, hparams):
@@ -168,24 +173,28 @@ class GradesClassifModel(BaseModule):
         p = hparams.dropout
         head += bn_drop_lin(nf, 512, p=p/2) + bn_drop_lin(512, 2, p=p)
         self.head = nn.Sequential(*head)
-        self.create_normalizer()
         self.post_init()
+        self.create_normalizer()
 
     def create_normalizer(self):
         hparams = self.hparams
         if hparams.normalizer is not None:
             norm = DynamicUnet(hparams.normalizer, n_classes=3, input_shape=(3, hparams.size, hparams.size), pretrained=True)
             if hparams.norm_version is not None:
-                save_dir = self.save_path.parent/'normalizer'/f'lightning_logs/version_{hparams.norm_version}/checkpoints'
+                save_dir = self.save_path.parents[1]/'normalizer'/f'{hparams.normalizer}/lightning_logs/version_{hparams.norm_version}/checkpoints'
                 path = next(save_dir.iterdir())
                 checkpoint = torch.load(path, map_location=lambda storage, loc: storage)
-                norm.load_state_dict(checkpoint['state_dict'])
+                state_dict = {}
+                for k in checkpoint['state_dict']:
+                    state_dict[k.replace('unet.', '')] = checkpoint['state_dict'][k]
+                norm.load_state_dict(state_dict)
                 for p in norm.parameters():
                     p.requires_grad = False
+            norm = norm.to(self.main_device)
             self.norm = norm.__call__
 
     def forward(self, x):
-        if self.hparams.normalizer is not None:
+        if hasattr(self, 'norm'):
             x = self.norm(x)
         x = self.base_model(x)
         x = self.head(x)
