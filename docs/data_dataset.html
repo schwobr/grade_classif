@@ -70,7 +70,7 @@ of :class:<code>~torch.utils.data.DataLoader</code>.</p>
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h2 id="ClassDataset" class="doc_header"><code>class</code> <code>ClassDataset</code><a href="https://github.com/schwobr/grade_classif_nbdev/tree/master/grade_classif/data/dataset.py#L70" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>ClassDataset</code>(<strong>*<code>args</code></strong>, <strong><code>n_classes</code></strong>=<em><code>2</code></em>, <strong>**<code>kwargs</code></strong>) :: <a href="/data.dataset.html#MyDataset"><code>MyDataset</code></a></p>
+<h2 id="ClassDataset" class="doc_header"><code>class</code> <code>ClassDataset</code><a href="https://github.com/schwobr/grade_classif_nbdev/tree/master/grade_classif/data/dataset.py#L93" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>ClassDataset</code>(<strong>*<code>args</code></strong>, <strong><code>n_classes</code></strong>=<em><code>2</code></em>, <strong>**<code>kwargs</code></strong>) :: <a href="/data.dataset.html#MyDataset"><code>MyDataset</code></a></p>
 </blockquote>
 <p>An abstract class representing a :class:<code>Dataset</code>.</p>
 <p>All datasets that represent a map from keys to data samples should subclass
@@ -104,7 +104,7 @@ of :class:<code>~torch.utils.data.DataLoader</code>.</p>
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h2 id="ImageClassifDataset" class="doc_header"><code>class</code> <code>ImageClassifDataset</code><a href="https://github.com/schwobr/grade_classif_nbdev/tree/master/grade_classif/data/dataset.py#L76" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>ImageClassifDataset</code>(<strong>*<code>args</code></strong>, <strong><code>n_classes</code></strong>=<em><code>2</code></em>, <strong>**<code>kwargs</code></strong>) :: <a href="/data.dataset.html#ClassDataset"><code>ClassDataset</code></a></p>
+<h2 id="ImageClassifDataset" class="doc_header"><code>class</code> <code>ImageClassifDataset</code><a href="https://github.com/schwobr/grade_classif_nbdev/tree/master/grade_classif/data/dataset.py#L99" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>ImageClassifDataset</code>(<strong>*<code>args</code></strong>, <strong><code>n_classes</code></strong>=<em><code>2</code></em>, <strong>**<code>kwargs</code></strong>) :: <a href="/data.dataset.html#ClassDataset"><code>ClassDataset</code></a></p>
 </blockquote>
 <p>An abstract class representing a :class:<code>Dataset</code>.</p>
 <p>All datasets that represent a map from keys to data samples should subclass
@@ -138,7 +138,7 @@ of :class:<code>~torch.utils.data.DataLoader</code>.</p>
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h2 id="ImageSegmentDataset" class="doc_header"><code>class</code> <code>ImageSegmentDataset</code><a href="https://github.com/schwobr/grade_classif_nbdev/tree/master/grade_classif/data/dataset.py#L93" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>ImageSegmentDataset</code>(<strong>*<code>args</code></strong>, <strong><code>n_classes</code></strong>=<em><code>2</code></em>, <strong>**<code>kwargs</code></strong>) :: <a href="/data.dataset.html#ClassDataset"><code>ClassDataset</code></a></p>
+<h2 id="ImageSegmentDataset" class="doc_header"><code>class</code> <code>ImageSegmentDataset</code><a href="https://github.com/schwobr/grade_classif_nbdev/tree/master/grade_classif/data/dataset.py#L116" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>ImageSegmentDataset</code>(<strong>*<code>args</code></strong>, <strong><code>n_classes</code></strong>=<em><code>2</code></em>, <strong>**<code>kwargs</code></strong>) :: <a href="/data.dataset.html#ClassDataset"><code>ClassDataset</code></a></p>
 </blockquote>
 <p>An abstract class representing a :class:<code>Dataset</code>.</p>
 <p>All datasets that represent a map from keys to data samples should subclass
@@ -172,7 +172,7 @@ of :class:<code>~torch.utils.data.DataLoader</code>.</p>
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h2 id="NormDataset" class="doc_header"><code>class</code> <code>NormDataset</code><a href="https://github.com/schwobr/grade_classif_nbdev/tree/master/grade_classif/data/dataset.py#L111" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>NormDataset</code>(<strong><code>items</code></strong>, <strong><code>labels</code></strong>, <strong><code>item_loader</code></strong>, <strong><code>label_loader</code></strong>) :: <a href="/data.dataset.html#MyDataset"><code>MyDataset</code></a></p>
+<h2 id="NormDataset" class="doc_header"><code>class</code> <code>NormDataset</code><a href="https://github.com/schwobr/grade_classif_nbdev/tree/master/grade_classif/data/dataset.py#L134" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>NormDataset</code>(<strong><code>items</code></strong>, <strong><code>labels</code></strong>, <strong><code>item_loader</code></strong>, <strong><code>label_loader</code></strong>) :: <a href="/data.dataset.html#MyDataset"><code>MyDataset</code></a></p>
 </blockquote>
 <p>An abstract class representing a :class:<code>Dataset</code>.</p>
 <p>All datasets that represent a map from keys to data samples should subclass
@@ -206,9 +206,9 @@ of :class:<code>~torch.utils.data.DataLoader</code>.</p>
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h2 id="SplitDataset" class="doc_header"><code>class</code> <code>SplitDataset</code><a href="https://github.com/schwobr/grade_classif_nbdev/tree/master/grade_classif/data/dataset.py#L134" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>SplitDataset</code>(<strong><code>train</code></strong>:<code>Dataset</code>, <strong><code>valid</code></strong>:<code>Dataset</code>, <strong><code>test</code></strong>:<code>Dataset</code>=<em><code>None</code></em>)</p>
+<h2 id="SplitDataset" class="doc_header"><code>class</code> <code>SplitDataset</code><a href="https://github.com/schwobr/grade_classif_nbdev/tree/master/grade_classif/data/dataset.py#L157" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>SplitDataset</code>(<strong><code>train</code></strong>:<code>Dataset</code>, <strong><code>valid</code></strong>:<code>Dataset</code>, <strong><code>test</code></strong>:<code>Dataset</code>=<em><code>None</code></em>)</p>
 </blockquote>
-<p>SplitDataset(train:torch.utils.data.dataset.Dataset, valid:torch.utils.data.dataset.Dataset, test:torch.utils.data.dataset.Dataset=None)</p>
+<p>SplitDataset(train: torch.utils.data.dataset.Dataset, valid: torch.utils.data.dataset.Dataset, test: torch.utils.data.dataset.Dataset = None)</p>
 
 </div>
 
@@ -230,7 +230,7 @@ of :class:<code>~torch.utils.data.DataLoader</code>.</p>
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h2 id="TensorDataset" class="doc_header"><code>class</code> <code>TensorDataset</code><a href="https://github.com/schwobr/grade_classif_nbdev/tree/master/grade_classif/data/dataset.py#L148" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>TensorDataset</code>(<strong><code>ds</code></strong>, <strong><code>tfms</code></strong>=<em><code>None</code></em>, <strong><code>tfm_y</code></strong>=<em><code>True</code></em>) :: <code>Dataset</code></p>
+<h2 id="TensorDataset" class="doc_header"><code>class</code> <code>TensorDataset</code><a href="https://github.com/schwobr/grade_classif_nbdev/tree/master/grade_classif/data/dataset.py#L171" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>TensorDataset</code>(<strong><code>ds</code></strong>, <strong><code>tfms</code></strong>=<em><code>None</code></em>, <strong><code>tfm_y</code></strong>=<em><code>True</code></em>) :: <code>Dataset</code></p>
 </blockquote>
 <p>An abstract class representing a :class:<code>Dataset</code>.</p>
 <p>All datasets that represent a map from keys to data samples should subclass

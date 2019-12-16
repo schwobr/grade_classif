@@ -66,6 +66,29 @@ class MyDataset(Dataset):
             test = None
         return self.split_by_list(train, valid, test)
 
+    def split_by_csv(self, csv, column='split'):
+        df = pd.read_csv(csv, header='infer')
+        train = ([], [])
+        valid = ([], [])
+        test = ([], [])
+        train_ids = df.loc[df[column] == 'train', 'scan']
+        valid_ids = df.loc[df[column] == 'valid', 'scan']
+        test_ids = df.loc[df[column] == 'test', 'scan']
+        for item, label in zip(self.items, self.labels):
+            scan_name = item.parent.name
+            if scan_name in train_ids:
+                train[0].append(item)
+                train[1].append(label)
+            elif scan_name in valid_ids:
+                valid[0].append(item)
+                valid[1].append(label)
+            elif scan_name in test_ids:
+                test[0].append(item)
+                test[1].append(label)
+        if test[0] == []:
+            test = None
+        return self.split_by_list(train, valid, test)
+
 #Cell
 class ClassDataset(MyDataset):
     def __init__(self, *args, n_classes=2, **kwargs):
