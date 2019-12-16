@@ -163,8 +163,8 @@ class GradesClassifModel(BaseModule):
         super(GradesClassifModel, self).__init__(hparams)
         tfms = get_transforms(hparams.size)
         self.data = (ImageClassifDataset.
-                     from_folder(Path(hparams.data), lambda x: x.parts[-3], classes=['1', '3'], extensions=['.png'], include=['train', 'valid'], open_mode='3G').
-                     split_by_folder().
+                     from_folder(Path(hparams.data), lambda x: x.parts[-3], classes=['1', '3'], extensions=['.png'], include=['1', '3'], open_mode='3G').
+                     split_by_csv(hparams.data_csv).
                      to_tensor(tfms=tfms, tfm_y=False))
         base_model = timm.create_model(hparams.model, pretrained=not hparams.rand_weights)
         self.base_model = nn.Sequential(*list(base_model.children())[:-2])
@@ -214,8 +214,8 @@ class Normalizer(BaseModule):
         #      bottle=False)
         tfms = get_transforms(hparams.size)
         self.data = (NormDataset.
-                     from_folder(Path(hparams.data), lambda x: x, hparams.csv, extensions=['.png'], include=['train', 'valid']).
-                     split_by_folder().
+                     from_folder(Path(hparams.data), lambda x: x, hparams.csv, extensions=['.png'], include=['1', '3']).
+                     split_by_csv(hparams.data_csv).
                      to_tensor(tfms=tfms))
         self.post_init()
 

@@ -54,7 +54,7 @@ def split(scans, grades, valid_pct=0.2):
     order = np.random.permutation(len(scans))
     n = {'1': len(grades1), '3': len(grades)-len(grades1)}
     k = {'1': 0, '3': 0}
-    splits = np.zeros(len(scans), dtype=str)
+    splits = ['' for _ in scans]
     for o in order:
         grade, scan = grades[o], scans[o]
         if k[grade] > valid_pct*n[grade]:
@@ -66,10 +66,21 @@ def split(scans, grades, valid_pct=0.2):
     return splits
 
 #Cell
+def _remove_doubles(scans, grades):
+    scans_res = []
+    grades_res = []
+    for scan, grade in zip(scans, grades):
+        if scan not in scans_res:
+            scans_res.append(scan)
+            grades_res.append(grade)
+    return scans_res, grades_res
+
+#Cell
 def create_csv(csv_path, data_path, label_func=None):
     label_func = ifnone(label_func, lambda x: x.parts[-3])
     scans, grades = get_items(data_path, label_func, include=['1', '3'])
     scans = list(map(lambda x: x.parent.name, scans))
+    scans, grades = _remove_doubles(scans, grades)
     splits = split(scans, grades)
     df = pd.DataFrame({'scan': scans, 'grade': grades, 'split': splits})
     df.to_csv(csv_path, index=False)
