@@ -20,9 +20,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 #Cell
-def _get_loss(loss_name, weight, reduction):
+def _get_loss(loss_name, weight, reduction, device='cpu'):
     if loss_name == 'cross-entropy':
-        loss = nn.CrossEntropyLoss(torch.tensor([weight, 1.]), reduction=reduction)
+        loss = nn.CrossEntropyLoss(torch.tensor([weight, 1.], device=device), reduction=reduction)
     if loss_name == 'mse':
         loss = nn.MSELoss(reduction=reduction)
     return loss.__call__
@@ -47,11 +47,12 @@ class BaseModule(pl.LightningModule):
     def __init__(self, hparams):
         super(BaseModule, self).__init__()
         self.hparams = hparams
+        self.main_device = 'cpu' if hparams.gpus is None else f'cuda:{hparams.gpus[0]}'
         try:
             weight = hparams.weight
         except AttributeError:
             weight = 1.
-        self.loss = _get_loss(hparams.loss, weight, hparams.reduction)
+        self.loss = _get_loss(hparams.loss, weight, hparams.reduction, device=self.main_device)
         self.bs = hparams.batch_size
         self.lr = hparams.lr
         self.wd = hparams.wd
@@ -61,7 +62,6 @@ class BaseModule(pl.LightningModule):
     def post_init(self):
         self.leaf_modules = named_leaf_modules('', self)
         self.sizes = get_sizes(self, input_shape=(3, self.hparams.size, self.hparams.size), leaf_modules=self.leaf_modules)
-        self.main_device = 'cpu' if self.hparams.gpus is None else f'cuda:{self.hparams.gpus[0]}'
         self = self.to(self.main_device)
 
     def training_step(self, batch, batch_nb):

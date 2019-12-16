@@ -4,7 +4,6 @@ __all__ = ["index", "modules", "custom_doc_links", "git_url"]
 
 index = {"ifnone": "00_core.ipynb",
          "is_listy": "00_core.ipynb",
-         "train_normalizer": "01_train.ipynb",
          "train_classifier": "01_train.ipynb",
          "predict_one_scan_one_level": "02_predict.ipynb",
          "predict_one_scan": "02_predict.ipynb",

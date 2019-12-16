@@ -44,27 +44,49 @@ summary: "summary"
 <div class="output_markdown rendered_html output_subarea ">
 <h2 id="BaseModule" class="doc_header"><code>class</code> <code>BaseModule</code><a href="https://github.com/schwobr/grade_classif_nbdev/tree/master/grade_classif/models/pl_modules.py#L46" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>BaseModule</code>(<strong><code>hparams</code></strong>) :: <code>LightningModule</code></p>
 </blockquote>
-<p>Base class for all neural network modules.</p>
-<p>Your models should also subclass this class.</p>
-<p>Modules can also contain other Modules, allowing to nest them in
-a tree structure. You can assign the submodules as regular attributes::</p>
+<p>A LightningModule has the following properties which you can access at any time</p>
+<p><strong>logger</strong>
+A reference to the logger you passed into trainer.
+Passing a logger is optional. If you don't pass one in, Lightning will create one
+ for you automatically. This logger saves logs to <code>/os.getcwd()/lightning_logs</code>::</p>
 
-<pre><code>import torch.nn as nn
-import torch.nn.functional as F
+<pre><code>Trainer(logger=your_logger)
 
-class Model(nn.Module):
-    def __init__(self):
-        super(Model, self).__init__()
-        self.conv1 = nn.Conv2d(1, 20, 5)
-        self.conv2 = nn.Conv2d(20, 20, 5)
-
-    def forward(self, x):
-        x = F.relu(self.conv1(x))
-        return F.relu(self.conv2(x))
 
 </code></pre>
-<p>Submodules assigned in this way will be registered, and will have their
-parameters converted too when you call :meth:<code>to</code>, etc.</p>
+<p>Call it from anywhere in your LightningModule to add metrics, images, etc...
+ whatever your logger supports.</p>
+<p>Here is an example using the TestTubeLogger (which is a wrapper
+ on 'PyTorch SummaryWriter <a href="https://pytorch.org/docs/stable/tensorboard.html">https://pytorch.org/docs/stable/tensorboard.html</a>`_
+ with versioned folder structure).</p>
+<p>.. code-block:: python</p>
+
+<pre><code># if logger is a tensorboard logger or TestTubeLogger
+self.logger.experiment.add_embedding(...)
+self.logger.experiment.log({'val_loss': 0.9})
+self.logger.experiment.add_scalars(...)
+
+
+</code></pre>
+<p><strong>trainer</strong>
+Last resort access to any state the trainer has.
+ Changing certain properties here could affect your training run.</p>
+<p>.. code-block:: python</p>
+
+<pre><code>self.trainer.optimizers
+self.trainer.current_epoch
+...
+
+</code></pre>
+<h2 id="Debugging">Debugging<a class="anchor-link" href="#Debugging">&#182;</a></h2><p>The LightningModule also offers these tricks to help debug.</p>
+<p><strong>example_input_array</strong></p>
+<p>In the LightningModule init, you can set a dummy tensor for this property
+to get a print out of sizes coming into and out of every layer.</p>
+<p>.. code-block:: python</p>
+
+<pre><code>def __init__(self):
+    # put the dimensions of the first input to your system
+    self.example_input_array = torch.rand(5, 28 * 28)</code></pre>
 
 </div>
 
@@ -88,27 +110,49 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <div class="output_markdown rendered_html output_subarea ">
 <h2 id="GradesClassifModel" class="doc_header"><code>class</code> <code>GradesClassifModel</code><a href="https://github.com/schwobr/grade_classif_nbdev/tree/master/grade_classif/models/pl_modules.py#L161" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>GradesClassifModel</code>(<strong><code>hparams</code></strong>) :: <a href="/models.pl.modules.html#BaseModule"><code>BaseModule</code></a></p>
 </blockquote>
-<p>Base class for all neural network modules.</p>
-<p>Your models should also subclass this class.</p>
-<p>Modules can also contain other Modules, allowing to nest them in
-a tree structure. You can assign the submodules as regular attributes::</p>
+<p>A LightningModule has the following properties which you can access at any time</p>
+<p><strong>logger</strong>
+A reference to the logger you passed into trainer.
+Passing a logger is optional. If you don't pass one in, Lightning will create one
+ for you automatically. This logger saves logs to <code>/os.getcwd()/lightning_logs</code>::</p>
 
-<pre><code>import torch.nn as nn
-import torch.nn.functional as F
+<pre><code>Trainer(logger=your_logger)
 
-class Model(nn.Module):
-    def __init__(self):
-        super(Model, self).__init__()
-        self.conv1 = nn.Conv2d(1, 20, 5)
-        self.conv2 = nn.Conv2d(20, 20, 5)
-
-    def forward(self, x):
-        x = F.relu(self.conv1(x))
-        return F.relu(self.conv2(x))
 
 </code></pre>
-<p>Submodules assigned in this way will be registered, and will have their
-parameters converted too when you call :meth:<code>to</code>, etc.</p>
+<p>Call it from anywhere in your LightningModule to add metrics, images, etc...
+ whatever your logger supports.</p>
+<p>Here is an example using the TestTubeLogger (which is a wrapper
+ on 'PyTorch SummaryWriter <a href="https://pytorch.org/docs/stable/tensorboard.html">https://pytorch.org/docs/stable/tensorboard.html</a>`_
+ with versioned folder structure).</p>
+<p>.. code-block:: python</p>
+
+<pre><code># if logger is a tensorboard logger or TestTubeLogger
+self.logger.experiment.add_embedding(...)
+self.logger.experiment.log({'val_loss': 0.9})
+self.logger.experiment.add_scalars(...)
+
+
+</code></pre>
+<p><strong>trainer</strong>
+Last resort access to any state the trainer has.
+ Changing certain properties here could affect your training run.</p>
+<p>.. code-block:: python</p>
+
+<pre><code>self.trainer.optimizers
+self.trainer.current_epoch
+...
+
+</code></pre>
+<h2 id="Debugging">Debugging<a class="anchor-link" href="#Debugging">&#182;</a></h2><p>The LightningModule also offers these tricks to help debug.</p>
+<p><strong>example_input_array</strong></p>
+<p>In the LightningModule init, you can set a dummy tensor for this property
+to get a print out of sizes coming into and out of every layer.</p>
+<p>.. code-block:: python</p>
+
+<pre><code>def __init__(self):
+    # put the dimensions of the first input to your system
+    self.example_input_array = torch.rand(5, 28 * 28)</code></pre>
 
 </div>
 
@@ -132,27 +176,49 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <div class="output_markdown rendered_html output_subarea ">
 <h2 id="Normalizer" class="doc_header"><code>class</code> <code>Normalizer</code><a href="https://github.com/schwobr/grade_classif_nbdev/tree/master/grade_classif/models/pl_modules.py#L204" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>Normalizer</code>(<strong><code>hparams</code></strong>) :: <a href="/models.pl.modules.html#BaseModule"><code>BaseModule</code></a></p>
 </blockquote>
-<p>Base class for all neural network modules.</p>
-<p>Your models should also subclass this class.</p>
-<p>Modules can also contain other Modules, allowing to nest them in
-a tree structure. You can assign the submodules as regular attributes::</p>
+<p>A LightningModule has the following properties which you can access at any time</p>
+<p><strong>logger</strong>
+A reference to the logger you passed into trainer.
+Passing a logger is optional. If you don't pass one in, Lightning will create one
+ for you automatically. This logger saves logs to <code>/os.getcwd()/lightning_logs</code>::</p>
 
-<pre><code>import torch.nn as nn
-import torch.nn.functional as F
+<pre><code>Trainer(logger=your_logger)
 
-class Model(nn.Module):
-    def __init__(self):
-        super(Model, self).__init__()
-        self.conv1 = nn.Conv2d(1, 20, 5)
-        self.conv2 = nn.Conv2d(20, 20, 5)
-
-    def forward(self, x):
-        x = F.relu(self.conv1(x))
-        return F.relu(self.conv2(x))
 
 </code></pre>
-<p>Submodules assigned in this way will be registered, and will have their
-parameters converted too when you call :meth:<code>to</code>, etc.</p>
+<p>Call it from anywhere in your LightningModule to add metrics, images, etc...
+ whatever your logger supports.</p>
+<p>Here is an example using the TestTubeLogger (which is a wrapper
+ on 'PyTorch SummaryWriter <a href="https://pytorch.org/docs/stable/tensorboard.html">https://pytorch.org/docs/stable/tensorboard.html</a>`_
+ with versioned folder structure).</p>
+<p>.. code-block:: python</p>
+
+<pre><code># if logger is a tensorboard logger or TestTubeLogger
+self.logger.experiment.add_embedding(...)
+self.logger.experiment.log({'val_loss': 0.9})
+self.logger.experiment.add_scalars(...)
+
+
+</code></pre>
+<p><strong>trainer</strong>
+Last resort access to any state the trainer has.
+ Changing certain properties here could affect your training run.</p>
+<p>.. code-block:: python</p>
+
+<pre><code>self.trainer.optimizers
+self.trainer.current_epoch
+...
+
+</code></pre>
+<h2 id="Debugging">Debugging<a class="anchor-link" href="#Debugging">&#182;</a></h2><p>The LightningModule also offers these tricks to help debug.</p>
+<p><strong>example_input_array</strong></p>
+<p>In the LightningModule init, you can set a dummy tensor for this property
+to get a print out of sizes coming into and out of every layer.</p>
+<p>.. code-block:: python</p>
+
+<pre><code>def __init__(self):
+    # put the dimensions of the first input to your system
+    self.example_input_array = torch.rand(5, 28 * 28)</code></pre>
 
 </div>
 

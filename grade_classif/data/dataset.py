@@ -76,13 +76,13 @@ class MyDataset(Dataset):
         test_ids = df.loc[df[column] == 'test', 'scan']
         for item, label in zip(self.items, self.labels):
             scan_name = item.parent.name
-            if scan_name in train_ids:
+            if scan_name in train_ids.values:
                 train[0].append(item)
                 train[1].append(label)
-            elif scan_name in valid_ids:
+            elif scan_name in valid_ids.values:
                 valid[0].append(item)
                 valid[1].append(label)
-            elif scan_name in test_ids:
+            elif scan_name in test_ids.values:
                 test[0].append(item)
                 test[1].append(label)
         if test[0] == []:
