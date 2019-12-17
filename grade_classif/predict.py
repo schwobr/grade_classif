@@ -4,7 +4,7 @@ __all__ = ['predict_one_scan_one_level', 'predict_one_scan', 'predict_all']
 
 #Cell
 from .data.utils import load_batches
-from .models.pl_modules import GradesClassifModel
+from .models.plmodules import GradesClassifModel
 from .data.read import get_scan
 
 #Cell
