@@ -44,7 +44,7 @@ def _get_scheduler(opt, name, total_steps, lr):
 
 #Cell
 class BaseModule(pl.LightningModule):
-    def __init__(self, hparams):
+    def __init__(self, hparams, metrics=None):
         super(BaseModule, self).__init__()
         self.hparams = hparams
         self.main_device = 'cpu' if hparams.gpus is None else f'cuda:{hparams.gpus[0]}'
@@ -56,6 +56,7 @@ class BaseModule(pl.LightningModule):
         self.bs = hparams.batch_size
         self.lr = hparams.lr
         self.wd = hparams.wd
+        self.metrics = ifnone(metrics, [])
         model_type = 'normalizer' if isinstance(self, Normalizer) else 'classifier'
         self.save_path = hparams.savedir/f'level_{hparams.level}/{model_type}/{hparams.model}'
 
@@ -71,6 +72,15 @@ class BaseModule(pl.LightningModule):
         loss = self.loss(y_hat, y)
         lr = self.sched.optimizer.param_groups[-1]['lr']
         log = {'train_loss': loss, 'lr': lr}
+        for metric in self.metrics:
+            try:
+                name = metric.__name__
+            except AttributeError:
+                name = metric.func.__name__
+                kws = metric.keywords
+                for k in kws:
+                    name += f'_{k}{kws[k]}'
+            log[name] = metric(y_hat, y)
         return {'loss': loss, 'log': log}
 
 
