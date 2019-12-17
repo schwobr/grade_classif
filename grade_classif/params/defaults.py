@@ -8,15 +8,15 @@ __all__ = ['PROJECT', 'LEVEL', 'FULL_DATA', 'DATA', 'DATA_CSV', 'MODELS', 'NORM_
 from pathlib import Path
 
 #Cell
-PROJECT = Path('/home/DeepLearning/grades_classif')
-_PROJECT = Path('/work/stages/schwob/grades_classif')
+_PROJECT = Path('/home/DeepLearning/grades_classif')
+PROJECT = Path('/work/stages/schwob/grades_classif')
 LEVEL = 3
-FULL_DATA = Path(f'/data/DeepLearning/SCHWOB_Robin/Patches_256')
-_FULL_DATA = Path(f'/work/stages/schwob/Patches_256')
+_FULL_DATA = Path(f'/data/DeepLearning/SCHWOB_Robin/Patches_256')
+FULL_DATA = Path(f'/work/stages/schwob/Patches_256')
 DATA = FULL_DATA/f'Patches_MGI_256_{LEVEL}'
 DATA_CSV = FULL_DATA/f'scans.csv'
-MODELS = Path('/data/DeepLearning/SCHWOB_Robin/models/logs')
-_MODELS = PROJECT/'models/logs'
+_MODELS = Path('/data/DeepLearning/SCHWOB_Robin/models/logs')
+MODELS = PROJECT/'models/logs'
 NORM_CSV = PROJECT/'categories.csv'
 MODEL = 'resnet34'
 GPUS = [0]

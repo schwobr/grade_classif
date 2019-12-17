@@ -4,6 +4,7 @@
     "Core functions": "/core",
     "Training": "/train",
     "Prediction": "/predict",
+    "Reading data ": "/data_read",
     "Title": "/params_parser"
   }
 }

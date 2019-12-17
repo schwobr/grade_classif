@@ -19,6 +19,9 @@ entries:
       title: Prediction
       url: /predict
     - output: web,pdf
+      title: 'Reading data '
+      url: /data_read
+    - output: web,pdf
       title: Title
       url: /params_parser
     output: web

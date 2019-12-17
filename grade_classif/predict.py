@@ -33,6 +33,7 @@ def predict_all(hparams):
     scans = []
     for scan in df.loc[df['split']=='valid', 'scan'].values:
         hparams.scan = scan
-        scans.append(s)
+        scans.append(scan)
         preds.append(predict_one_scan(hparams))
-    return preds, df
+    res = pd.DataFrame({'scan': scans, 'pred': preds})
+    return res
