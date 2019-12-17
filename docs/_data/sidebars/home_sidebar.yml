@@ -25,6 +25,9 @@ entries:
       title: Loading data
       url: /data_loaders
     - output: web,pdf
+      title: Datasets
+      url: /data_dataset
+    - output: web,pdf
       title: Title
       url: /params_parser
     output: web

@@ -6,6 +6,7 @@
     "Prediction": "/predict",
     "Reading data ": "/data_read",
     "Loading data": "/data_loaders",
+    "Datasets": "/data_dataset",
     "Title": "/params_parser"
   }
 }
