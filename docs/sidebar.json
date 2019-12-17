@@ -5,6 +5,7 @@
     "Training": "/train",
     "Prediction": "/predict",
     "Reading data ": "/data_read",
+    "Loading data": "/data_loaders",
     "Title": "/params_parser"
   }
 }

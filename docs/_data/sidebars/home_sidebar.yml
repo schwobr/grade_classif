@@ -22,6 +22,9 @@ entries:
       title: 'Reading data '
       url: /data_read
     - output: web,pdf
+      title: Loading data
+      url: /data_loaders
+    - output: web,pdf
       title: Title
       url: /params_parser
     output: web
