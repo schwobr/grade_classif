@@ -215,7 +215,7 @@ class Normalizer(BaseModule):
     def __init__(self, hparams):
         super(Normalizer, self).__init__(hparams)
         input_shape = (3, hparams.size, hparams.size)
-        self.unet = DynamicUnet(hparams.model, n_classes=3, input_shape=input_shape, pretrained=not hparams.rand_weights)
+        self.unet = DynamicUnet(hparams.normalizer, n_classes=3, input_shape=input_shape, pretrained=not hparams.rand_weights)
         # meta = cnn_config(resnet34)
         # body = create_body(resnet34, True, None)
         # size = (224, 224)

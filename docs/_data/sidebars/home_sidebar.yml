@@ -17,7 +17,7 @@ entries:
       url: /train
     - output: web,pdf
       title: Title
-      url: /params_predict
+      url: /params_parser
     output: web
     title: grade_classif
   output: web

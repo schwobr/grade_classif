@@ -2,7 +2,7 @@
 
 __all__ = ['PROJECT', 'LEVEL', 'FULL_DATA', 'DATA', 'DATA_CSV', 'MODELS', 'NORM_CSV', 'MODEL', 'GPUS', 'SIZE',
            'BATCH_SIZE', 'LOSS', 'SCHED', 'REDUCTION', 'EPOCHS', 'DROPOUT', 'LR', 'WD', 'WEIGHT', 'NORMALIZER',
-           'NORM_VERSION', 'PRED_LEVELS', 'VERSIONS', 'SCAN']
+           'NORM_VERSION', 'NORM_VERSIONS', 'PRED_LEVELS', 'VERSIONS', 'SCAN']
 
 #Cell
 from pathlib import Path
@@ -32,6 +32,7 @@ WD = 0.01
 WEIGHT = 1.
 NORMALIZER = None
 NORM_VERSION = 11
+NORM_VERSIONS = [0, 0, 0, 0]
 PRED_LEVELS = [1, 3, 5, 7]
 VERSIONS = [0, 0, 0, 0]
 SCAN = None

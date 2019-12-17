@@ -71,11 +71,11 @@ index = {"ifnone": "00_core.ipynb",
          "WEIGHT": "80_params_defaults.ipynb",
          "NORMALIZER": "80_params_defaults.ipynb",
          "NORM_VERSION": "80_params_defaults.ipynb",
+         "NORM_VERSIONS": "80_params_defaults.ipynb",
          "PRED_LEVELS": "80_params_defaults.ipynb",
          "VERSIONS": "80_params_defaults.ipynb",
          "SCAN": "80_params_defaults.ipynb",
-         "hparams": "83_params_predict.ipynb",
-         "TTNamespace.__getattr__": "83_params_predict.ipynb"}
+         "hparams": "81_params_parser.ipynb"}
 
 modules = ["core.py",
            "train.py",
@@ -91,10 +91,8 @@ modules = ["core.py",
            "models/hooks.py",
            "models/metrics.py",
            "params/defaults.py",
-           "params/norm.py",
-           "params/classif.py",
-           "params/predict.py"]
+           "params/parser.py"]
 
-git_url = "https://github.com/schwobr/grade_classif_nbdev/tree/master/"
+git_url = "https://github.com/schwobr/grade_classif/tree/master/"
 
 def custom_doc_links(name): return None
