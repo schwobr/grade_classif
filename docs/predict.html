@@ -1,10 +1,10 @@
 ---
 
-title: Title
+title: Prediction
 keywords: fastai
 sidebar: home_sidebar
 
-summary: "summary"
+summary: "Functions that wrap prediction tasks"
 ---
 <!--
 
@@ -37,6 +37,13 @@ summary: "summary"
 <div class="cell border-box-sizing code_cell rendered">
 
 </div>
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>All predictions are given as a score between 0 (for grade 1) and 1 (for grade 3).</p>
+
+</div>
+</div>
+</div>
 <div class="cell border-box-sizing code_cell rendered">
 
 </div>
@@ -59,6 +66,13 @@ summary: "summary"
 </div>
 </div>
 
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Returns - for one zoom level - the prediction for one single scan <code>fn</code> (as a <code>Path</code> to the corresponding folder) using <code>model</code>. Returns the mean result of all patches.</p>
+
+</div>
+</div>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 
@@ -83,6 +97,13 @@ summary: "summary"
 </div>
 
 </div>
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Returns a prediction for one scan over multiple levels. All parameters (such as levels for prediction, models to use or scan to predict) are defined in <a href="/params.parser.html#hparams"><code>hparams</code></a>.</p>
+
+</div>
+</div>
+</div>
 <div class="cell border-box-sizing code_cell rendered">
 
 </div>
@@ -105,6 +126,13 @@ summary: "summary"
 </div>
 </div>
 
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Compute predictions for all validation scans. All parameters are defined in <a href="/params.parser.html#hparams"><code>hparams</code></a>. This function returns a dataframe that contains the score for each scan.</p>
+
+</div>
+</div>
 </div>
 </div>
  

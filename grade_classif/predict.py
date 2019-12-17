@@ -22,7 +22,7 @@ def predict_one_scan(hparams):
         hparams.norm_version = norm_version
         model = GradesClassifModel(hparams)
         model.load(version)
-        path = get_scan(hparams.data/f'{hparams.data.name}_{level}', hparams.scan, include=['1', '3'])
+        path = get_scan(hparams.full_data/f'{hparams.full_data.name}_{level}', hparams.scan, include=['1', '3'])
         preds.append(predict_one_scan_one_level(model, path))
     return sum(preds)/len(preds)
 
@@ -30,7 +30,9 @@ def predict_one_scan(hparams):
 def predict_all(hparams):
     df = pd.read_csv(hparams.data_csv, header='infer')
     preds = []
+    scans = []
     for scan in df.loc[df['split']=='valid', 'scan'].values:
         hparams.scan = scan
+        scans.append(s)
         preds.append(predict_one_scan(hparams))
     return preds, df

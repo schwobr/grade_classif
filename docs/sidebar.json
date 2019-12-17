@@ -2,7 +2,8 @@
   "grade_classif": {
     "Overview": "/",
     "Core functions": "/core",
-    "Train functions": "/train",
+    "Training": "/train",
+    "Prediction": "/predict",
     "Title": "/params_parser"
   }
 }

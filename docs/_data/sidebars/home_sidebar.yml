@@ -13,8 +13,11 @@ entries:
       title: Core functions
       url: /core
     - output: web,pdf
-      title: Train functions
+      title: Training
       url: /train
+    - output: web,pdf
+      title: Prediction
+      url: /predict
     - output: web,pdf
       title: Title
       url: /params_parser
