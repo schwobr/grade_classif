@@ -28,6 +28,9 @@ entries:
       title: Datasets
       url: /data.dataset
     - output: web,pdf
+      title: Data utils
+      url: /data.utils
+    - output: web,pdf
       title: Title
       url: /params.parser
     output: web
