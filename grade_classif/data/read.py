@@ -57,7 +57,7 @@ def split(scans, grades, valid_pct=0.2):
     splits = ['' for _ in scans]
     for o in order:
         grade, scan = grades[o], scans[o]
-        if k[grade] > valid_pct*n[grade]:
+        if k[grade] >= valid_pct*n[grade]:
             split = 'train'
         else:
             split = 'valid'
