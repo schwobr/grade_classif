@@ -4,9 +4,9 @@
     "Core functions": "/core",
     "Training": "/train",
     "Prediction": "/predict",
-    "Reading data ": "/data_read",
-    "Loading data": "/data_loaders",
-    "Datasets": "/data_dataset",
-    "Title": "/params_parser"
+    "Reading data ": "/data.read",
+    "Loading data": "/data.loaders",
+    "Datasets": "/data.dataset",
+    "Title": "/params.parser"
   }
 }

@@ -20,16 +20,16 @@ entries:
       url: /predict
     - output: web,pdf
       title: 'Reading data '
-      url: /data_read
+      url: /data.read
     - output: web,pdf
       title: Loading data
-      url: /data_loaders
+      url: /data.loaders
     - output: web,pdf
       title: Datasets
-      url: /data_dataset
+      url: /data.dataset
     - output: web,pdf
       title: Title
-      url: /params_parser
+      url: /params.parser
     output: web
     title: grade_classif
   output: web
