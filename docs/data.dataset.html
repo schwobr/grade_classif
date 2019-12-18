@@ -38,17 +38,6 @@ summary: "Classes used to create `pytorch` compatible datasets."
 <div class="output_markdown rendered_html output_subarea ">
 <h2 id="MyDataset" class="doc_header"><code>class</code> <code>MyDataset</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L20" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>MyDataset</code>(<strong><code>items</code></strong>, <strong><code>labels</code></strong>, <strong><code>item_loader</code></strong>, <strong><code>label_loader</code></strong>) :: <code>Dataset</code></p>
 </blockquote>
-<p>An abstract class representing a :class:<code>Dataset</code>.</p>
-<p>All datasets that represent a map from keys to data samples should subclass
-it. All subclasses should overwrite :meth:<code>__getitem__</code>, supporting fetching a
-data sample for a given key. Subclasses could also optionally overwrite
-:meth:<code>__len__</code>, which is expected to return the size of the dataset by many
-:class:<code>~torch.utils.data.Sampler</code> implementations and the default options
-of :class:<code>~torch.utils.data.DataLoader</code>.</p>
-<p>.. note::
-  :class:<code>~torch.utils.data.DataLoader</code> by default constructs a index
-  sampler that yields integral indices.  To make it work with a map-style
-  dataset with non-integral indices/keys, a custom sampler must be provided.</p>
 
 </div>
 
@@ -67,9 +56,6 @@ of :class:<code>~torch.utils.data.DataLoader</code>.</p>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-
 <div class="output_wrapper">
 <div class="output">
 
@@ -77,19 +63,9 @@ of :class:<code>~torch.utils.data.DataLoader</code>.</p>
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h2 id="ClassDataset" class="doc_header"><code>class</code> <code>ClassDataset</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L93" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>ClassDataset</code>(<strong>*<code>args</code></strong>, <strong><code>n_classes</code></strong>=<em><code>2</code></em>, <strong>**<code>kwargs</code></strong>) :: <a href="/data.dataset.html#MyDataset"><code>MyDataset</code></a></p>
+<h4 id="MyDataset.from_folder" class="doc_header"><code>MyDataset.from_folder</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L39" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>MyDataset.from_folder</code>(<strong><code>folder</code></strong>, <strong><code>label_func</code></strong>, <strong><code>item_loader</code></strong>, <strong><code>label_loader</code></strong>, <strong><code>after_open</code></strong>=<em><code>None</code></em>, <strong><code>recurse</code></strong>=<em><code>True</code></em>, <strong><code>extensions</code></strong>=<em><code>None</code></em>, <strong><code>include</code></strong>=<em><code>None</code></em>, <strong><code>exclude</code></strong>=<em><code>None</code></em>)</p>
 </blockquote>
-<p>An abstract class representing a :class:<code>Dataset</code>.</p>
-<p>All datasets that represent a map from keys to data samples should subclass
-it. All subclasses should overwrite :meth:<code>__getitem__</code>, supporting fetching a
-data sample for a given key. Subclasses could also optionally overwrite
-:meth:<code>__len__</code>, which is expected to return the size of the dataset by many
-:class:<code>~torch.utils.data.Sampler</code> implementations and the default options
-of :class:<code>~torch.utils.data.DataLoader</code>.</p>
-<p>.. note::
-  :class:<code>~torch.utils.data.DataLoader</code> by default constructs a index
-  sampler that yields integral indices.  To make it work with a map-style
-  dataset with non-integral indices/keys, a custom sampler must be provided.</p>
+<p>Creates a <a href="/data.dataset.html#MyDataset"><code>MyDataset</code></a> object by reading files from a folder. It uses <code>get_item</code> and therefore works the same.</p>
 
 </div>
 
@@ -97,9 +73,6 @@ of :class:<code>~torch.utils.data.DataLoader</code>.</p>
 
 </div>
 </div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
 
 </div>
 <div class="cell border-box-sizing code_cell rendered">
@@ -111,19 +84,9 @@ of :class:<code>~torch.utils.data.DataLoader</code>.</p>
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h2 id="ImageClassifDataset" class="doc_header"><code>class</code> <code>ImageClassifDataset</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L99" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>ImageClassifDataset</code>(<strong>*<code>args</code></strong>, <strong><code>n_classes</code></strong>=<em><code>2</code></em>, <strong>**<code>kwargs</code></strong>) :: <a href="/data.dataset.html#ClassDataset"><code>ClassDataset</code></a></p>
+<h4 id="MyDataset.to_tensor" class="doc_header"><code>MyDataset.to_tensor</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L48" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>MyDataset.to_tensor</code>(<strong><code>tfms</code></strong>=<em><code>None</code></em>, <strong><code>tfm_y</code></strong>=<em><code>True</code></em>)</p>
 </blockquote>
-<p>An abstract class representing a :class:<code>Dataset</code>.</p>
-<p>All datasets that represent a map from keys to data samples should subclass
-it. All subclasses should overwrite :meth:<code>__getitem__</code>, supporting fetching a
-data sample for a given key. Subclasses could also optionally overwrite
-:meth:<code>__len__</code>, which is expected to return the size of the dataset by many
-:class:<code>~torch.utils.data.Sampler</code> implementations and the default options
-of :class:<code>~torch.utils.data.DataLoader</code>.</p>
-<p>.. note::
-  :class:<code>~torch.utils.data.DataLoader</code> by default constructs a index
-  sampler that yields integral indices.  To make it work with a map-style
-  dataset with non-integral indices/keys, a custom sampler must be provided.</p>
+<p>Creates a <a href="/data.dataset.html#TensorDataset"><code>TensorDataset</code></a> based on this dataset.</p>
 
 </div>
 
@@ -131,9 +94,6 @@ of :class:<code>~torch.utils.data.DataLoader</code>.</p>
 
 </div>
 </div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
 
 </div>
 <div class="cell border-box-sizing code_cell rendered">
@@ -145,19 +105,9 @@ of :class:<code>~torch.utils.data.DataLoader</code>.</p>
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h2 id="ImageSegmentDataset" class="doc_header"><code>class</code> <code>ImageSegmentDataset</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L116" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>ImageSegmentDataset</code>(<strong>*<code>args</code></strong>, <strong><code>n_classes</code></strong>=<em><code>2</code></em>, <strong>**<code>kwargs</code></strong>) :: <a href="/data.dataset.html#ClassDataset"><code>ClassDataset</code></a></p>
+<h4 id="MyDataset.split_by_list" class="doc_header"><code>MyDataset.split_by_list</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L54" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>MyDataset.split_by_list</code>(<strong><code>train</code></strong>, <strong><code>valid</code></strong>, <strong><code>test</code></strong>=<em><code>None</code></em>)</p>
 </blockquote>
-<p>An abstract class representing a :class:<code>Dataset</code>.</p>
-<p>All datasets that represent a map from keys to data samples should subclass
-it. All subclasses should overwrite :meth:<code>__getitem__</code>, supporting fetching a
-data sample for a given key. Subclasses could also optionally overwrite
-:meth:<code>__len__</code>, which is expected to return the size of the dataset by many
-:class:<code>~torch.utils.data.Sampler</code> implementations and the default options
-of :class:<code>~torch.utils.data.DataLoader</code>.</p>
-<p>.. note::
-  :class:<code>~torch.utils.data.DataLoader</code> by default constructs a index
-  sampler that yields integral indices.  To make it work with a map-style
-  dataset with non-integral indices/keys, a custom sampler must be provided.</p>
+<p>Creates a <a href="/data.dataset.html#SplitDataset"><code>SplitDataset</code></a> using <a href="/train.html"><code>train</code></a>, <code>valid</code> and optionally <code>test</code> tuples. Each tuple contains 2 lists: one for items and one for labels.</p>
 
 </div>
 
@@ -165,9 +115,6 @@ of :class:<code>~torch.utils.data.DataLoader</code>.</p>
 
 </div>
 </div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
 
 </div>
 <div class="cell border-box-sizing code_cell rendered">
@@ -179,19 +126,33 @@ of :class:<code>~torch.utils.data.DataLoader</code>.</p>
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h2 id="NormDataset" class="doc_header"><code>class</code> <code>NormDataset</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L134" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>NormDataset</code>(<strong><code>items</code></strong>, <strong><code>labels</code></strong>, <strong><code>item_loader</code></strong>, <strong><code>label_loader</code></strong>) :: <a href="/data.dataset.html#MyDataset"><code>MyDataset</code></a></p>
+<h4 id="MyDataset.split_by_folder" class="doc_header"><code>MyDataset.split_by_folder</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L62" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>MyDataset.split_by_folder</code>()</p>
 </blockquote>
-<p>An abstract class representing a :class:<code>Dataset</code>.</p>
-<p>All datasets that represent a map from keys to data samples should subclass
-it. All subclasses should overwrite :meth:<code>__getitem__</code>, supporting fetching a
-data sample for a given key. Subclasses could also optionally overwrite
-:meth:<code>__len__</code>, which is expected to return the size of the dataset by many
-:class:<code>~torch.utils.data.Sampler</code> implementations and the default options
-of :class:<code>~torch.utils.data.DataLoader</code>.</p>
-<p>.. note::
-  :class:<code>~torch.utils.data.DataLoader</code> by default constructs a index
-  sampler that yields integral indices.  To make it work with a map-style
-  dataset with non-integral indices/keys, a custom sampler must be provided.</p>
+<p>Creates a <a href="/data.dataset.html#SplitDataset"><code>SplitDataset</code></a> by looking for <code>ŧrain</code>, <code>valid</code> and <code>test</code> in item paths and splitting the dataset accordingly.</p>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h4 id="MyDataset.split_by_csv" class="doc_header"><code>MyDataset.split_by_csv</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L83" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>MyDataset.split_by_csv</code>(<strong><code>csv</code></strong>, <strong><code>split_column</code></strong>=<em><code>'split'</code></em>, <strong><code>id_column</code></strong>=<em><code>'scan'</code></em>, <strong><code>get_id</code></strong>=<em><code>None</code></em>)</p>
+</blockquote>
+<p>Creates a <a href="/data.dataset.html#SplitDataset"><code>SplitDataset</code></a> by using a csv that contains an <code>id_column</code> column for identifying items
+and a <code>split_column</code> column that contains either <code>'train'</code>, <code>'valid'</code> or <code>'test'</code>. <code>get_id</code> is the
+function used to extract the item's id from the item itself. By default it considers that <code>item</code> is a
+<code>Path</code> object and takes the parent folder's name as id.</p>
 
 </div>
 
@@ -213,7 +174,99 @@ of :class:<code>~torch.utils.data.DataLoader</code>.</p>
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h2 id="SplitDataset" class="doc_header"><code>class</code> <code>SplitDataset</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L157" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>SplitDataset</code>(<strong><code>train</code></strong>:<code>Dataset</code>, <strong><code>valid</code></strong>:<code>Dataset</code>, <strong><code>test</code></strong>:<code>Dataset</code>=<em><code>None</code></em>)</p>
+<h2 id="ClassDataset" class="doc_header"><code>class</code> <code>ClassDataset</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L114" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>ClassDataset</code>(<strong>*<code>args</code></strong>, <strong><code>n_classes</code></strong>=<em><code>2</code></em>, <strong>**<code>kwargs</code></strong>) :: <a href="/data.dataset.html#MyDataset"><code>MyDataset</code></a></p>
+</blockquote>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h2 id="ImageClassifDataset" class="doc_header"><code>class</code> <code>ImageClassifDataset</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L120" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>ImageClassifDataset</code>(<strong>*<code>args</code></strong>, <strong><code>n_classes</code></strong>=<em><code>2</code></em>, <strong>**<code>kwargs</code></strong>) :: <a href="/data.dataset.html#ClassDataset"><code>ClassDataset</code></a></p>
+</blockquote>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h2 id="ImageSegmentDataset" class="doc_header"><code>class</code> <code>ImageSegmentDataset</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L137" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>ImageSegmentDataset</code>(<strong>*<code>args</code></strong>, <strong><code>n_classes</code></strong>=<em><code>2</code></em>, <strong>**<code>kwargs</code></strong>) :: <a href="/data.dataset.html#ClassDataset"><code>ClassDataset</code></a></p>
+</blockquote>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h2 id="NormDataset" class="doc_header"><code>class</code> <code>NormDataset</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L155" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>NormDataset</code>(<strong><code>items</code></strong>, <strong><code>labels</code></strong>, <strong><code>item_loader</code></strong>, <strong><code>label_loader</code></strong>) :: <a href="/data.dataset.html#MyDataset"><code>MyDataset</code></a></p>
+</blockquote>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h2 id="SplitDataset" class="doc_header"><code>class</code> <code>SplitDataset</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L178" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>SplitDataset</code>(<strong><code>train</code></strong>:<code>Dataset</code>, <strong><code>valid</code></strong>:<code>Dataset</code>, <strong><code>test</code></strong>:<code>Dataset</code>=<em><code>None</code></em>)</p>
 </blockquote>
 <p>SplitDataset(train:torch.utils.data.dataset.Dataset, valid:torch.utils.data.dataset.Dataset, test:torch.utils.data.dataset.Dataset=None)</p>
 
@@ -237,7 +290,7 @@ of :class:<code>~torch.utils.data.DataLoader</code>.</p>
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h2 id="TensorDataset" class="doc_header"><code>class</code> <code>TensorDataset</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L171" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>TensorDataset</code>(<strong><code>ds</code></strong>, <strong><code>tfms</code></strong>=<em><code>None</code></em>, <strong><code>tfm_y</code></strong>=<em><code>True</code></em>) :: <code>Dataset</code></p>
+<h2 id="TensorDataset" class="doc_header"><code>class</code> <code>TensorDataset</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L192" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>TensorDataset</code>(<strong><code>ds</code></strong>, <strong><code>tfms</code></strong>=<em><code>None</code></em>, <strong><code>tfm_y</code></strong>=<em><code>True</code></em>) :: <code>Dataset</code></p>
 </blockquote>
 <p>An abstract class representing a :class:<code>Dataset</code>.</p>
 <p>All datasets that represent a map from keys to data samples should subclass

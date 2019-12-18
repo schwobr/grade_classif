@@ -18,6 +18,8 @@ import numpy as np
 
 #Cell
 class MyDataset(Dataset):
+    """
+    """
     def __init__(self, items, labels, item_loader, label_loader):
         super().__init__()
         self.items = items
@@ -36,19 +38,31 @@ class MyDataset(Dataset):
 
     @classmethod
     def from_folder(cls, folder, label_func, item_loader, label_loader, after_open=None, recurse=True, extensions=None, include=None, exclude=None):
+        """
+        Creates a `MyDataset` object by reading files from a folder. It uses `get_item` and therefore works the same.
+        """
         folder = Path(folder)
         items, labels = get_items(folder, label_func, recurse=recurse, extensions=extensions, include=include, exclude=exclude)
         return cls(items, labels, item_loader, label_loader, after_open=after_open)
 
     def to_tensor(self, tfms=None, tfm_y=True):
+        """
+        Creates a `TensorDataset` based on this dataset.
+        """
         return TensorDataset(self, tfms=tfms, tfm_y=tfm_y)
 
     def split_by_list(self, train, valid, test=None):
+        """
+        Creates a `SplitDataset` using `train`, `valid` and optionally `test` tuples. Each tuple contains 2 lists: one for items and one for labels.
+        """
         return SplitDataset(self.__class__(train[0], train[1], self.item_loader, self.label_loader),
                             self.__class__(valid[0], valid[1], self.item_loader, self.label_loader),
                             None if test is None else self.__class__(test[0], test[1], self.item_loader, self.label_loader))
 
     def split_by_folder(self):
+        """
+        Creates a `SplitDataset` by looking for `ŧrain`, `valid` and `test` in item paths and splitting the dataset accordingly.
+        """
         train = ([], [])
         valid = ([], [])
         test = ([], [])
@@ -66,23 +80,30 @@ class MyDataset(Dataset):
             test = None
         return self.split_by_list(train, valid, test)
 
-    def split_by_csv(self, csv, column='split'):
+    def split_by_csv(self, csv, split_column='split', id_column='scan', get_id=None):
+        """
+        Creates a `SplitDataset` by using a csv that contains an `id_column` column for identifying items
+        and a `split_column` column that contains either `'train'`, `'valid'` or `'test'`. `get_id` is the
+        function used to extract the item's id from the item itself. By default it considers that `item` is a
+        `Path` object and takes the parent folder's name as id.
+        """
+        get_id = ifnone(get_id, lambda x: x.parent.name)
         df = pd.read_csv(csv, header='infer')
         train = ([], [])
         valid = ([], [])
         test = ([], [])
-        train_ids = df.loc[df[column] == 'train', 'scan']
-        valid_ids = df.loc[df[column] == 'valid', 'scan']
-        test_ids = df.loc[df[column] == 'test', 'scan']
+        train_ids = df.loc[df[split_column] == 'train', id_column]
+        valid_ids = df.loc[df[split_column] == 'valid', id_column]
+        test_ids = df.loc[df[split_column] == 'test', id_column]
         for item, label in zip(self.items, self.labels):
-            scan_name = item.parent.name
-            if scan_name in train_ids.values:
+            item_id = get_id(item)
+            if item_id in train_ids.values:
                 train[0].append(item)
                 train[1].append(label)
-            elif scan_name in valid_ids.values:
+            elif item_id in valid_ids.values:
                 valid[0].append(item)
                 valid[1].append(label)
-            elif scan_name in test_ids.values:
+            elif item_id in test_ids.values:
                 test[0].append(item)
                 test[1].append(label)
         if test[0] == []:
