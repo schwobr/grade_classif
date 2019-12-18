@@ -185,6 +185,13 @@ function used to extract the item's id from the item itself. By default it consi
 </div>
 
 </div>
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p><a href="/data.dataset.html#MyDataset"><code>MyDataset</code></a> subclass for classification. Stores an additionnal <code>n_classes</code> attribute.</p>
+
+</div>
+</div>
+</div>
 <div class="cell border-box-sizing code_cell rendered">
 
 </div>
@@ -208,6 +215,77 @@ function used to extract the item's id from the item itself. By default it consi
 </div>
 
 </div>
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p><a href="/data.dataset.html#ClassDataset"><code>ClassDataset</code></a> subclass for image classification.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h4 id="ImageClassifDataset.show" class="doc_header"><code>ImageClassifDataset.show</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L121" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>ImageClassifDataset.show</code>(<strong><code>k</code></strong>, <strong><code>ax</code></strong>=<em><code>None</code></em>, <strong><code>figsize</code></strong>=<em><code>(3, 3)</code></em>, <strong><code>hide_axis</code></strong>=<em><code>True</code></em>, <strong><code>cmap</code></strong>=<em><code>'viridis'</code></em>, <strong>**<code>kwargs</code></strong>)</p>
+</blockquote>
+<p>Shows the <code>k</code>th image from the dataset with the corresponding label.</p>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h4 id="ImageClassifDataset.show_rand" class="doc_header"><code>ImageClassifDataset.show_rand</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L129" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>ImageClassifDataset.show_rand</code>(<strong><code>ax</code></strong>=<em><code>None</code></em>, <strong><code>figsize</code></strong>=<em><code>(3, 3)</code></em>, <strong><code>hide_axis</code></strong>=<em><code>True</code></em>, <strong><code>cmap</code></strong>=<em><code>'viridis'</code></em>, <strong>**<code>kwargs</code></strong>)</p>
+</blockquote>
+<p>Shows a random image from the dataset with the corresponding label.</p>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h4 id="ImageClassifDataset.from_folder" class="doc_header"><code>ImageClassifDataset.from_folder</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L136" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>ImageClassifDataset.from_folder</code>(<strong><code>folder</code></strong>, <strong><code>label_func</code></strong>, <strong><code>n_classes</code></strong>=<em><code>None</code></em>, <strong><code>classes</code></strong>=<em><code>None</code></em>, <strong><code>recurse</code></strong>=<em><code>True</code></em>, <strong><code>extensions</code></strong>=<em><code>None</code></em>, <strong><code>include</code></strong>=<em><code>None</code></em>, <strong><code>exclude</code></strong>=<em><code>None</code></em>, <strong>**<code>kwargs</code></strong>)</p>
+</blockquote>
+<p>Overwrites <a href="/data.dataset.html#MyDataset.from_folder"><code>MyDataset.from_folder</code></a>. Works basically the same but you don't need to pass loaders, but instead <code>n_classes</code>
+or <code>classes</code> arguments. Loaders are automatically created using these.</p>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
 <div class="cell border-box-sizing code_cell rendered">
 
 </div>
@@ -220,8 +298,78 @@ function used to extract the item's id from the item itself. By default it consi
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h2 id="ImageSegmentDataset" class="doc_header"><code>class</code> <code>ImageSegmentDataset</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L137" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>ImageSegmentDataset</code>(<strong>*<code>args</code></strong>, <strong><code>n_classes</code></strong>=<em><code>2</code></em>, <strong>**<code>kwargs</code></strong>) :: <a href="/data.dataset.html#ClassDataset"><code>ClassDataset</code></a></p>
+<h2 id="ImageSegmentDataset" class="doc_header"><code>class</code> <code>ImageSegmentDataset</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L147" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>ImageSegmentDataset</code>(<strong>*<code>args</code></strong>, <strong><code>n_classes</code></strong>=<em><code>2</code></em>, <strong>**<code>kwargs</code></strong>) :: <a href="/data.dataset.html#ClassDataset"><code>ClassDataset</code></a></p>
 </blockquote>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p><a href="/data.dataset.html#ClassDataset"><code>ClassDataset</code></a> subclass for image segmentation.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h4 id="ImageSegmentDataset.show" class="doc_header"><code>ImageSegmentDataset.show</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L148" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>ImageSegmentDataset.show</code>(<strong><code>k</code></strong>, <strong><code>ax</code></strong>=<em><code>None</code></em>, <strong><code>figsize</code></strong>=<em><code>(3, 3)</code></em>, <strong><code>title</code></strong>=<em><code>None</code></em>, <strong><code>hide_axis</code></strong>=<em><code>True</code></em>, <strong><code>cmap</code></strong>=<em><code>'tab20'</code></em>, <strong>**<code>kwargs</code></strong>)</p>
+</blockquote>
+<p>Shows the <code>k</code>th image from the dataset with the corresponding mask above it.</p>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h4 id="ImageSegmentDataset.show_rand" class="doc_header"><code>ImageSegmentDataset.show_rand</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L157" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>ImageSegmentDataset.show_rand</code>(<strong><code>ax</code></strong>=<em><code>None</code></em>, <strong><code>figsize</code></strong>=<em><code>(3, 3)</code></em>, <strong><code>hide_axis</code></strong>=<em><code>True</code></em>, <strong><code>cmap</code></strong>=<em><code>'tab20'</code></em>, <strong>**<code>kwargs</code></strong>)</p>
+</blockquote>
+<p>Shows a random image from the dataset withthe corresponding mask above it.</p>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h4 id="ImageSegmentDataset.from_folder" class="doc_header"><code>ImageSegmentDataset.from_folder</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L164" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>ImageSegmentDataset.from_folder</code>(<strong><code>folder</code></strong>, <strong><code>label_func</code></strong>, <strong><code>n_classes</code></strong>=<em><code>None</code></em>, <strong><code>classes</code></strong>=<em><code>None</code></em>, <strong><code>recurse</code></strong>=<em><code>True</code></em>, <strong><code>extensions</code></strong>=<em><code>None</code></em>, <strong><code>include</code></strong>=<em><code>None</code></em>, <strong><code>exclude</code></strong>=<em><code>None</code></em>)</p>
+</blockquote>
+<p>Same as <a href="/data.dataset.html#ImageClassifDataset.from_folder"><code>ImageClassifDataset.from_folder</code></a>.</p>
 
 </div>
 
@@ -243,8 +391,80 @@ function used to extract the item's id from the item itself. By default it consi
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h2 id="NormDataset" class="doc_header"><code>class</code> <code>NormDataset</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L155" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>NormDataset</code>(<strong><code>items</code></strong>, <strong><code>labels</code></strong>, <strong><code>item_loader</code></strong>, <strong><code>label_loader</code></strong>) :: <a href="/data.dataset.html#MyDataset"><code>MyDataset</code></a></p>
+<h2 id="NormDataset" class="doc_header"><code>class</code> <code>NormDataset</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L174" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>NormDataset</code>(<strong><code>items</code></strong>, <strong><code>labels</code></strong>, <strong><code>item_loader</code></strong>, <strong><code>label_loader</code></strong>) :: <a href="/data.dataset.html#MyDataset"><code>MyDataset</code></a></p>
 </blockquote>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p><a href="/data.dataset.html#MyDataset"><code>MyDataset</code></a> subclass to use for a grayscale to color unet.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h4 id="NormDataset.show" class="doc_header"><code>NormDataset.show</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L175" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>NormDataset.show</code>(<strong><code>k</code></strong>, <strong><code>axs</code></strong>=<em><code>None</code></em>, <strong><code>figsize</code></strong>=<em><code>(3, 3)</code></em>, <strong><code>title</code></strong>=<em><code>None</code></em>, <strong><code>hide_axis</code></strong>=<em><code>True</code></em>, <strong><code>cmap</code></strong>=<em><code>'viridis'</code></em>, <strong>**<code>kwargs</code></strong>)</p>
+</blockquote>
+<p>Shows the <code>k</code>th image from the dataset as grayscale and colored.</p>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h4 id="NormDataset.show_rand" class="doc_header"><code>NormDataset.show_rand</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L184" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>NormDataset.show_rand</code>(<strong><code>axs</code></strong>=<em><code>None</code></em>, <strong><code>figsize</code></strong>=<em><code>(3, 3)</code></em>, <strong><code>hide_axis</code></strong>=<em><code>True</code></em>, <strong><code>cmap</code></strong>=<em><code>'viridis'</code></em>, <strong>**<code>kwargs</code></strong>)</p>
+</blockquote>
+<p>Shows a random image from the dataset as grayscale and colored.</p>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h4 id="NormDataset.from_folder" class="doc_header"><code>NormDataset.from_folder</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L191" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>NormDataset.from_folder</code>(<strong><code>folder</code></strong>, <strong><code>label_func</code></strong>, <strong><code>csv</code></strong>, <strong><code>id_column</code></strong>=<em><code>'scan'</code></em>, <strong><code>recurse</code></strong>=<em><code>True</code></em>, <strong><code>extensions</code></strong>=<em><code>None</code></em>, <strong><code>include</code></strong>=<em><code>None</code></em>, <strong><code>exclude</code></strong>=<em><code>None</code></em>)</p>
+</blockquote>
+<p>Overwrites <a href="/data.dataset.html#MyDataset.from_folder"><code>MyDataset.from_folder</code></a> so that it doesn't need the loaders. It howevers requires a <code>csv</code> argument that
+contains an <code>id_column</code> column to identify images and a <code>'category'</code> column that contains 1 if the image is to be used
+for normalization.</p>
 
 </div>
 
@@ -266,9 +486,36 @@ function used to extract the item's id from the item itself. By default it consi
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h2 id="SplitDataset" class="doc_header"><code>class</code> <code>SplitDataset</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L178" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>SplitDataset</code>(<strong><code>train</code></strong>:<code>Dataset</code>, <strong><code>valid</code></strong>:<code>Dataset</code>, <strong><code>test</code></strong>:<code>Dataset</code>=<em><code>None</code></em>)</p>
+<h2 id="SplitDataset" class="doc_header"><code>class</code> <code>SplitDataset</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L208" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>SplitDataset</code>(<strong><code>train</code></strong>:<code>Dataset</code>, <strong><code>valid</code></strong>:<code>Dataset</code>, <strong><code>test</code></strong>:<code>Dataset</code>=<em><code>None</code></em>)</p>
 </blockquote>
-<p>SplitDataset(train:torch.utils.data.dataset.Dataset, valid:torch.utils.data.dataset.Dataset, test:torch.utils.data.dataset.Dataset=None)</p>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Wrapper that contains a <code>train</code>, a <code>valid</code> and optionally a <code>test</code> datasets.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h4 id="SplitDataset.to_tensor" class="doc_header"><code>SplitDataset.to_tensor</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L215" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>SplitDataset.to_tensor</code>(<strong><code>tfms</code></strong>=<em><code>None</code></em>, <strong><code>tfm_y</code></strong>=<em><code>True</code></em>, <strong><code>test_tfms</code></strong>=<em><code>None</code></em>)</p>
+</blockquote>
+<p>Transforms all datasets into <a href="/data.dataset.html#TensorDataset"><code>TensorDataset</code></a> objects</p>
 
 </div>
 
@@ -290,19 +537,8 @@ function used to extract the item's id from the item itself. By default it consi
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h2 id="TensorDataset" class="doc_header"><code>class</code> <code>TensorDataset</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L192" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>TensorDataset</code>(<strong><code>ds</code></strong>, <strong><code>tfms</code></strong>=<em><code>None</code></em>, <strong><code>tfm_y</code></strong>=<em><code>True</code></em>) :: <code>Dataset</code></p>
+<h2 id="TensorDataset" class="doc_header"><code>class</code> <code>TensorDataset</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L227" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>TensorDataset</code>(<strong><code>ds</code></strong>, <strong><code>tfms</code></strong>=<em><code>None</code></em>, <strong><code>tfm_y</code></strong>=<em><code>True</code></em>) :: <code>Dataset</code></p>
 </blockquote>
-<p>An abstract class representing a :class:<code>Dataset</code>.</p>
-<p>All datasets that represent a map from keys to data samples should subclass
-it. All subclasses should overwrite :meth:<code>__getitem__</code>, supporting fetching a
-data sample for a given key. Subclasses could also optionally overwrite
-:meth:<code>__len__</code>, which is expected to return the size of the dataset by many
-:class:<code>~torch.utils.data.Sampler</code> implementations and the default options
-of :class:<code>~torch.utils.data.DataLoader</code>.</p>
-<p>.. note::
-  :class:<code>~torch.utils.data.DataLoader</code> by default constructs a index
-  sampler that yields integral indices.  To make it work with a map-style
-  dataset with non-integral indices/keys, a custom sampler must be provided.</p>
 
 </div>
 
@@ -311,6 +547,13 @@ of :class:<code>~torch.utils.data.DataLoader</code>.</p>
 </div>
 </div>
 
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Wrapper around a dataset that generates tensors from the outputs of the dataset's <code>__getitem__</code> method using <a href="/data.utils.html#np_to_tensor"><code>np_to_tensor</code></a>. Can also apply transforms using <a href="https://albumentations.readthedocs.io/en/latest/">albumentations</a>. Pass <code>tfm_y=False</code> if you don't ant to apply transforms to <code>y</code> (when doing classification for instance).</p>
+
+</div>
+</div>
 </div>
 </div>
  

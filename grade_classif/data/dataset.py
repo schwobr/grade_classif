@@ -119,16 +119,26 @@ class ClassDataset(MyDataset):
 #Cell
 class ImageClassifDataset(ClassDataset):
     def show(self, k, ax=None, figsize=(3,3), hide_axis=True, cmap='viridis', **kwargs):
+        """
+        Shows the `k`th image from the dataset with the corresponding label.
+        """
         x, y  = self[k]
         y = self.label_loader.classes[y]
         ax = show_img(x, ax=ax, hide_axis=hide_axis, cmap=cmap, figsize=figsize, title=str(y), **kwargs)
 
     def show_rand(self, ax=None, figsize=(3,3), hide_axis=True, cmap='viridis', **kwargs):
+        """
+        Shows a random image from the dataset with the corresponding label.
+        """
         k = random.randint(0, len(self)-1)
         self.show(k, ax=ax, figsize=figsize, hide_axis=hide_axis, cmap=cmap, **kwargs)
 
     @classmethod
     def from_folder(cls, folder, label_func, n_classes=None, classes=None, recurse=True, extensions=None, include=None, exclude=None, **kwargs):
+        """
+        Overwrites `MyDataset.from_folder`. Works basically the same but you don't need to pass loaders, but instead `n_classes`
+        or `classes` arguments. Loaders are automatically created using these.
+        """
         folder = Path(folder)
         items, labels = get_items(folder, label_func, recurse=recurse, extensions=extensions, include=include, exclude=exclude)
         return cls(items, labels, ImageLoader(**kwargs), CategoryLoader(n_classes, classes), n_classes=ifnone(n_classes, len(classes)))
@@ -136,17 +146,26 @@ class ImageClassifDataset(ClassDataset):
 #Cell
 class ImageSegmentDataset(ClassDataset):
     def show(self, k, ax=None, figsize=(3,3), title=None, hide_axis=True, cmap='tab20', **kwargs):
+        """
+        Shows the `k`th image from the dataset with the corresponding mask above it.
+        """
         x, y  = self[k]
         ax = show_img(x, ax=ax, hide_axis=hide_axis, cmap=cmap, figsize=figsize, **kwargs)
         ax = show_img(y, ax=ax, hide_axis=hide_axis, cmap=cmap, figsize=figsize,
                         interpolation='nearest', alpha=alpha, vmin=0, title=title, **kwargs)
 
     def show_rand(self, ax=None, figsize=(3,3), hide_axis=True, cmap='tab20', **kwargs):
+        """
+        Shows a random image from the dataset withthe corresponding mask above it.
+        """
         k = random.randint(0, len(self)-1)
         self.show(k, ax=ax, figsize=figsize, hide_axis=hide_axis, cmap=cmap, **kwargs)
 
     @classmethod
     def from_folder(cls, folder, label_func, n_classes=None, classes=None, recurse=True, extensions=None, include=None, exclude=None):
+        """
+        Same as `ImageClassifDataset.from_folder`.
+        """
         folder = Path(folder)
         items, labels = get_items(folder, label_func, recurse=recurse, extensions=extensions, include=include, exclude=exclude)
         return cls(items, labels, ImageLoader(), MaskLoader(), n_classes=ifnone(n_classes, len(classes)))
@@ -154,19 +173,30 @@ class ImageSegmentDataset(ClassDataset):
 #Cell
 class NormDataset(MyDataset):
     def show(self, k, axs=None, figsize=(3,3), title=None, hide_axis=True, cmap='viridis', **kwargs):
+        """
+        Shows the `k`th image from the dataset as grayscale and colored.
+        """
         x, y  = self[k]
         axs = ifnone(axs, plt.subplots(1, 2, figsize=figsize)[1])
         ax = show_img(x, ax=axs[0], hide_axis=hide_axis, cmap=cmap, figsize=figsize, **kwargs)
         ax = show_img(y, ax=axs[1], hide_axis=hide_axis, cmap=cmap, figsize=figsize, **kwargs)
 
     def show_rand(self, axs=None, figsize=(3,3), hide_axis=True, cmap='viridis', **kwargs):
+        """
+        Shows a random image from the dataset as grayscale and colored.
+        """
         k = random.randint(0, len(self)-1)
         self.show(k, axs=axs, figsize=figsize, hide_axis=hide_axis, cmap=cmap, **kwargs)
 
     @classmethod
-    def from_folder(cls, folder, label_func, csv, recurse=True, extensions=None, include=None, exclude=None):
+    def from_folder(cls, folder, label_func, csv, id_column='scan', recurse=True, extensions=None, include=None, exclude=None):
+        """
+        Overwrites `MyDataset.from_folder` so that it doesn't need the loaders. It howevers requires a `csv` argument that
+        contains an `id_column` column to identify images and a `'category'` column that contains 1 if the image is to be used
+        for normalization.
+        """
         df = pd.read_csv(csv)
-        vals = df.loc[df['category'] == 1, 'imageId'].values
+        vals = df.loc[df['category'] == 1, id_column].values
         def filt(fn):
             return fn.parent.stem in vals
         folder = Path(folder)
@@ -176,11 +206,16 @@ class NormDataset(MyDataset):
 #Cell
 @dataclass
 class SplitDataset:
+    """
+    """
     train: Dataset
     valid: Dataset
     test: Dataset = None
 
     def to_tensor(self, tfms=None, tfm_y=True, test_tfms=None):
+        """
+        Transforms all datasets into `TensorDataset` objects
+        """
         tfms = ifnone(tfms, (None, None))
         self.train = self.train.to_tensor(tfms=tfms[0], tfm_y=tfm_y)
         self.valid = self.valid.to_tensor(tfms=tfms[1], tfm_y=tfm_y)
@@ -190,6 +225,8 @@ class SplitDataset:
 
 #Cell
 class TensorDataset(Dataset):
+    """
+    """
     def __init__(self, ds, tfms=None, tfm_y=True):
         self._ds = ds
         self.tfms = ifnone(tfms, [])
@@ -210,8 +247,5 @@ class TensorDataset(Dataset):
         y = np_to_tensor(y, type(self._ds.label_loader).__name__.lower().replace('loader', ''))
         return x, y
 
-    def show(self, k, **kwargs):
-        self._ds.show(k, **kwargs)
-
-    def show_rand(self, **kwargs):
-        self._ds.show_rand(**kwargs)
+    def __getattr__(self, name):
+        return getattr(self._ds, name)
