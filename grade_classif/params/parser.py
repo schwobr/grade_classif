@@ -3,12 +3,12 @@
 __all__ = ['hparams']
 
 #Cell
-from test_tube import HyperOptArgumentParser
+from argparse import ArgumentParser
 from .defaults import *
 from pathlib import Path
 
 #Cell
-_parser = HyperOptArgumentParser(strategy='random_search')
+_parser = ArgumentParser()
 _parser.add_argument('--file', '-f', help='notebook convenience')
 _parser.add_argument('--HistoryManager.hist_file', help='nbconvert convenience')
 _parser.add_argument('--sched', default=SCHED, choices=['one-cycle', 'cosine-anneal', 'reduce-on-plateau', 'none'], help='scheduler for the optimizer')
@@ -32,10 +32,10 @@ _parser.add_argument('--rand-weights', action='store_true', help='specify to avo
 _parser.add_argument('--gpus', default=GPUS, nargs='*', type=int, help='list of gpus you want to use for training (as numbers)')
 _parser.add_argument('--reduction', default=REDUCTION, choices=['mean', 'sum', 'none'], help='reduction to apply to loss')
 _parser.add_argument('--epochs', default=EPOCHS, type=int, help='number of epochs')
-_parser.opt_range('--weight', type=float, tunable=True, default=WEIGHT, low=1., high=10., nb_samples=8, help='weight to give to grade 1 (grade 3 being weighted to 1)')
-_parser.opt_range('--dropout', default=DROPOUT, type=float, tunable=True, low=0., high=0.8, nb_samples=5, help='dropout value')
-_parser.opt_range('--lr', default=LR, type=float, tunable=True, low=1e-4, high=1e-1, nb_samples=6, log_base=10, help='learning rate')
-_parser.opt_range('--wd', type=float, default=WD, tunable=True, low=1e-6, high=1., nb_samples=5, log_base=10, help='weight decay')
+_parser.add_argument('--weight', type=float, default=WEIGHT, help='weight to give to grade 1 (grade 3 being weighted to 1)')
+_parser.add_argument('--dropout', default=DROPOUT, type=float, help='dropout value')
+_parser.add_argument('--lr', default=LR, type=float, help='learning rate')
+_parser.add_argument('--wd', type=float, default=WD, help='weight decay')
 
 #Cell
 hparams = _parser.parse_args()
