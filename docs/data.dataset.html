@@ -62,7 +62,7 @@ summary: "Classes used to create `pytorch` compatible datasets."
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>Base class for all datasets. It is constructed using list of <code>items</code> and <code>labels</code>, most of the time as <code>Path</code> or <code>str</code> objects, with corresponding <code>item_loader</code> and <code>label_loader</code> as <a href="/data.loaders.html#ItemLoader"><code>ItemLoader</code></a> objects.</p>
+<p>Base class for all datasets. It is constructed using list of <code>items</code> and <code>labels</code>, most of the time as <code>Path</code> or <code>str</code> objects, with corresponding <code>item_loader</code> and <code>label_loader</code> as <a href="data.loaders.html#ItemLoader"><code>ItemLoader</code></a> objects.</p>
 
 </div>
 </div>
@@ -78,7 +78,7 @@ summary: "Classes used to create `pytorch` compatible datasets."
 <div class="output_markdown rendered_html output_subarea ">
 <h4 id="MyDataset.from_folder" class="doc_header"><code>MyDataset.from_folder</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L41" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>MyDataset.from_folder</code>(<strong><code>folder</code></strong>, <strong><code>label_func</code></strong>, <strong><code>item_loader</code></strong>, <strong><code>label_loader</code></strong>, <strong><code>after_open</code></strong>=<em><code>None</code></em>, <strong><code>recurse</code></strong>=<em><code>True</code></em>, <strong><code>extensions</code></strong>=<em><code>None</code></em>, <strong><code>include</code></strong>=<em><code>None</code></em>, <strong><code>exclude</code></strong>=<em><code>None</code></em>)</p>
 </blockquote>
-<p>Creates a <a href="/data.dataset.html#MyDataset"><code>MyDataset</code></a> object by reading files from a folder. It uses <code>get_item</code> and therefore works the same.</p>
+<p>Creates a <a href="data.dataset.html#MyDataset"><code>MyDataset</code></a> object by reading files from a folder. It uses <code>get_item</code> and therefore works the same.</p>
 
 </div>
 
@@ -168,7 +168,7 @@ summary: "Classes used to create `pytorch` compatible datasets."
 <div class="output_markdown rendered_html output_subarea ">
 <h4 id="MyDataset.to_tensor" class="doc_header"><code>MyDataset.to_tensor</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L50" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>MyDataset.to_tensor</code>(<strong><code>tfms</code></strong>=<em><code>None</code></em>, <strong><code>tfm_y</code></strong>=<em><code>True</code></em>)</p>
 </blockquote>
-<p>Creates a <a href="/data.dataset.html#TensorDataset"><code>TensorDataset</code></a> based on this dataset.</p>
+<p>Creates a <a href="data.dataset.html#TensorDataset"><code>TensorDataset</code></a> based on this dataset.</p>
 
 </div>
 
@@ -208,7 +208,7 @@ summary: "Classes used to create `pytorch` compatible datasets."
 <div class="output_markdown rendered_html output_subarea ">
 <h4 id="MyDataset.split_by_list" class="doc_header"><code>MyDataset.split_by_list</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L56" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>MyDataset.split_by_list</code>(<strong><code>train</code></strong>, <strong><code>valid</code></strong>, <strong><code>test</code></strong>=<em><code>None</code></em>)</p>
 </blockquote>
-<p>Creates a <a href="/data.dataset.html#SplitDataset"><code>SplitDataset</code></a> using <a href="/train.html"><code>train</code></a>, <code>valid</code> and optionally <code>test</code> tuples. Each tuple contains 2 lists: one for items and one for labels.</p>
+<p>Creates a <a href="data.dataset.html#SplitDataset"><code>SplitDataset</code></a> using <a href="train.html"><code>train</code></a>, <code>valid</code> and optionally <code>test</code> tuples. Each tuple contains 2 lists: one for items and one for labels.</p>
 
 </div>
 
@@ -229,7 +229,7 @@ summary: "Classes used to create `pytorch` compatible datasets."
 <div class="output_markdown rendered_html output_subarea ">
 <h4 id="MyDataset.split_by_folder" class="doc_header"><code>MyDataset.split_by_folder</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L64" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>MyDataset.split_by_folder</code>()</p>
 </blockquote>
-<p>Creates a <a href="/data.dataset.html#SplitDataset"><code>SplitDataset</code></a> by looking for <code>ŧrain</code>, <code>valid</code> and <code>test</code> in item paths and splitting the dataset accordingly.</p>
+<p>Creates a <a href="data.dataset.html#SplitDataset"><code>SplitDataset</code></a> by looking for <code>ŧrain</code>, <code>valid</code> and <code>test</code> in item paths and splitting the dataset accordingly.</p>
 
 </div>
 
@@ -250,7 +250,7 @@ summary: "Classes used to create `pytorch` compatible datasets."
 <div class="output_markdown rendered_html output_subarea ">
 <h4 id="MyDataset.split_by_csv" class="doc_header"><code>MyDataset.split_by_csv</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L85" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>MyDataset.split_by_csv</code>(<strong><code>csv</code></strong>, <strong><code>split_column</code></strong>=<em><code>'split'</code></em>, <strong><code>id_column</code></strong>=<em><code>'scan'</code></em>, <strong><code>get_id</code></strong>=<em><code>None</code></em>)</p>
 </blockquote>
-<p>Creates a <a href="/data.dataset.html#SplitDataset"><code>SplitDataset</code></a> by using a csv that contains an <code>id_column</code> column for identifying items
+<p>Creates a <a href="data.dataset.html#SplitDataset"><code>SplitDataset</code></a> by using a csv that contains an <code>id_column</code> column for identifying items
 and a <code>split_column</code> column that contains either <code>'train'</code>, <code>'valid'</code> or <code>'test'</code>. <code>get_id</code> is the
 function used to extract the item's id from the item itself. By default it considers that <code>item</code> is a
 <code>Path</code> object and takes the parent folder's name as id.</p>
@@ -275,7 +275,7 @@ function used to extract the item's id from the item itself. By default it consi
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h2 id="ClassDataset" class="doc_header"><code>class</code> <code>ClassDataset</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L116" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>ClassDataset</code>(<strong>*<code>args</code></strong>, <strong><code>n_classes</code></strong>=<em><code>2</code></em>, <strong>**<code>kwargs</code></strong>) :: <a href="/data.dataset.html#MyDataset"><code>MyDataset</code></a></p>
+<h2 id="ClassDataset" class="doc_header"><code>class</code> <code>ClassDataset</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L116" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>ClassDataset</code>(<strong>*<code>args</code></strong>, <strong><code>n_classes</code></strong>=<em><code>2</code></em>, <strong>**<code>kwargs</code></strong>) :: <a href="data.dataset.html#MyDataset"><code>MyDataset</code></a></p>
 </blockquote>
 
 </div>
@@ -288,7 +288,7 @@ function used to extract the item's id from the item itself. By default it consi
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p><a href="/data.dataset.html#MyDataset"><code>MyDataset</code></a> subclass for classification. Stores an additionnal <code>n_classes</code> attribute.</p>
+<p><a href="data.dataset.html#MyDataset"><code>MyDataset</code></a> subclass for classification. Stores an additionnal <code>n_classes</code> attribute.</p>
 
 </div>
 </div>
@@ -305,7 +305,7 @@ function used to extract the item's id from the item itself. By default it consi
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h2 id="ImageClassifDataset" class="doc_header"><code>class</code> <code>ImageClassifDataset</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L122" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>ImageClassifDataset</code>(<strong>*<code>args</code></strong>, <strong><code>n_classes</code></strong>=<em><code>2</code></em>, <strong>**<code>kwargs</code></strong>) :: <a href="/data.dataset.html#ClassDataset"><code>ClassDataset</code></a></p>
+<h2 id="ImageClassifDataset" class="doc_header"><code>class</code> <code>ImageClassifDataset</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L122" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>ImageClassifDataset</code>(<strong>*<code>args</code></strong>, <strong><code>n_classes</code></strong>=<em><code>2</code></em>, <strong>**<code>kwargs</code></strong>) :: <a href="data.dataset.html#ClassDataset"><code>ClassDataset</code></a></p>
 </blockquote>
 
 </div>
@@ -327,7 +327,7 @@ function used to extract the item's id from the item itself. By default it consi
 <div class="output_markdown rendered_html output_subarea ">
 <h4 id="ImageClassifDataset.from_folder" class="doc_header"><code>ImageClassifDataset.from_folder</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L138" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>ImageClassifDataset.from_folder</code>(<strong><code>folder</code></strong>, <strong><code>label_func</code></strong>, <strong><code>n_classes</code></strong>=<em><code>None</code></em>, <strong><code>classes</code></strong>=<em><code>None</code></em>, <strong><code>recurse</code></strong>=<em><code>True</code></em>, <strong><code>extensions</code></strong>=<em><code>None</code></em>, <strong><code>include</code></strong>=<em><code>None</code></em>, <strong><code>exclude</code></strong>=<em><code>None</code></em>, <strong>**<code>kwargs</code></strong>)</p>
 </blockquote>
-<p>Overwrites <a href="/data.dataset.html#MyDataset.from_folder"><code>MyDataset.from_folder</code></a>. Works basically the same but you don't need to pass loaders, but instead <code>n_classes</code>
+<p>Overwrites <a href="data.dataset.html#MyDataset.from_folder"><code>MyDataset.from_folder</code></a>. Works basically the same but you don't need to pass loaders, but instead <code>n_classes</code>
 or <code>classes</code> arguments. Loaders are automatically created using these.</p>
 
 </div>
@@ -340,7 +340,7 @@ or <code>classes</code> arguments. Loaders are automatically created using these
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p><a href="/data.dataset.html#ClassDataset"><code>ClassDataset</code></a> subclass for image classification.</p>
+<p><a href="data.dataset.html#ClassDataset"><code>ClassDataset</code></a> subclass for image classification.</p>
 
 </div>
 </div>
@@ -474,7 +474,7 @@ or <code>classes</code> arguments. Loaders are automatically created using these
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h2 id="ImageSegmentDataset" class="doc_header"><code>class</code> <code>ImageSegmentDataset</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L149" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>ImageSegmentDataset</code>(<strong>*<code>args</code></strong>, <strong><code>n_classes</code></strong>=<em><code>2</code></em>, <strong>**<code>kwargs</code></strong>) :: <a href="/data.dataset.html#ClassDataset"><code>ClassDataset</code></a></p>
+<h2 id="ImageSegmentDataset" class="doc_header"><code>class</code> <code>ImageSegmentDataset</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L149" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>ImageSegmentDataset</code>(<strong>*<code>args</code></strong>, <strong><code>n_classes</code></strong>=<em><code>2</code></em>, <strong>**<code>kwargs</code></strong>) :: <a href="data.dataset.html#ClassDataset"><code>ClassDataset</code></a></p>
 </blockquote>
 
 </div>
@@ -487,7 +487,7 @@ or <code>classes</code> arguments. Loaders are automatically created using these
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p><a href="/data.dataset.html#ClassDataset"><code>ClassDataset</code></a> subclass for image segmentation.</p>
+<p><a href="data.dataset.html#ClassDataset"><code>ClassDataset</code></a> subclass for image segmentation.</p>
 
 </div>
 </div>
@@ -503,7 +503,7 @@ or <code>classes</code> arguments. Loaders are automatically created using these
 <div class="output_markdown rendered_html output_subarea ">
 <h4 id="ImageSegmentDataset.from_folder" class="doc_header"><code>ImageSegmentDataset.from_folder</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L166" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>ImageSegmentDataset.from_folder</code>(<strong><code>folder</code></strong>, <strong><code>label_func</code></strong>, <strong><code>n_classes</code></strong>=<em><code>None</code></em>, <strong><code>classes</code></strong>=<em><code>None</code></em>, <strong><code>recurse</code></strong>=<em><code>True</code></em>, <strong><code>extensions</code></strong>=<em><code>None</code></em>, <strong><code>include</code></strong>=<em><code>None</code></em>, <strong><code>exclude</code></strong>=<em><code>None</code></em>)</p>
 </blockquote>
-<p>Same as <a href="/data.dataset.html#ImageClassifDataset.from_folder"><code>ImageClassifDataset.from_folder</code></a>.</p>
+<p>Same as <a href="data.dataset.html#ImageClassifDataset.from_folder"><code>ImageClassifDataset.from_folder</code></a>.</p>
 
 </div>
 
@@ -567,7 +567,7 @@ or <code>classes</code> arguments. Loaders are automatically created using these
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h2 id="NormDataset" class="doc_header"><code>class</code> <code>NormDataset</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L176" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>NormDataset</code>(<strong><code>items</code></strong>, <strong><code>labels</code></strong>, <strong><code>item_loader</code></strong>, <strong><code>label_loader</code></strong>) :: <a href="/data.dataset.html#MyDataset"><code>MyDataset</code></a></p>
+<h2 id="NormDataset" class="doc_header"><code>class</code> <code>NormDataset</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L176" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>NormDataset</code>(<strong><code>items</code></strong>, <strong><code>labels</code></strong>, <strong><code>item_loader</code></strong>, <strong><code>label_loader</code></strong>) :: <a href="data.dataset.html#MyDataset"><code>MyDataset</code></a></p>
 </blockquote>
 
 </div>
@@ -589,7 +589,7 @@ or <code>classes</code> arguments. Loaders are automatically created using these
 <div class="output_markdown rendered_html output_subarea ">
 <h4 id="NormDataset.from_folder" class="doc_header"><code>NormDataset.from_folder</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L193" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>NormDataset.from_folder</code>(<strong><code>folder</code></strong>, <strong><code>csv</code></strong>, <strong><code>id_column</code></strong>=<em><code>'scan'</code></em>, <strong><code>recurse</code></strong>=<em><code>True</code></em>, <strong><code>extensions</code></strong>=<em><code>None</code></em>, <strong><code>include</code></strong>=<em><code>None</code></em>, <strong><code>exclude</code></strong>=<em><code>None</code></em>)</p>
 </blockquote>
-<p>Overwrites <a href="/data.dataset.html#MyDataset.from_folder"><code>MyDataset.from_folder</code></a> so that it doesn't need the loaders or a <code>label_func</code>. It howevers requires a <code>csv</code>
+<p>Overwrites <a href="data.dataset.html#MyDataset.from_folder"><code>MyDataset.from_folder</code></a> so that it doesn't need the loaders or a <code>label_func</code>. It howevers requires a <code>csv</code>
 argument that contains an <code>id_column</code> column to identify images and a <code>'category'</code> column that contains 1 if the image
 is to be used for normalization.</p>
 
@@ -603,7 +603,7 @@ is to be used for normalization.</p>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p><a href="/data.dataset.html#MyDataset"><code>MyDataset</code></a> subclass to use for a grayscale to color unet.</p>
+<p><a href="data.dataset.html#MyDataset"><code>MyDataset</code></a> subclass to use for a grayscale to color unet.</p>
 
 </div>
 </div>
@@ -766,7 +766,7 @@ is to be used for normalization.</p>
 <div class="output_markdown rendered_html output_subarea ">
 <h4 id="SplitDataset.to_tensor" class="doc_header"><code>SplitDataset.to_tensor</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/dataset.py#L219" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>SplitDataset.to_tensor</code>(<strong><code>tfms</code></strong>=<em><code>None</code></em>, <strong><code>tfm_y</code></strong>=<em><code>True</code></em>, <strong><code>test_tfms</code></strong>=<em><code>None</code></em>)</p>
 </blockquote>
-<p>Transforms all datasets into <a href="/data.dataset.html#TensorDataset"><code>TensorDataset</code></a> objects</p>
+<p>Transforms all datasets into <a href="data.dataset.html#TensorDataset"><code>TensorDataset</code></a> objects</p>
 
 </div>
 
@@ -801,7 +801,7 @@ is to be used for normalization.</p>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>Wrapper around a dataset that generates tensors from the outputs of the dataset's <code>__getitem__</code> method using <a href="/data.utils.html#np_to_tensor"><code>np_to_tensor</code></a>. Can also apply transforms using <a href="https://albumentations.readthedocs.io/en/latest/">albumentations</a>. Pass <code>tfm_y=False</code> if you don't want to apply transforms to <code>y</code> (when doing classification for instance). Loaders should be instances of <a href="/data.loaders.html#ImageLoader"><code>ImageLoader</code></a>, <a href="/data.loaders.html#MaskLoader"><code>MaskLoader</code></a> or <a href="/data.loaders.html#CategoryLoader"><code>CategoryLoader</code></a> for it to work correctly.</p>
+<p>Wrapper around a dataset that generates tensors from the outputs of the dataset's <code>__getitem__</code> method using <a href="data.utils.html#np_to_tensor"><code>np_to_tensor</code></a>. Can also apply transforms using <a href="https://albumentations.readthedocs.io/en/latest/">albumentations</a>. Pass <code>tfm_y=False</code> if you don't want to apply transforms to <code>y</code> (when doing classification for instance). Loaders should be instances of <a href="data.loaders.html#ImageLoader"><code>ImageLoader</code></a>, <a href="data.loaders.html#MaskLoader"><code>MaskLoader</code></a> or <a href="data.loaders.html#CategoryLoader"><code>CategoryLoader</code></a> for it to work correctly.</p>
 
 </div>
 </div>
