@@ -3,7 +3,7 @@
 __all__ = ['ifnone', 'is_listy']
 
 #Cell
-import numpy as np
+from .imports import *
 
 #Cell
 def ifnone(a, b):

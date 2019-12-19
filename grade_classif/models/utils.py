@@ -3,10 +3,9 @@
 __all__ = ['named_leaf_modules', 'get_sizes', 'get_num_features']
 
 #Cell
-import torch
 from ..core import ifnone
 from .hooks import Hooks
-import numpy as np
+from ..imports import *
 
 #Cell
 def named_leaf_modules(name, model):

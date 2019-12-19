@@ -3,9 +3,9 @@
 __all__ = ['hparams']
 
 #Cell
-from argparse import ArgumentParser
 from .defaults import *
-from pathlib import Path
+from ..imports import *
+from argparse import ArgumentParser
 
 #Cell
 _parser = ArgumentParser()

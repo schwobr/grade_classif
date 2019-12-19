@@ -4,19 +4,13 @@ __all__ = ['MyDataset', 'ClassDataset', 'ImageClassifDataset', 'ImageSegmentData
            'TensorDataset']
 
 #Cell
-import torch
-from torch.utils.data import Dataset
-from dataclasses import dataclass
-from pathlib import Path
 from .loaders import ImageLoader, MaskLoader, CategoryLoader
 from .utils import show_img, np_to_tensor
 from .read import get_items
 from ..core import ifnone
-import pandas as pd
+from ..imports import *
 from albumentations import Compose
-import numpy as np
-import random
-import matplotlib.pyplot as plt
+from torch.utils.data import Dataset
 
 #Cell
 class MyDataset(Dataset):

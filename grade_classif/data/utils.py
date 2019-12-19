@@ -3,9 +3,8 @@
 __all__ = ['np_to_tensor', 'show_img', 'load_batches']
 
 #Cell
-import matplotlib.pyplot as plt
-import torch
 from .loaders import ImageLoader
+from ..imports import *
 
 #Cell
 def np_to_tensor(x, tensor_type):

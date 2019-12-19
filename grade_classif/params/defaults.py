@@ -5,7 +5,7 @@ __all__ = ['PROJECT', 'LEVEL', 'FULL_DATA', 'DATA', 'DATA_CSV', 'MODELS', 'NORM_
            'NORM_VERSION', 'NORM_VERSIONS', 'PRED_LEVELS', 'VERSIONS', 'SCAN']
 
 #Cell
-from pathlib import Path
+from ..imports import *
 
 #Cell
 PROJECT = Path('/home/DeepLearning/grades_classif')

@@ -5,7 +5,7 @@ __all__ = ['train_normalizer', 'train_classifier']
 #Cell
 from .models.plmodules import Normalizer, GradesClassifModel
 from .models.metrics import accuracy, precision, recall, f_1
-from functools import partial
+from .imports import *
 
 #Cell
 def train_normalizer(hparams):
