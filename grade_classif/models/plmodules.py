@@ -18,6 +18,7 @@ import timm
 from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 
 #Cell
 def _get_loss(loss_name, weight, reduction, device='cpu'):
@@ -62,7 +63,7 @@ class BaseModule(pl.LightningModule):
 
     def post_init(self):
         self.leaf_modules = named_leaf_modules('', self)
-        self.sizes = get_sizes(self, input_shape=(3, self.hparams.size, self.hparams.size), leaf_modules=self.leaf_modules)
+        self.sizes, self.leaf_modules = get_sizes(self, input_shape=(3, self.hparams.size, self.hparams.size), leaf_modules=self.leaf_modules)
         self = self.to(self.main_device)
 
     def training_step(self, batch, batch_nb):
@@ -153,10 +154,7 @@ class BaseModule(pl.LightningModule):
         self.load_state_dict(checkpoint['state_dict'])
 
     def my_summarize(self):
-        """
-        TODO: change to make it work with `get_size` changes
-        """
-        summary = pd.DataFrame(self.sizes, columns=['Type', 'Name', 'Output Shape'])
+        summary = pd.DataFrame({'Name': list(map(lambda x: x.name, self.leaf_modules)), 'Output Shape': self.sizes})
         return summary
 
     def fit(self):
