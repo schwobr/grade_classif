@@ -24,8 +24,8 @@ class MyDataset(Dataset):
     """
     def __init__(self, items, labels, item_loader, label_loader):
         super().__init__()
-        self.items = items
-        self.labels = labels
+        self.items = np.array(items)
+        self.labels = np.array(labels)
         self.item_loader = item_loader
         self.label_loader = label_loader
 
