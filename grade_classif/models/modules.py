@@ -134,14 +134,11 @@ class LastCross(nn.Module):
         return x+y
 
 #Cell
-from torchvision.models import resnet34
-
-#Cell
 class DynamicUnet(nn.Module):
     def __init__(self, encoder_name, cut=-2, n_classes=2, input_shape=(3, 224, 224), pretrained=True):
         super(DynamicUnet, self).__init__()
-        # encoder = timm.create_model(encoder_name, pretrained=pretrained)
-        encoder = resnet34()
+        encoder = timm.create_model(encoder_name, pretrained=pretrained)
+        # encoder = resnet34()
         self.encoder = nn.Sequential(*(list(encoder.children())[:cut]+[nn.ReLU()]))
         encoder_sizes, idxs = self.register_output_hooks(input_shape=input_shape)
         n_chans = encoder_sizes[-1][1]

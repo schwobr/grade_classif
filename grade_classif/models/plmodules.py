@@ -80,7 +80,7 @@ class BaseModule(pl.LightningModule):
                 name = metric.func.__name__
                 kws = metric.keywords
                 for k in kws:
-                    name += f'_{k}{kws[k]}'
+                    name += f'_{k}={kws[k]}'
             log[name] = metric(y_hat, y)
         return {'loss': loss, 'log': log}
 

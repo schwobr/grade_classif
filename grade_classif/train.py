@@ -4,6 +4,8 @@ __all__ = ['train_normalizer', 'train_classifier']
 
 #Cell
 from .models.plmodules import Normalizer, GradesClassifModel
+from .models.metrics import accuracy, precision, recall, f_1
+from functools import partial
 
 #Cell
 def train_normalizer(hparams):
@@ -13,6 +15,6 @@ def train_normalizer(hparams):
 
 #Cell
 def train_classifier(hparams):
-    model = GradesClassifModel(hparams)
+    model = GradesClassifModel(hparams, metrics=[accuracy] + [met for i in range(2) for met in (partial(precision, cat=i), partial(recall, cat=i), partial(f_1, cat=i))])
     model.fit()
     return model
