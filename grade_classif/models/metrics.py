@@ -41,13 +41,13 @@ def recall(input, target, cat=0):
     input, target = _reshape(input, target)
     tp = ((input==cat)&(target==cat)).float().sum()
     fn = ((input!=cat)&(target==cat)).float().sum()
-    return tp/(fp+tp+1e-7)
+    return tp/(fn+tp+1e-7)
 
 #Cell
 def f_beta(input, target, beta=1, cat=0):
     prec = precision(input, target, cat)
     rec = recall(input, target, cat)
-    return (1+beta**2)*prec*rec/(beta**2*prec+rec)
+    return (1+beta**2)*prec*rec/(beta**2*prec+rec+1e-7)
 
 #Cell
 def f_1(input, target, cat=0):

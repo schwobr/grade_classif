@@ -1,6 +1,7 @@
 import os
 import cv2
 import timm
+from tqdm import tqdm
 import torch
 import torch.nn as nn
 import pandas as pd

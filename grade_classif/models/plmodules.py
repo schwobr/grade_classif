@@ -67,15 +67,6 @@ class BaseModule(pl.LightningModule):
         loss = self.loss(y_hat, y)
         lr = self.sched.optimizer.param_groups[-1]['lr']
         log = {'train_loss': loss, 'lr': lr}
-        for metric in self.metrics:
-            try:
-                name = metric.__name__
-            except AttributeError:
-                name = metric.func.__name__
-                kws = metric.keywords
-                for k in kws:
-                    name += f'_{k}={kws[k]}'
-            log[name] = metric(y_hat, y)
         return {'loss': loss, 'log': log}
 
 
@@ -84,13 +75,32 @@ class BaseModule(pl.LightningModule):
         x, y = batch
         y_hat = self(x)
         loss = self.loss(y_hat, y)
-        return {'val_loss': loss}
+        ret = {'val_loss': loss}
+        for metric in self.metrics:
+            try:
+                name = metric.__name__
+            except AttributeError:
+                name = metric.func.__name__
+                kws = metric.keywords
+                for k in kws:
+                    name += f'_{k}_{kws[k]}'
+            ret[name] = metric(y_hat, y)
+        return ret
 
 
     def validation_end(self, outputs):
         # OPTIONAL
         loss = torch.stack([x['val_loss'] for x in outputs]).mean()
         log = {'val_loss': loss}
+        for metric in self.metrics:
+            try:
+                name = metric.__name__
+            except AttributeError:
+                name = metric.func.__name__
+                kws = metric.keywords
+                for k in kws:
+                    name += f'_{k}_{kws[k]}'
+            log[name] = torch.stack([x[name] for x in outputs]).mean()
         return {'val_loss': loss, 'log': log}
 
 
@@ -161,8 +171,8 @@ class BaseModule(pl.LightningModule):
 
 #Cell
 class GradesClassifModel(BaseModule):
-    def __init__(self, hparams):
-        super(GradesClassifModel, self).__init__(hparams)
+    def __init__(self, hparams, **kwargs):
+        super(GradesClassifModel, self).__init__(hparams, **kwargs)
         tfms = get_transforms(hparams.size)
         self.data = (ImageClassifDataset.
                      from_folder(Path(hparams.data), lambda x: x.parts[-3], classes=['1', '3'], extensions=['.png'], include=['1', '3'], open_mode='3G').
@@ -204,8 +214,8 @@ class GradesClassifModel(BaseModule):
 
 #Cell
 class Normalizer(BaseModule):
-    def __init__(self, hparams):
-        super(Normalizer, self).__init__(hparams)
+    def __init__(self, hparams, **kwargs):
+        super(Normalizer, self).__init__(hparams, **kwargs)
         input_shape = (3, hparams.size, hparams.size)
         self.unet = DynamicUnet(hparams.normalizer, n_classes=3, input_shape=input_shape, pretrained=not hparams.rand_weights)
         # meta = cnn_config(resnet34)
