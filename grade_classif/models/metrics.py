@@ -3,52 +3,48 @@
 __all__ = ['accuracy', 'fp_rate', 'fn_rate', 'precision', 'recall', 'f_beta', 'f_1']
 
 #Cell
+import torch
+
+#Cell
 def _reshape(input, target):
     n = target.shape[0]
+    input = torch.softmax(input, dim=1)
     input = input.argmax(dim=-1).view(n,-1)
     target = target.view(n,-1)
     return input, target
 
 #Cell
-def accuracy(input, target):
-    input, target = _reshape(input, target)
-    true = (input==target).float().sum()
-    return true/target.shape.numel()
+def accuracy(tp, fp, tn, fn):
+    return (tp+tn)/(tp+fp+fn+tn+1e-7)
 
 #Cell
-def fp_rate(input, target):
-    input, target = _reshape(input, target)
-    tn = ((input==0)&(target==0)).float().sum()
-    fp = ((input==1)&(target==0)).float().sum()
+def fp_rate(tp, fp, tn, fn):
     return fp/(fp+tn+1e-7)
 
 #Cell
-def fn_rate(input, target):
-    input, target = _reshape(input, target)
-    tp = ((input==1)&(target==1)).float().sum()
-    fn = ((input==0)&(target==1)).float().sum()
+def fn_rate(tp, fp, tn, fn):
     return fn/(fn+tp+1e-7)
 
 #Cell
-def precision(input, target, cat=0):
-    input, target = _reshape(input, target)
-    tp = ((input==cat)&(target==cat)).float().sum()
-    fp = ((input==cat)&(target!=cat)).float().sum()
-    return tp/(fp+tp+1e-7)
+def precision(tp, fp, tn, fn, cat=0):
+    if cat == 1:
+        return tp/(fp+tp+1e-7)
+    else:
+        return tn/(fn+tn+1e-7)
 
 #Cell
-def recall(input, target, cat=0):
-    input, target = _reshape(input, target)
-    tp = ((input==cat)&(target==cat)).float().sum()
-    fn = ((input!=cat)&(target==cat)).float().sum()
-    return tp/(fn+tp+1e-7)
+def recall(tp, fp, tn, fn, cat=0):
+    if cat == 1:
+        return tp/(fn+tp+1e-7)
+    else:
+        return tn/(fp+tn+1e-7)
 
 #Cell
-def f_beta(input, target, beta=1, cat=0):
-    prec = precision(input, target, cat)
-    rec = recall(input, target, cat)
-    return (1+beta**2)*prec*rec/(beta**2*prec+rec+1e-7)
+def f_beta(tp, fp, tn, fn beta=1, cat=0):
+    prec = precision(tp, fp, tn, fn, cat)
+    rec = recall(tp, fp, tn, fn, cat)
+    return ((1+beta**2)*prec*rec+1e-7)/(beta**2*prec+rec+1e-7)
 
 #Cell
-def f_1(input, target, cat=0):
-    return f_beta(input, target, beta=1, cat=cat)
+def f_1(tp, fp, tn, fn, cat=0):
+    return f_beta(tp, fp, tn, fn, beta=1, cat=cat)

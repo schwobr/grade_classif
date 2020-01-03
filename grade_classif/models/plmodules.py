@@ -76,15 +76,14 @@ class BaseModule(pl.LightningModule):
         y_hat = self(x)
         loss = self.loss(y_hat, y)
         ret = {'val_loss': loss}
-        for metric in self.metrics:
-            try:
-                name = metric.__name__
-            except AttributeError:
-                name = metric.func.__name__
-                kws = metric.keywords
-                for k in kws:
-                    name += f'_{k}_{kws[k]}'
-            ret[name] = metric(y_hat, y)
+        n = y.shape[0]
+        y_hat = torch.softmax(y_hat, dim=1)
+        y_hat = y_hat.argmax(dim=-1).view(n,-1)
+        y = y.view(n,-1)
+        ret['tp'] = ((y_hat==1)&(y==1)).float().sum()
+        ret['tn'] = ((y_hat==0)&(y==0)).float().sum()
+        ret['fp'] = ((y_hat==1)&(y==0)).float().sum()
+        ret['fn'] = ((y_hat==0)&(y==1)).float().sum()
         return ret
 
 
@@ -92,6 +91,10 @@ class BaseModule(pl.LightningModule):
         # OPTIONAL
         loss = torch.stack([x['val_loss'] for x in outputs]).mean()
         log = {'val_loss': loss}
+        tp = torch.stack([x['tp'] for x in outputs]).sum()
+        fp = torch.stack([x['fp'] for x in outputs]).sum()
+        tn = torch.stack([x['tn'] for x in outputs]).sum()
+        fn = torch.stack([x['fn'] for x in outputs]).sum()
         for metric in self.metrics:
             try:
                 name = metric.__name__
@@ -100,7 +103,7 @@ class BaseModule(pl.LightningModule):
                 kws = metric.keywords
                 for k in kws:
                     name += f'_{k}_{kws[k]}'
-            log[name] = torch.stack([x[name] for x in outputs]).mean()
+            log[name] = metric(tp, fp, tn, fn)
         return {'val_loss': loss, 'log': log}
 
 
@@ -174,8 +177,16 @@ class GradesClassifModel(BaseModule):
     def __init__(self, hparams, **kwargs):
         super(GradesClassifModel, self).__init__(hparams, **kwargs)
         tfms = get_transforms(hparams.size)
+        if hparams.concepts is not None and hparams.concept_classes is not None:
+            conc_classes_df = pd.read_csv(hparams.concept_classes, index_col=0)
+            ok = conc_classes_df.loc[conc_classes_df['type']=='out'].index.values
+            conc_df = pd.read_csv(hparams.concepts, index_col='patchId')
+            def filt(x):
+                return conc_df.loc[x.stem, 'concept'] in ok
+        else:
+            filt = None
         self.data = (ImageClassifDataset.
-                     from_folder(Path(hparams.data), lambda x: x.parts[-3], classes=['1', '3'], extensions=['.png'], include=['1', '3'], open_mode='3G').
+                     from_folder(Path(hparams.data), lambda x: x.parts[-3], classes=['1', '3'], extensions=['.png'], include=['1', '3'], open_mode='3G', filterfunc=filt).
                      split_by_csv(hparams.data_csv).
                      to_tensor(tfms=tfms, tfm_y=False))
         base_model = timm.create_model(hparams.model, pretrained=not hparams.rand_weights)

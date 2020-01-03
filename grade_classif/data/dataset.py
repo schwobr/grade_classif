@@ -33,12 +33,12 @@ class MyDataset(Dataset):
         return x, y
 
     @classmethod
-    def from_folder(cls, folder, label_func, item_loader, label_loader, after_open=None, recurse=True, extensions=None, include=None, exclude=None):
+    def from_folder(cls, folder, label_func, item_loader, label_loader, after_open=None, recurse=True, extensions=None, include=None, exclude=None, filterfunc=None):
         """
         Creates a `MyDataset` object by reading files from a folder. It uses `get_item` and therefore works the same.
         """
         folder = Path(folder)
-        items, labels = get_items(folder, label_func, recurse=recurse, extensions=extensions, include=include, exclude=exclude)
+        items, labels = get_items(folder, label_func, recurse=recurse, extensions=extensions, include=include, exclude=exclude, filterfunc=None)
         return cls(items, labels, item_loader, label_loader)
 
     def to_tensor(self, tfms=None, tfm_y=True):
@@ -130,13 +130,13 @@ class ImageClassifDataset(ClassDataset):
         self.show(k, ax=ax, figsize=figsize, hide_axis=hide_axis, cmap=cmap, **kwargs)
 
     @classmethod
-    def from_folder(cls, folder, label_func, n_classes=None, classes=None, recurse=True, extensions=None, include=None, exclude=None, **kwargs):
+    def from_folder(cls, folder, label_func, n_classes=None, classes=None, recurse=True, extensions=None, include=None, exclude=None, filterfunc=None, **kwargs):
         """
         Overwrites `MyDataset.from_folder`. Works basically the same but you don't need to pass loaders, but instead `n_classes`
         or `classes` arguments. Loaders are automatically created using these.
         """
         folder = Path(folder)
-        items, labels = get_items(folder, label_func, recurse=recurse, extensions=extensions, include=include, exclude=exclude)
+        items, labels = get_items(folder, label_func, recurse=recurse, extensions=extensions, include=include, exclude=exclude, filterfunc=filterfunc)
         return cls(items, labels, ImageLoader(**kwargs), CategoryLoader(n_classes, classes), n_classes=ifnone(n_classes, len(classes)))
 
 #Cell
@@ -158,12 +158,12 @@ class ImageSegmentDataset(ClassDataset):
         self.show(k, ax=ax, figsize=figsize, hide_axis=hide_axis, cmap=cmap, **kwargs)
 
     @classmethod
-    def from_folder(cls, folder, label_func, n_classes=None, classes=None, recurse=True, extensions=None, include=None, exclude=None):
+    def from_folder(cls, folder, label_func, n_classes=None, classes=None, recurse=True, extensions=None, include=None, exclude=None, filterfunc=None):
         """
         Same as `ImageClassifDataset.from_folder`.
         """
         folder = Path(folder)
-        items, labels = get_items(folder, label_func, recurse=recurse, extensions=extensions, include=include, exclude=exclude)
+        items, labels = get_items(folder, label_func, recurse=recurse, extensions=extensions, include=include, exclude=exclude, filterfunc=filtefunc)
         return cls(items, labels, ImageLoader(), MaskLoader(), n_classes=ifnone(n_classes, len(classes)))
 
 #Cell
