@@ -40,7 +40,7 @@ def recall(tp, fp, tn, fn, cat=0):
         return tn/(fp+tn+1e-7)
 
 #Cell
-def f_beta(tp, fp, tn, fn beta=1, cat=0):
+def f_beta(tp, fp, tn, fn, beta=1, cat=0):
     prec = precision(tp, fp, tn, fn, cat)
     rec = recall(tp, fp, tn, fn, cat)
     return ((1+beta**2)*prec*rec+1e-7)/(beta**2*prec+rec+1e-7)

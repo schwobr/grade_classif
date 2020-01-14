@@ -11,6 +11,7 @@ from .modules import DynamicUnet, bn_drop_lin
 from ..core import ifnone
 from ..imports import *
 import pytorch_lightning as pl
+from pytorch_lightning.logging import CometLogger
 from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import OneCycleLR, CosineAnnealingLR, ReduceLROnPlateau
 
@@ -165,7 +166,8 @@ class BaseModule(pl.LightningModule):
         return summary
 
     def fit(self):
-        trainer = pl.Trainer(gpus=self.hparams.gpus, default_save_path=self.save_path, min_epochs=self.hparams.epochs, max_epochs=self.hparams.epochs)
+        logger = CometLogger(api_key=os.environ['COMET_API_KEY'], workspace='schwobr', save_dir=self.save_path, project_name='grade-classif')
+        trainer = pl.Trainer(gpus=self.hparams.gpus, default_save_path=self.save_path, logger=logger, min_epochs=self.hparams.epochs, max_epochs=self.hparams.epochs)
         self.version = trainer.logger.version
         trainer.fit(self)
 
@@ -179,7 +181,7 @@ class GradesClassifModel(BaseModule):
         tfms = get_transforms(hparams.size)
         if hparams.concepts is not None and hparams.concept_classes is not None:
             conc_classes_df = pd.read_csv(hparams.concept_classes, index_col=0)
-            ok = conc_classes_df.loc[conc_classes_df['type']=='out'].index.values
+            ok = conc_classes_df.loc[conc_classes_df['type']=='K'].index.values
             conc_df = pd.read_csv(hparams.concepts, index_col='patchId')
             def filt(x):
                 return conc_df.loc[x.stem, 'concept'] in ok

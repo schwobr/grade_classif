@@ -8,6 +8,7 @@ from albumentations import (RandomRotate90,
                             Transpose,
                             GridDistortion,
                             RandomCrop,
+                            GaussianBlur,
                             RandomGamma)
 
 #Cell
@@ -16,5 +17,7 @@ def get_transforms(size):
             Flip(),
             Transpose(),
             GridDistortion(distort_limit=0.05),
+            RandomGamma(),
+            GaussianBlur(blur_limit=5),
             RandomCrop(size, size)]
     val_tfms = [RandomCrop(size, size)]
