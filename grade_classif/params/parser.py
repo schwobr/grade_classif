@@ -38,6 +38,7 @@ _parser.add_argument('--weight', type=float, default=WEIGHT, help='weight to giv
 _parser.add_argument('--dropout', default=DROPOUT, type=float, help='dropout value')
 _parser.add_argument('--lr', default=LR, type=float, help='learning rate')
 _parser.add_argument('--wd', type=float, default=WD, help='weight decay')
+_parser.add_argument('--sample-mode', type=int, choices=[0, 1, 2], help='type 0 for regular sampling, 1 for oversampling, 2 for undersampling')
 
 #Cell
 hparams = _parser.parse_args()

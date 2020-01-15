@@ -7,12 +7,12 @@ from ..data.dataset import ImageClassifDataset, NormDataset
 from ..data.transforms import get_transforms
 from ..data.utils import show_img
 from .utils import named_leaf_modules, get_sizes, get_num_features
-from .modules import DynamicUnet, bn_drop_lin
+from .modules import DynamicUnet, bn_drop_lin, CBR
 from ..core import ifnone
 from ..imports import *
 import pytorch_lightning as pl
 from pytorch_lightning.logging import CometLogger
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, RandomSampler, WeightedRandomSampler
 from torch.optim.lr_scheduler import OneCycleLR, CosineAnnealingLR, ReduceLROnPlateau
 
 #Cell
@@ -44,10 +44,11 @@ class BaseModule(pl.LightningModule):
         super(BaseModule, self).__init__()
         self.hparams = hparams
         self.main_device = 'cpu' if hparams.gpus is None else f'cuda:{hparams.gpus[0]}'
-        try:
-            weight = hparams.weight
-        except AttributeError:
-            weight = 1.
+        if hparams.sample_mode == 0:
+            try:
+                weight = hparams.weight
+            except AttributeError:
+                weight = 1.
         self.loss = _get_loss(hparams.loss, weight, hparams.reduction, device=self.main_device)
         self.bs = hparams.batch_size
         self.lr = hparams.lr
@@ -140,7 +141,17 @@ class BaseModule(pl.LightningModule):
 
     @pl.data_loader
     def train_dataloader(self):
-        return DataLoader(self.data.train, batch_size=self.bs, shuffle=True)
+        sm = self.hparams.sample_mode
+        if sm > 0:
+            labels = self.data.train.labels == '1'
+            weights = np.where(labels, self.hparams.weight, 1.)
+            if sm == 1:
+                sampler = WeightedRandomSampler(weights, len(labels)+len(np.argwhere(labels)))
+            else:
+                sampler = WeightedRandomSampler(weights, len(labels), replacement=False)
+        else:
+            sampler = RandomSampler(self.data.train)
+        return DataLoader(self.data.train, batch_size=self.bs, sampler=sampler)
 
 
     @pl.data_loader
@@ -191,8 +202,13 @@ class GradesClassifModel(BaseModule):
                      from_folder(Path(hparams.data), lambda x: x.parts[-3], classes=['1', '3'], extensions=['.png'], include=['1', '3'], open_mode='3G', filterfunc=filt).
                      split_by_csv(hparams.data_csv).
                      to_tensor(tfms=tfms, tfm_y=False))
-        base_model = timm.create_model(hparams.model, pretrained=not hparams.rand_weights)
-        self.base_model = nn.Sequential(*list(base_model.children())[:-2])
+        if hparams.model == 'cbr':
+            base_model = CBR(7, 64, 4)
+            cut = -3
+        else:
+            base_model = timm.create_model(hparams.model, pretrained=not hparams.rand_weights)
+            cut = -2
+        self.base_model = nn.Sequential(*list(base_model.children())[:cut])
         head = [nn.AdaptiveAvgPool2d(1), nn.Flatten()]
         nf = get_num_features(self.base_model)
         p = hparams.dropout
