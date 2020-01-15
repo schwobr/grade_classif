@@ -3,7 +3,7 @@
 __all__ = ['accuracy', 'fp_rate', 'fn_rate', 'precision', 'recall', 'f_beta', 'f_1']
 
 #Cell
-import torch
+from ..imports import *
 
 #Cell
 def _reshape(input, target):

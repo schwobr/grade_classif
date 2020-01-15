@@ -8,6 +8,7 @@ from ..data.transforms import get_transforms
 from ..data.utils import show_img
 from .utils import named_leaf_modules, get_sizes, get_num_features
 from .modules import DynamicUnet, bn_drop_lin, CBR
+from .losses import FocalLoss
 from ..core import ifnone
 from ..imports import *
 import pytorch_lightning as pl
@@ -19,8 +20,10 @@ from torch.optim.lr_scheduler import OneCycleLR, CosineAnnealingLR, ReduceLROnPl
 def _get_loss(loss_name, weight, reduction, device='cpu'):
     if loss_name == 'cross-entropy':
         loss = nn.CrossEntropyLoss(torch.tensor([weight, 1.], device=device), reduction=reduction)
-    if loss_name == 'mse':
+    elif loss_name == 'mse':
         loss = nn.MSELoss(reduction=reduction)
+    elif loss_name == 'focal':
+        loss = FocalLoss(reduction=reduction)
     return loss.__call__
 
 #Cell
