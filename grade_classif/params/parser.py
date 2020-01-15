@@ -39,6 +39,7 @@ _parser.add_argument('--dropout', default=DROPOUT, type=float, help='dropout val
 _parser.add_argument('--lr', default=LR, type=float, help='learning rate')
 _parser.add_argument('--wd', type=float, default=WD, help='weight decay')
 _parser.add_argument('--sample-mode', type=int, default=0, choices=[0, 1, 2], help='type 0 for regular sampling, 1 for oversampling, 2 for undersampling')
+_parser.add_argument('--filt', default=FILT, choices=['K', 'K_inter', 'out', 'all'], help='patches to filter depending on their corresponding concept')
 
 #Cell
 hparams = _parser.parse_args()

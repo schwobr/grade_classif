@@ -144,13 +144,14 @@ class BaseModule(pl.LightningModule):
     @pl.data_loader
     def train_dataloader(self):
         sm = self.hparams.sample_mode
+        w = self.hparams.weight
         if sm > 0:
             labels = self.data.train.labels == '1'
-            weights = np.where(labels, self.hparams.weight, 1.)
+            weights = np.where(labels, w, 1.)
             if sm == 1:
-                sampler = WeightedRandomSampler(weights, len(labels)+len(np.argwhere(labels)))
+                sampler = WeightedRandomSampler(weights, len(labels)+int(w-1)*len(np.argwhere(labels)))
             else:
-                sampler = WeightedRandomSampler(weights, len(labels), replacement=False)
+                sampler = WeightedRandomSampler(weights, len(np.argwhere(labels)), replacement=False)
         else:
             sampler = RandomSampler(self.data.train)
         return DataLoader(self.data.train, batch_size=self.bs, sampler=sampler)
@@ -192,9 +193,9 @@ class GradesClassifModel(BaseModule):
     def __init__(self, hparams, **kwargs):
         super(GradesClassifModel, self).__init__(hparams, **kwargs)
         tfms = get_transforms(hparams.size)
-        if hparams.concepts is not None and hparams.concept_classes is not None:
+        if hparams.concepts is not None and hparams.concept_classes is not None and hparams.filt != 'all':
             conc_classes_df = pd.read_csv(hparams.concept_classes, index_col=0)
-            ok = conc_classes_df.loc[conc_classes_df['type']=='K'].index.values
+            ok = conc_classes_df.loc[conc_classes_df['type'] == hparams.filt].index.values
             conc_df = pd.read_csv(hparams.concepts, index_col='patchId')
             def filt(x):
                 return conc_df.loc[x.stem, 'concept'] in ok

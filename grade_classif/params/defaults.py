@@ -2,7 +2,8 @@
 
 __all__ = ['PROJECT', 'CSVS', 'LEVEL', 'FULL_DATA', 'DATA', 'DATA_CSV', 'MODELS', 'NORM_CSV', 'CONCEPTS',
            'CONCEPT_CLASSES', 'MODEL', 'GPUS', 'SIZE', 'BATCH_SIZE', 'LOSS', 'SCHED', 'REDUCTION', 'EPOCHS', 'DROPOUT',
-           'LR', 'WD', 'WEIGHT', 'NORMALIZER', 'NORM_VERSION', 'NORM_VERSIONS', 'PRED_LEVELS', 'VERSIONS', 'SCAN']
+           'LR', 'WD', 'WEIGHT', 'NORMALIZER', 'NORM_VERSION', 'NORM_VERSIONS', 'PRED_LEVELS', 'VERSIONS', 'SCAN',
+           'FILT']
 
 #Cell
 from ..imports import *
@@ -41,3 +42,4 @@ NORM_VERSIONS = [0, 0, 0, 0]
 PRED_LEVELS = [1, 3, 5, 7]
 VERSIONS = [0, 0, 0, 0]
 SCAN = None
+FILT = 'K'

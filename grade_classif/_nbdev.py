@@ -83,6 +83,7 @@ index = {"ifnone": "00_core.ipynb",
          "PRED_LEVELS": "80_params.defaults.ipynb",
          "VERSIONS": "80_params.defaults.ipynb",
          "SCAN": "80_params.defaults.ipynb",
+         "FILT": "80_params.defaults.ipynb",
          "hparams": "81_params.parser.ipynb"}
 
 modules = ["core.py",
