@@ -27,7 +27,7 @@ _parser.add_argument('--size', default=SIZE, type=int, help='size of the image (
 _parser.add_argument('--loss', default=LOSS, choices=['cross-entropy', 'mse'], help='loss function')
 _parser.add_argument('--csv', default=NORM_CSV, type=Path, help='path to csv where normalizer train images are stored')
 _parser.add_argument('--savedir', default=MODELS, type=Path, help='directory to save models and logs in')
-_parser.add_argument('--model', default=MODEL, choices=['resnet34', 'resnet50', 'efficientnet_b1'], help='name of the base architecture to use for classification')
+_parser.add_argument('--model', default=MODEL, choices=['cbr', 'resnet34', 'resnet50', 'efficientnet_b1'], help='name of the base architecture to use for classification')
 _parser.add_argument('--normalizer', default=NORMALIZER, help='encoder to use for normalization unet')
 _parser.add_argument('--norm-version', default=NORM_VERSION, type=int, help='version of the encoder to load for classification')
 _parser.add_argument('--rand-weights', action='store_true', help='specify to avoid using a pretrained model for training')
@@ -38,7 +38,7 @@ _parser.add_argument('--weight', type=float, default=WEIGHT, help='weight to giv
 _parser.add_argument('--dropout', default=DROPOUT, type=float, help='dropout value')
 _parser.add_argument('--lr', default=LR, type=float, help='learning rate')
 _parser.add_argument('--wd', type=float, default=WD, help='weight decay')
-_parser.add_argument('--sample-mode', type=int, choices=[0, 1, 2], help='type 0 for regular sampling, 1 for oversampling, 2 for undersampling')
+_parser.add_argument('--sample-mode', type=int, default=0, choices=[0, 1, 2], help='type 0 for regular sampling, 1 for oversampling, 2 for undersampling')
 
 #Cell
 hparams = _parser.parse_args()

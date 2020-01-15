@@ -47,11 +47,10 @@ class BaseModule(pl.LightningModule):
         super(BaseModule, self).__init__()
         self.hparams = hparams
         self.main_device = 'cpu' if hparams.gpus is None else f'cuda:{hparams.gpus[0]}'
-        if hparams.sample_mode == 0:
-            try:
-                weight = hparams.weight
-            except AttributeError:
-                weight = 1.
+        try:
+            weight = hparams.weight if hparams.sample_mode == 0 else 1.
+        except AttributeError:
+            weight = 1.
         self.loss = _get_loss(hparams.loss, weight, hparams.reduction, device=self.main_device)
         self.bs = hparams.batch_size
         self.lr = hparams.lr
