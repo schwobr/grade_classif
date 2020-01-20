@@ -44,7 +44,7 @@ def _get_scheduler(opt, name, total_steps, lr):
 #Cell
 class BaseModule(pl.LightningModule):
     def __init__(self, hparams, metrics=None):
-        super(BaseModule, self).__init__()
+        super().__init__()
         self.hparams = hparams
         self.main_device = 'cpu' if hparams.gpus is None else f'cuda:{hparams.gpus[0]}'
         try:
@@ -70,7 +70,7 @@ class BaseModule(pl.LightningModule):
         y_hat = self(x)
         loss = self.loss(y_hat, y)
         lr = self.sched.optimizer.param_groups[-1]['lr']
-        log = {'train_loss': loss, 'lr': lr}
+        log = {'train_loss': loss, 'learning_rate': lr}
         return {'loss': loss, 'log': log}
 
 
@@ -191,11 +191,14 @@ class BaseModule(pl.LightningModule):
 #Cell
 class GradesClassifModel(BaseModule):
     def __init__(self, hparams, **kwargs):
-        super(GradesClassifModel, self).__init__(hparams, **kwargs)
+        super().__init__(hparams, **kwargs)
         tfms = get_transforms(hparams.size)
-        if hparams.concepts is not None and hparams.concept_classes is not None and hparams.filt != 'all':
+        if hparams.concepts is not None and hparams.concept_classes is not None:
             conc_classes_df = pd.read_csv(hparams.concept_classes, index_col=0)
-            ok = conc_classes_df.loc[conc_classes_df['type'] == hparams.filt].index.values
+            if hparams.filt != 'all':
+                ok = conc_classes_df.loc[conc_classes_df['type'] == hparams.filt].index.values
+            else:
+                ok = conc_classes_df.loc[conc_classes_df['type'] != 'garb'].index.values
             conc_df = pd.read_csv(hparams.concepts, index_col='patchId')
             def filt(x):
                 return conc_df.loc[x.stem, 'concept'] in ok
@@ -205,8 +208,9 @@ class GradesClassifModel(BaseModule):
                      from_folder(Path(hparams.data), lambda x: x.parts[-3], classes=['1', '3'], extensions=['.png'], include=['1', '3'], open_mode='3G', filterfunc=filt).
                      split_by_csv(hparams.data_csv).
                      to_tensor(tfms=tfms, tfm_y=False))
-        if hparams.model == 'cbr':
-            base_model = CBR(7, 64, 4)
+        if 'cbr' in hparams.model:
+            args = map(int, hparams.model.split('_')[1:])
+            base_model = CBR(*args)
             cut = -3
         else:
             base_model = timm.create_model(hparams.model, pretrained=not hparams.rand_weights)
@@ -215,7 +219,7 @@ class GradesClassifModel(BaseModule):
         head = [nn.AdaptiveAvgPool2d(1), nn.Flatten()]
         nf = get_num_features(self.base_model)
         p = hparams.dropout
-        head += bn_drop_lin(nf, 512, p=p/2) + bn_drop_lin(512, 2, p=p)
+        head += bn_drop_lin(nf, nf, p=p/2) + bn_drop_lin(nf, 2, p=p)
         self.head = nn.Sequential(*head)
         self.post_init()
         self.create_normalizer()
@@ -244,10 +248,15 @@ class GradesClassifModel(BaseModule):
         x = self.head(x)
         return x
 
+    def predict(self, x):
+        pred = super().predict(x)
+        pred = torch.softmax(pred, dim=1)
+        return pred
+
 #Cell
 class Normalizer(BaseModule):
     def __init__(self, hparams, **kwargs):
-        super(Normalizer, self).__init__(hparams, **kwargs)
+        super().__init__(hparams, **kwargs)
         input_shape = (3, hparams.size, hparams.size)
         self.unet = DynamicUnet(hparams.normalizer, n_classes=3, input_shape=input_shape, pretrained=not hparams.rand_weights)
         # meta = cnn_config(resnet34)

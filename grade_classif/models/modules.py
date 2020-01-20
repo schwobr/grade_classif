@@ -22,7 +22,7 @@ def bn_drop_lin(n_in, n_out, bn=True, p=0., actn=None):
 class ConvBnRelu(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size, stride=1,
                  padding=0, bias=True, eps=1e-5, momentum=0.01, **kwargs):
-        super(ConvBnRelu, self).__init__()
+        super().__init__()
         self.conv = nn.Conv2d(
             in_channels, out_channels, kernel_size, stride=stride,
             padding=padding, bias=bias, **kwargs)
@@ -39,7 +39,7 @@ class ConvBnRelu(nn.Module):
 class ConvBn(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size, stride=1,
                  padding=0, bias=True, eps=1e-5, momentum=0.01, **kwargs):
-        super(ConvBn, self).__init__()
+        super().__init__()
         self.conv = nn.Conv2d(
             in_channels, out_channels, kernel_size, stride=stride,
             padding=padding, bias=bias, **kwargs)
@@ -55,7 +55,7 @@ class ConvRelu(nn.Module):
     def __init__(
             self, in_channels, out_channels, kernel_size, stride=1, padding=0,
             bias=True, **kwargs):
-        super(ConvRelu, self).__init__()
+        super().__init__()
         self.conv = nn.Conv2d(
             in_channels, out_channels, kernel_size, stride=stride,
             padding=padding, bias=bias, **kwargs)
@@ -79,7 +79,7 @@ def icnr(x, scale=2, init=nn.init.kaiming_normal_):
 class PixelShuffleICNR(nn.Module):
     def __init__(
             self, in_channels, out_channels, bias=True, scale_factor=2, **kwargs):
-        super(PixelShuffleICNR, self).__init__()
+        super().__init__()
         self.conv = nn.Conv2d(
             in_channels, out_channels*scale_factor**2, 1, bias=bias, **kwargs)
         icnr(self.conv.weight)
@@ -99,7 +99,7 @@ class PixelShuffleICNR(nn.Module):
 #Cell
 class DecoderBlock(nn.Module):
     def __init__(self, in_chans, skip_chans, hook, final_div=True, **kwargs):
-        super(DecoderBlock, self).__init__()
+        super().__init__()
         self.hook = hook
         self.shuf = PixelShuffleICNR(in_chans, in_chans//2, **kwargs)
         self.bn = nn.BatchNorm2d(skip_chans)
@@ -133,7 +133,7 @@ class LastCross(nn.Module):
 #Cell
 class DynamicUnet(nn.Module):
     def __init__(self, encoder_name, cut=-2, n_classes=2, input_shape=(3, 224, 224), pretrained=True):
-        super(DynamicUnet, self).__init__()
+        super().__init__()
         encoder = timm.create_model(encoder_name, pretrained=pretrained)
         # encoder = resnet34()
         self.encoder = nn.Sequential(*(list(encoder.children())[:cut]+[nn.ReLU()]))
@@ -185,7 +185,7 @@ class DynamicUnet(nn.Module):
 #Cell
 class CBR(nn.Module):
     def __init__(self, kernel_size, n_kernels, n_layers, n_classes=2):
-        super(CBR, self).__init__()
+        super().__init__()
         in_c = 3
         out_c = n_kernels
         for k in range(n_layers):

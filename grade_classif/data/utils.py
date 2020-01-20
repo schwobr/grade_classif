@@ -27,10 +27,12 @@ def load_batches(folder, bs=16, device='cpu'):
     x = []
     image_loader = ImageLoader('3G')
     for fn in folder.iterdir():
-        if len(batch) < batch_size:
+        if len(x) < bs:
             img = image_loader(fn)
-            img = np_to_tensor(img).to(device)
+            img = np_to_tensor(img, 'image').to(device)
             x.append(img)
         else:
             yield torch.stack(x)
             x = []
+    if x != []:
+        yield torch.stack(x)

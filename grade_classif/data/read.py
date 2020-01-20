@@ -38,9 +38,9 @@ def get_items(folder, label_func, recurse=True, extensions=None, include=None, e
 def get_scan(folder, scan_name, include=None, exclude=None):
     dirs = []
     for item in folder.iterdir():
-        if item.name == scan_name and _check_valid(item, include, exclude):
+        if item.name == scan_name:
             return item
-        if item.is_dir():
+        if item.is_dir() and _check_valid(item, include, exclude):
             dirs.append(item)
     for item in dirs:
         obj = get_scan(item, scan_name)
