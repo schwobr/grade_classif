@@ -189,8 +189,8 @@ class CBR(nn.Module):
         in_c = 3
         out_c = n_kernels
         for k in range(n_layers):
-            self.add_module(f'cbr{k}', ConvBnRelu(in_c, out_c, kernel_size))
-            self.add_module(f'maxpool{k}', nn.MaxPool2d(3, stride=2))
+            self.add_module(f'cbr{k}', ConvBnRelu(in_c, out_c, kernel_size, stride=2))
+            #self.add_module(f'maxpool{k}', nn.MaxPool2d(3, stride=2))
             in_c = out_c
             out_c *= 2
         self.gap = nn.AdaptiveAvgPool2d(1)
