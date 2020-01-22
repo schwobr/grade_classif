@@ -27,7 +27,7 @@ class ConvBnRelu(nn.Module):
             in_channels, out_channels, kernel_size, stride=stride,
             padding=padding, bias=bias, **kwargs)
         self.bn = nn.BatchNorm2d(
-            out_channels, eps=eps, momentum=momentum, **kwargs)
+            out_channels, eps=eps, momentum=momentum)
         self.relu = nn.ReLU()
 
     def forward(self, x):
@@ -44,7 +44,7 @@ class ConvBn(nn.Module):
             in_channels, out_channels, kernel_size, stride=stride,
             padding=padding, bias=bias, **kwargs)
         self.bn = nn.BatchNorm2d(
-            out_channels, eps=eps, momentum=momentum, **kwargs)
+            out_channels, eps=eps, momentum=momentum)
 
     def forward(self, x):
         x = self.conv(x)
@@ -189,8 +189,8 @@ class CBR(nn.Module):
         in_c = 3
         out_c = n_kernels
         for k in range(n_layers):
-            self.add_module(f'cbr{k}', ConvBnRelu(in_c, out_c, kernel_size, stride=2))
-            #self.add_module(f'maxpool{k}', nn.MaxPool2d(3, stride=2))
+            self.add_module(f'cbr{k}', ConvBnRelu(in_c, out_c, kernel_size, stride=2, padding=kernel_size//2, padding_mode='reflect'))
+            # self.add_module(f'maxpool{k}', nn.MaxPool2d(3, stride=2, padding=1))
             in_c = out_c
             out_c *= 2
         self.gap = nn.AdaptiveAvgPool2d(1)
