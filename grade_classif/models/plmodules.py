@@ -160,6 +160,7 @@ class BaseModule(pl.LightningModule):
 
     def fit(self):
         logger = CometLogger(api_key=os.environ['COMET_API_KEY'], workspace='schwobr', save_dir=self.save_path, project_name='grade-classif')
+        logger.experiment.add_tag('norm' if isinstance(self, Normalizer) else 'classif')
         ckpt_path = self.save_path/'lightning_logs'/f'version_{logger.version}'/'checkpoints'
         ckpt_callback = ModelCheckpoint(ckpt_path, save_top_k=3)
         trainer = pl.Trainer(gpus=self.hparams.gpus, checkpoint_callback=ckpt_callback, logger=logger, min_epochs=self.hparams.epochs, max_epochs=self.hparams.epochs)
@@ -249,7 +250,7 @@ class GradesClassifModel(BaseModule):
                      from_folder(Path(hparams.data), lambda x: x.parts[-3], classes=['1', '3'], extensions=['.png'], include=['1', '3'], open_mode='3G', filterfunc=filt).
                      split_by_csv(hparams.data_csv).
                      to_tensor(tfms=tfms, tfm_y=False))
-        weight = (self.data.train.labels == '3').sum()/(self.data.train.labels == '1').sum()
+        weight = np.float32((self.data.train.labels == '3').sum()/(self.data.train.labels == '1').sum())
         self.hparams.weight = weight
         self.loss = _get_loss(hparams.loss, weight if hparams.sample_mode == 0 else 1., hparams.reduction, device=self.main_device)
         if 'cbr' in hparams.model:
