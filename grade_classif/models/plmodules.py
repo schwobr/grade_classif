@@ -78,44 +78,22 @@ class BaseModule(pl.LightningModule):
     def validation_step(self, batch, batch_nb):
         # OPTIONAL
         x, y = batch
-        y_hat = self(x)
+        y_hat = self.eval()(x)
         loss = self.loss(y_hat, y)
-        ret = {'val_loss': loss}
-        n = y.shape[0]
-        y_hat = torch.softmax(y_hat, dim=1)
-        y_hat = y_hat.argmax(dim=-1).view(n,-1)
-        y = y.view(n,-1)
-        ret['tp'] = ((y_hat==1)&(y==1)).float().sum()
-        ret['tn'] = ((y_hat==0)&(y==0)).float().sum()
-        ret['fp'] = ((y_hat==1)&(y==0)).float().sum()
-        ret['fn'] = ((y_hat==0)&(y==1)).float().sum()
-        return ret
+        return {'val_loss': loss}
 
 
     def validation_end(self, outputs):
         # OPTIONAL
         loss = torch.stack([x['val_loss'] for x in outputs]).mean()
         log = {'val_loss': loss}
-        tp = torch.stack([x['tp'] for x in outputs]).sum()
-        fp = torch.stack([x['fp'] for x in outputs]).sum()
-        tn = torch.stack([x['tn'] for x in outputs]).sum()
-        fn = torch.stack([x['fn'] for x in outputs]).sum()
-        for metric in self.metrics:
-            try:
-                name = metric.__name__
-            except AttributeError:
-                name = metric.func.__name__
-                kws = metric.keywords
-                for k in kws:
-                    name += f'_{k}_{kws[k]}'
-            log[name] = metric(tp, fp, tn, fn)
         return {'val_loss': loss, 'log': log}
 
 
     def test_step(self, batch, batch_nb):
         # OPTIONAL
         x, y = batch
-        y_hat = self(x)
+        y_hat = self.eval()(x)
         return {'test_loss': self.loss(y_hat, y)}
 
 
@@ -289,6 +267,41 @@ class GradesClassifModel(BaseModule):
         self.head = nn.Sequential(*head)
         self.post_init()
         self.create_normalizer()
+
+    def validation_step(self, batch, batch_nb):
+        # OPTIONAL
+        x, y = batch
+        y_hat = self.eval()(x)
+        loss = self.loss(y_hat, y)
+        ret = {'val_loss': loss}
+        n = y.shape[0]
+        y_hat = torch.softmax(y_hat, dim=1)
+        y_hat = y_hat.argmax(dim=-1).view(n,-1)
+        y = y.view(n,-1)
+        ret['tp'] = ((y_hat==1)&(y==1)).float().sum()
+        ret['tn'] = ((y_hat==0)&(y==0)).float().sum()
+        ret['fp'] = ((y_hat==1)&(y==0)).float().sum()
+        ret['fn'] = ((y_hat==0)&(y==1)).float().sum()
+        return ret
+
+    def validation_end(self, outputs):
+        # OPTIONAL
+        loss = torch.stack([x['val_loss'] for x in outputs]).mean()
+        log = {'val_loss': loss}
+        tp = torch.stack([x['tp'] for x in outputs]).sum()
+        fp = torch.stack([x['fp'] for x in outputs]).sum()
+        tn = torch.stack([x['tn'] for x in outputs]).sum()
+        fn = torch.stack([x['fn'] for x in outputs]).sum()
+        for metric in self.metrics:
+            try:
+                name = metric.__name__
+            except AttributeError:
+                name = metric.func.__name__
+                kws = metric.keywords
+                for k in kws:
+                    name += f'_{k}_{kws[k]}'
+            log[name] = metric(tp, fp, tn, fn)
+        return {'val_loss': loss, 'log': log}
 
     def create_normalizer(self):
         hparams = self.hparams
