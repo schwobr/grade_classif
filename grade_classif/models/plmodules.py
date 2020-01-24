@@ -208,6 +208,9 @@ class GradesClassifModel(BaseModule):
                      from_folder(Path(hparams.data), lambda x: x.parts[-3], classes=['1', '3'], extensions=['.png'], include=['1', '3'], open_mode='3G', filterfunc=filt).
                      split_by_csv(hparams.data_csv).
                      to_tensor(tfms=tfms, tfm_y=False))
+        weight = (self.data.train.labels == '3').sum()/(self.data.train.labels == '1').sum() if hparams.sample_mode == 0 else 1
+        self.hparams.weight = weight
+        self.loss = _get_loss(hparams.loss, weight, hparams.reduction, device=self.main_device)
         if 'cbr' in hparams.model:
             args = map(int, hparams.model.split('_')[1:])
             base_model = CBR(*args)
