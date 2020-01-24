@@ -77,7 +77,7 @@ def _remove_doubles(scans, grades):
 #Cell
 def create_csv(csv_path, data_path, label_func=None):
     label_func = ifnone(label_func, lambda x: x.parts[-3])
-    scans, grades = get_items(data_path, label_func, include=['1', '3'])
+    scans, grades = get_items(data_path, label_func, extensions=['.png'])
     scans = list(map(lambda x: x.parent.name, scans))
     scans, grades = _remove_doubles(scans, grades)
     splits = split(scans, grades)

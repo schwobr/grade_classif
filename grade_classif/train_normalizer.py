@@ -3,8 +3,8 @@
 __all__ = ['model']
 
 #Cell
-from .params import hparams
+from .params.parser import hparams
 from .train import train_normalizer
 
 #Cell
-model = train_normalizer()
+model = train_normalizer(hparams)
