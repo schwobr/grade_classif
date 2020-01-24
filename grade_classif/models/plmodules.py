@@ -150,7 +150,7 @@ class BaseModule(pl.LightningModule):
 
     def load(self, version, ckpt_epoch=None):
         save_dir = self.save_path/f'lightning_logs/version_{version}/checkpoints'
-        path = list(save_dir.iterdir())[-1] if ckpt is None else save_dir/f'_ckpt_epoch_{ckpt_epoch}.ckpt'
+        path = list(save_dir.iterdir())[-1] if ckpt_epoch is None else save_dir/f'_ckpt_epoch_{ckpt_epoch}.ckpt'
         checkpoint = torch.load(path, map_location=lambda storage, loc: storage)
         self.load_state_dict(checkpoint['state_dict'])
 
