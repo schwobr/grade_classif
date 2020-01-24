@@ -205,7 +205,7 @@ class Normalizer(BaseModule):
         #      bottle=False)
         tfms = get_transforms(hparams.size)
         self.data = (NormDataset.
-                     from_folder(Path(hparams.data), hparams.norm_csv, extensions=['.png']).
+                     from_folder(Path(hparams.data), extensions=['.png']).
                      split_by_csv(hparams.data_csv).
                      to_tensor(tfms=tfms))
         self.post_init()

@@ -185,20 +185,14 @@ class NormDataset(MyDataset):
         self.show(k, axs=axs, figsize=figsize, hide_axis=hide_axis, cmap=cmap, **kwargs)
 
     @classmethod
-    def from_folder(cls, folder, csv, id_column='scan', recurse=True, extensions=None, include=None, exclude=None):
+    def from_folder(cls, folder, id_column='scan', recurse=True, extensions=None, include=None, exclude=None):
         """
-        Overwrites `MyDataset.from_folder` so that it doesn't need the loaders or a `label_func`. It howevers requires a `csv`
-        argument that contains an `id_column` column to identify images and a `'category'` column that contains 1 if the image
-        is to be used for normalization.
+        Overwrites `MyDataset.from_folder` so that it doesn't need the loaders or a `label_func`.
         """
         def _label_func(x):
             return x
-        df = pd.read_csv(csv)
-        vals = df.loc[df['category'] == 1, id_column].values
-        def filt(fn):
-            return fn.parent.stem in vals
         folder = Path(folder)
-        items, labels = get_items(folder, _label_func, recurse=recurse, extensions=extensions, include=include, exclude=exclude, filterfunc=filt)
+        items, labels = get_items(folder, _label_func, recurse=recurse, extensions=extensions, include=include, exclude=exclude)
         return cls(items, labels, ImageLoader(open_mode='3G'), ImageLoader())
 
 #Cell
