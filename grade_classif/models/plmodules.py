@@ -148,9 +148,9 @@ class BaseModule(pl.LightningModule):
         # can also return a list of test dataloaders
         return DataLoader(self.data.test, batch_size=self.bs) if self.data.test is not None else None
 
-    def load(self, version):
+    def load(self, version, ckpt_epoch=None):
         save_dir = self.save_path/f'lightning_logs/version_{version}/checkpoints'
-        path = next(save_dir.iterdir())
+        path = list(save_dir.iterdir())[-1] if ckpt is None else save_dir/f'_ckpt_epoch_{ckpt_epoch}.ckpt'
         checkpoint = torch.load(path, map_location=lambda storage, loc: storage)
         self.load_state_dict(checkpoint['state_dict'])
 
