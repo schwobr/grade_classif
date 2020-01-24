@@ -16,8 +16,8 @@ def get_transforms(size):
     tfms = [RandomRotate90(),
             Flip(),
             Transpose(),
-            GridDistortion(distort_limit=0.05),
-            RandomGamma(),
-            GaussianBlur(blur_limit=5),
+            GridDistortion(distort_limit=0.05, p=0.2),
+            RandomGamma(p=0.2),
+            GaussianBlur(blur_limit=5, p=0.2),
             RandomCrop(size, size)]
     val_tfms = [RandomCrop(size, size)]

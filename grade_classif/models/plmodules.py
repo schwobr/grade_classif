@@ -13,6 +13,7 @@ from ..core import ifnone
 from ..imports import *
 import pytorch_lightning as pl
 from pytorch_lightning.logging import CometLogger
+from pytorch_lightning.callbacks import ModelCheckpoint
 from torch.utils.data import DataLoader, RandomSampler, WeightedRandomSampler
 from torch.optim.lr_scheduler import OneCycleLR, CosineAnnealingLR, ReduceLROnPlateau
 
@@ -181,7 +182,9 @@ class BaseModule(pl.LightningModule):
 
     def fit(self):
         logger = CometLogger(api_key=os.environ['COMET_API_KEY'], workspace='schwobr', save_dir=self.save_path, project_name='grade-classif')
-        trainer = pl.Trainer(gpus=self.hparams.gpus, default_save_path=self.save_path, logger=logger, min_epochs=self.hparams.epochs, max_epochs=self.hparams.epochs)
+        ckpt_path = self.save_path/'lightning_logs'/f'version_{logger.version}'/'checkpoints'
+        ckpt_callback = ModelCheckpoint(ckpt_path, save_top_k=3)
+        trainer = pl.Trainer(gpus=self.hparams.gpus, checkpoint_callback=ckpt_callback, logger=logger, min_epochs=self.hparams.epochs, max_epochs=self.hparams.epochs)
         self.version = trainer.logger.version
         trainer.fit(self)
 

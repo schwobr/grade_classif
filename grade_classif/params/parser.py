@@ -24,7 +24,7 @@ _parser.add_argument('--versions', default=VERSIONS, type=int, nargs='*', help='
 _parser.add_argument('--norm-versions', default=NORM_VERSIONS, type=int, nargs='*', help='list of normalizer versionsto use. Must specify one for each level the in same order.')
 _parser.add_argument('--batch-size', default=BATCH_SIZE, type=int, help='batch size')
 _parser.add_argument('--size', default=SIZE, type=int, help='size of the image (as an integer, image is supposed square)')
-_parser.add_argument('--loss', default=LOSS, choices=['cross-entropy', 'mse'], help='loss function')
+_parser.add_argument('--loss', default=LOSS, choices=['cross-entropy', 'mse', 'focal'], help='loss function')
 _parser.add_argument('--csv', default=NORM_CSV, type=Path, help='path to csv where normalizer train images are stored')
 _parser.add_argument('--savedir', default=MODELS, type=Path, help='directory to save models and logs in')
 _parser.add_argument('--model', default=MODEL, help='name of the base architecture to use for classification')
