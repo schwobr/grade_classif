@@ -13,7 +13,7 @@ from .imports import *
 def predict_one_scan_one_level(model, fn):
     preds = []
     for x in load_batches(fn, bs=model.bs, device=model.main_device):
-        preds.append(model.predict(x).detach().cpu()[:, 1])
+        preds.append(model.predict(x).detach().cpu()[:, -1])
     preds = torch.cat(preds)
     return preds.sum().item()/len(preds)
 
@@ -36,11 +36,11 @@ def predict_all(hparams):
     preds = []
     scans = []
     levels = []
-    for level, version, norm_version in zip(hparams.levels, hparams.versions, hparams.norm_versions):
+    for level, version, ckpt, norm_version in zip(hparams.levels, hparams.versions, hparams.checkpoints, hparams.norm_versions):
         hparams.level = level
         hparams.norm_version = norm_version
         model = GradesClassifModel(hparams)
-        model.load(version)
+        model.load(version, ckpt)
         for row in tqdm(df.loc[df['split']=='valid'].values):
             scan, grade = row[:-1]
             fn = hparams.full_data/f'{hparams.full_data.name}_{level}'/str(grade)/scan

@@ -8,7 +8,7 @@ from ..data.transforms import get_transforms
 from ..data.utils import show_img
 from .utils import named_leaf_modules, get_sizes, get_num_features
 from .modules import DynamicUnet, bn_drop_lin, CBR
-from .losses import FocalLoss
+from .losses import FocalLoss, BCE
 from ..core import ifnone
 from ..imports import *
 import pytorch_lightning as pl
@@ -21,6 +21,8 @@ from torch.optim.lr_scheduler import OneCycleLR, CosineAnnealingLR, ReduceLROnPl
 def _get_loss(loss_name, weight, reduction, device='cpu'):
     if loss_name == 'cross-entropy':
         loss = nn.CrossEntropyLoss(torch.tensor([weight, 1.], device=device), reduction=reduction)
+    elif loss_name == 'bce':
+        loss = BCE(reduction=reduction, pos_weight=torch.tensor([1/weight], device=device))
     elif loss_name == 'mse':
         loss = nn.MSELoss(reduction=reduction)
     elif loss_name == 'focal':
@@ -58,7 +60,7 @@ class BaseModule(pl.LightningModule):
         self.wd = hparams.wd
         self.metrics = ifnone(metrics, [])
         model_type = 'normalizer' if isinstance(self, Normalizer) else 'classifier'
-        self.save_path = hparams.savedir/f'level_{hparams.level}/{model_type}/{hparams.model}'
+        self.save_path = hparams.savedir/f'level_{hparams.level}/{model_type}/{hparams.model if model_type == "classifier" else hparams.normalizer}'
 
     def post_init(self):
         self.leaf_modules = named_leaf_modules('', self)
@@ -247,7 +249,7 @@ class GradesClassifModel(BaseModule):
         else:
             filt = None
         self.data = (ImageClassifDataset.
-                     from_folder(Path(hparams.data), lambda x: x.parts[-3], classes=['1', '3'], extensions=['.png'], include=['1', '3'], open_mode='3G', filterfunc=filt).
+                     from_folder(Path(hparams.data), lambda x: x.parts[-3], classes=['1', '3'], extensions=['.png'], include=['1', '3'], open_mode=hparams.open_mode, filterfunc=filt).
                      split_by_csv(hparams.data_csv).
                      to_tensor(tfms=tfms, tfm_y=False))
         weight = np.float32((self.data.train.labels == '3').sum()/(self.data.train.labels == '1').sum())
@@ -264,7 +266,8 @@ class GradesClassifModel(BaseModule):
         head = [nn.AdaptiveAvgPool2d(1), nn.Flatten()]
         nf = get_num_features(self.base_model)
         p = hparams.dropout
-        head += bn_drop_lin(nf, nf, p=p/2) + bn_drop_lin(nf, 2, p=p)
+        nc = 2 if hparams.loss == 'cross-entropy' else 1
+        head += bn_drop_lin(nf, nf, p=p/2) + bn_drop_lin(nf, nc, p=p)
         self.head = nn.Sequential(*head)
         self.post_init()
         self.create_normalizer()
@@ -276,13 +279,17 @@ class GradesClassifModel(BaseModule):
         loss = self.loss(y_hat, y)
         ret = {'val_loss': loss}
         n = y.shape[0]
-        y_hat = torch.softmax(y_hat, dim=1)
-        y_hat = y_hat.argmax(dim=-1).view(n,-1)
+        if self.hparams.loss == 'cross-entropy':
+            y_hat = torch.softmax(y_hat, dim=1)
+            y_hat = y_hat.argmax(dim=-1).view(n,-1)
+        else:
+            y_hat = torch.sigmoid(y_hat)
+            y_hat = (y_hat > 0.5).view(n, -1)
         y = y.view(n,-1)
-        ret['tp'] = ((y_hat==1)&(y==1)).float().sum()
-        ret['tn'] = ((y_hat==0)&(y==0)).float().sum()
-        ret['fp'] = ((y_hat==1)&(y==0)).float().sum()
-        ret['fn'] = ((y_hat==0)&(y==1)).float().sum()
+        ret['tp'] = ((y_hat)&(y==1)).float().sum()
+        ret['tn'] = ((~y_hat)&(y==0)).float().sum()
+        ret['fp'] = ((y_hat)&(y==0)).float().sum()
+        ret['fn'] = ((~y_hat)&(y==1)).float().sum()
         return ret
 
     def validation_end(self, outputs):
@@ -330,5 +337,8 @@ class GradesClassifModel(BaseModule):
 
     def predict(self, x):
         pred = super().predict(x)
-        pred = torch.softmax(pred, dim=1)
+        if self.hparams.loss == 'cross-entropy':
+            pred = torch.softmax(pred, dim=1)
+        else:
+            pred = torch.sigmoid(pred)
         return pred
