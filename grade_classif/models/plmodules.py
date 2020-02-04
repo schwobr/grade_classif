@@ -363,6 +363,22 @@ class RNNAttention(BaseModule):
                      from_folder(Path(hparams.data), lambda x: x.parts[-3], classes=['1', '3'], extensions=['.png'], include=['1', '3'], open_mode=hparams.open_mode, filterfunc=filt).
                      split_by_csv(hparams.data_csv).
                      to_tensor(tfms=tfms, tfm_y=False))
+        self.t_x = nn.Sequential(*list(CBR(3, 64, 2).children())[:-1])
+        nx = get_num_features(self.t_x)
+        self.fc = nn.Linear(nx, 1)
+        self.t_l = nn.Sequential(nn.Linear(6, nx),
+                                 nn.ReLU(),
+                                 nn.Linear(nx, 2*nx),
+                                 nn.ReLU(),
+                                 nn.Linear(2*nx, nx))
+        self.t_a = nn.Sequential(nn.Linear(nx, 2*nx),
+                                 nn.ReLU(),
+                                 nn.Linear(2*nx, nx),
+                                 nn.ReLU(),
+                                 nn.Linear(nx, 6))
+        self.final_head = nn.Sequential(nn.Linear(nx*self.hparams.n_glimpses, nx),
+                                        nn.ReLU(),
+                                        nn.Linear(nx, 1))
 
 
     def forward(self, X, l):
@@ -372,9 +388,9 @@ class RNNAttention(BaseModule):
         if hasattr(self, 'norm'):
             x = self.norm(x)
         fx = self.t_x(x)
-        y = self.fc(x)
-        l = self.t_l(l)
-        l = y * l
+        y = self.fc(fx)
+        fl = self.t_l(l)
+        l = torch.sigmoid(fx * fl)
         l = self.t_a(l)
         return fx, y, l
 
@@ -389,7 +405,7 @@ class RNNAttention(BaseModule):
             fx, y_hat, l = self(X, l0)
             fts.append(fx)
             loss += self.loss(y_hat, Y)
-            loss_a = ((torch.sigmoid(y_hat) - 0.5)**2).sum()
+            loss_a = (y_hat**2).sum()
             if t > 0:
                 loss -= loss_a + loss_prev / t
             loss_prev += loss_a
