@@ -364,21 +364,21 @@ class RNNAttention(BaseModule):
                      split_by_csv(hparams.data_csv).
                      to_tensor(tfms=tfms, tfm_y=False))
         self.t_x = nn.Sequential(*list(CBR(3, 64, 2).children())[:-1])
-        nx = get_num_features(self.t_x)
+        nf = get_num_features(self.t_x)
         self.fc = nn.Linear(nx, 1)
-        self.t_l = nn.Sequential(nn.Linear(6, nx),
+        self.t_l = nn.Sequential(nn.Linear(6, nf),
                                  nn.ReLU(),
-                                 nn.Linear(nx, 2*nx),
+                                 nn.Linear(nf, 2*nf),
                                  nn.ReLU(),
-                                 nn.Linear(2*nx, nx))
-        self.t_a = nn.Sequential(nn.Linear(nx, 2*nx),
+                                 nn.Linear(2*nf, nf))
+        self.t_a = nn.Sequential(nn.Linear(nf, 2*nf),
                                  nn.ReLU(),
-                                 nn.Linear(2*nx, nx),
+                                 nn.Linear(2*nf, nf),
                                  nn.ReLU(),
-                                 nn.Linear(nx, 6))
+                                 nn.Linear(nf, 6))
         self.final_head = nn.Sequential(nn.Linear(nx*self.hparams.n_glimpses, nx),
                                         nn.ReLU(),
-                                        nn.Linear(nx, 1))
+                                        nn.Linear(nf, 1))
 
 
     def forward(self, X, l):
