@@ -67,6 +67,9 @@ class BaseModule(pl.LightningModule):
         self.sizes, self.leaf_modules = get_sizes(self, input_shape=(3, self.hparams.size, self.hparams.size), leaf_modules=self.leaf_modules)
         self = self.to(self.main_device)
 
+    def on_train_start(self):
+        self.train()
+
     def training_step(self, batch, batch_nb):
         # REQUIRED
         x, y = batch
