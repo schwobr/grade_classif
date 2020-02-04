@@ -393,7 +393,7 @@ class RNNAttention(BaseModule):
     def forward(self, X, l):
         Ai = gaussian_mask(*l[:3], self.hparams.glimpse_size, self.hparams.size)
         Aj = gaussian_mask(*l[3:], self.hparams.glimpse_size, self.hparams.size)
-        x = Ai[None] @ X @ Aj.T[None]
+        x = Ai[None, None] @ X @ Aj.T[None, None]
         if hasattr(self, 'norm'):
             x = self.norm(x)
         fx = self.t_x(x)
