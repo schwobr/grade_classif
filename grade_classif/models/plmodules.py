@@ -413,7 +413,7 @@ class RNNAttention(BaseModule):
             loss += self.loss(y_hat, Y)
             loss_a = (y_hat**2).sum()
             if t > 0:
-                loss -= loss_a + loss_prev / t
+                loss -= loss_a - loss_prev / t
             loss_prev += loss_a
             loss += self.hparams.gamma * torch.exp(-torch.abs(l-l0))
             l0 = l
