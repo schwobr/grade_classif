@@ -381,7 +381,7 @@ class RNNAttention(BaseModule):
     def training_step(self, batch, batch_nb):
         # REQUIRED
         X, Y = batch
-        l0 = 'TODO: l0'
+        l0 = torch.tensor([0, .5, self.hparams.size//self.hparams.glimpse_size]*2, device=self.main_device)
         loss = 0
         loss_prev = 0
         preds = []
@@ -395,7 +395,7 @@ class RNNAttention(BaseModule):
             loss_prev += loss_a
             loss += self.hparams.gamma * torch.exp(-torch.abs(l-l0))
             l0 = l
-        # n_glimpses x bs x C x H x W
+        # n_glimpses x bs x C
         fts = torch.cat(fts)
         fts = fts.view(fts.shape[1], -1)
         Y_hat = self.final_head(fts)
