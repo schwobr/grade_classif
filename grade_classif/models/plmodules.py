@@ -363,9 +363,15 @@ class RNNAttention(BaseModule):
                      from_folder(Path(hparams.data), lambda x: x.parts[-3], classes=['1', '3'], extensions=['.png'], include=['1', '3'], open_mode=hparams.open_mode, filterfunc=filt).
                      split_by_csv(hparams.data_csv).
                      to_tensor(tfms=tfms, tfm_y=False))
+
+        weight = np.float32((self.data.train.labels == '3').sum()/(self.data.train.labels == '1').sum())
+        self.hparams.weight = weight
+        self.loss = _get_loss(hparams.loss, weight if hparams.sample_mode == 0 else 1., hparams.reduction, device=self.main_device)
+
+        nc = 2 if hparams.loss == 'cross-entropy' else 1
         self.t_x = nn.Sequential(*list(CBR(3, 64, 2).children())[:-1])
         nf = get_num_features(self.t_x)
-        self.fc = nn.Linear(nx, 1)
+        self.fc = nn.Linear(nx, nc)
         self.t_l = nn.Sequential(nn.Linear(6, nf),
                                  nn.ReLU(),
                                  nn.Linear(nf, 2*nf),
@@ -378,7 +384,7 @@ class RNNAttention(BaseModule):
                                  nn.Linear(nf, 6))
         self.final_head = nn.Sequential(nn.Linear(nx*self.hparams.n_glimpses, nx),
                                         nn.ReLU(),
-                                        nn.Linear(nf, 1))
+                                        nn.Linear(nf, nc))
 
 
     def forward(self, X, l):
