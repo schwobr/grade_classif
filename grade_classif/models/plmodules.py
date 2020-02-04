@@ -80,7 +80,7 @@ class BaseModule(pl.LightningModule):
     def validation_step(self, batch, batch_nb):
         # OPTIONAL
         x, y = batch
-        y_hat = self.eval()(x)
+        y_hat = self(x)
         loss = self.loss(y_hat, y)
         return {'val_loss': loss}
 
@@ -95,7 +95,7 @@ class BaseModule(pl.LightningModule):
     def test_step(self, batch, batch_nb):
         # OPTIONAL
         x, y = batch
-        y_hat = self.eval()(x)
+        y_hat = self(x)
         return {'test_loss': self.loss(y_hat, y)}
 
 
@@ -275,7 +275,7 @@ class GradesClassifModel(BaseModule):
     def validation_step(self, batch, batch_nb):
         # OPTIONAL
         x, y = batch
-        y_hat = self.eval()(x)
+        y_hat = self(x)
         loss = self.loss(y_hat, y)
         ret = {'val_loss': loss}
         n = y.shape[0]
@@ -400,9 +400,7 @@ class RNNAttention(BaseModule):
         l = self.t_a(l)
         return fx, y, l
 
-    def training_step(self, batch, batch_nb):
-        # REQUIRED
-        X, Y = batch
+    def compute_loss(self, X, Y)
         l0 = torch.tensor([0, .5, self.hparams.size//self.hparams.glimpse_size]*2, device=self.main_device)
         loss = 0
         loss_prev = 0
@@ -422,6 +420,50 @@ class RNNAttention(BaseModule):
         fts = fts.view(fts.shape[1], -1)
         Y_hat = self.final_head(fts)
         loss += self.loss(Y_hat, Y)
+        return loss, Y_hat
+
+    def training_step(self, batch, batch_nb):
+        # REQUIRED
+        X, Y = batch
+        loss, _ = self.compute_loss(X, Y)
         lr = self.sched.optimizer.param_groups[-1]['lr']
         log = {'train_loss': loss, 'learning_rate': lr}
         return {'loss': loss, 'log': log}
+
+    def validation_step(self, batch, batch_nb):
+        # OPTIONAL
+        x, y = batch
+        loss, y_hat = self.compute_loss(x, y)
+        ret = {'val_loss': loss}
+        n = y.shape[0]
+        if self.hparams.loss == 'cross-entropy':
+            y_hat = torch.softmax(y_hat, dim=1)
+            y_hat = y_hat.argmax(dim=-1).view(n,-1)
+        else:
+            y_hat = torch.sigmoid(y_hat)
+            y_hat = (y_hat > 0.5).view(n, -1)
+        y = y.view(n,-1)
+        ret['tp'] = ((y_hat)&(y==1)).float().sum()
+        ret['tn'] = ((~y_hat)&(y==0)).float().sum()
+        ret['fp'] = ((y_hat)&(y==0)).float().sum()
+        ret['fn'] = ((~y_hat)&(y==1)).float().sum()
+        return ret
+
+    def validation_end(self, outputs):
+        # OPTIONAL
+        loss = torch.stack([x['val_loss'] for x in outputs]).mean()
+        log = {'val_loss': loss}
+        tp = torch.stack([x['tp'] for x in outputs]).sum()
+        fp = torch.stack([x['fp'] for x in outputs]).sum()
+        tn = torch.stack([x['tn'] for x in outputs]).sum()
+        fn = torch.stack([x['fn'] for x in outputs]).sum()
+        for metric in self.metrics:
+            try:
+                name = metric.__name__
+            except AttributeError:
+                name = metric.func.__name__
+                kws = metric.keywords
+                for k in kws:
+                    name += f'_{k}_{kws[k]}'
+            log[name] = metric(tp, fp, tn, fn)
+        return {'val_loss': loss, 'log': log}
