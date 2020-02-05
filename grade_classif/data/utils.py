@@ -8,6 +8,9 @@ from ..imports import *
 
 #Cell
 def np_to_tensor(x, tensor_type):
+    """
+    Convert a numpy ndarray into a tensor. If `tensor_type` is a 'image', puts channel first.
+    """
     if tensor_type == 'image':
         x = x.transpose(2, 0, 1)
     x = torch.tensor(x)
