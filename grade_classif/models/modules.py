@@ -5,7 +5,7 @@ __all__ = ['bn_drop_lin', 'ConvBnRelu', 'ConvBn', 'ConvRelu', 'icnr', 'PixelShuf
            'sanet26', 'sanet26d', 'sanet50', 'sanet50d']
 
 #Cell
-from .utils import get_sizes
+from .utils import get_sizes, register_model
 from .hooks import Hooks
 from ..imports import *
 from torch.nn.functional import interpolate, pad
@@ -457,29 +457,34 @@ class SANet(nn.Module):
         return x
 
 #Cell
+@register_model
 def sanet18(kernel_size, num_classes=2, in_chans=3, **kwargs):
     model = SANet(BasicBlock, [2, 2, 2, 2], kernel_size, num_classes=num_classes, in_chans=in_chans, **kwargs)
     return model
 
-#Cell
+@register_model
 def sanet34(kernel_size, num_classes=2, in_chans=3, **kwargs):
     model = SANet(BasicBlock, [3, 4, 6, 3], kernel_size, num_classes=num_classes, in_chans=in_chans, **kwargs)
     return model
 
+@register_model
 def sanet26(kernel_size, num_classes=2, in_chans=3, **kwargs):
     model = SANet(Bottleneck, [2, 2, 2, 2], kernel_size, num_classes=num_classes, in_chans=in_chans, **kwargs)
     return model
 
+@register_model
 def sanet26d(kernel_size, num_classes=2, in_chans=3, **kwargs):
     model = SANet(
         Bottleneck, [2, 2, 2, 2], kernel_size, stem_width=32, stem_type='deep', avg_down=True,
         num_classes=num_classes, in_chans=in_chans, **kwargs)
     return model
 
+@register_model
 def sanet50(kernel_size, num_classes=2, in_chans=3, **kwargs):
     model = SANet(Bottleneck, [3, 4, 6, 3], kernel_size, num_classes=num_classes, in_chans=in_chans, **kwargs)
     return model
 
+@register_model
 def sanet50d(kernel_size, num_classes=2, in_chans=3, **kwargs):
     model = SaNet(
         Bottleneck, [3, 4, 6, 3], kernel_size, stem_width=32, stem_type='deep', avg_down=True,
