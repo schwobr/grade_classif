@@ -31,6 +31,18 @@ entries:
       title: Data utils
       url: /data.utils
     - output: web,pdf
+      title: Transforms
+      url: /data.transforms
+    - output: web,pdf
+      title: PytorchLightning Modules
+      url: /models.plmodules
+    - output: web,pdf
+      title: Pytorch Modules
+      url: /models.modules
+    - output: web,pdf
+      title: Module utilities
+      url: /models.utils
+    - output: web,pdf
       title: Title
       url: /params.parser
     output: web

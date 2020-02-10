@@ -8,6 +8,10 @@
     "Loading data": "/data.loaders",
     "Datasets": "/data.dataset",
     "Data utils": "/data.utils",
+    "Transforms": "/data.transforms",
+    "PytorchLightning Modules": "/models.plmodules",
+    "Pytorch Modules": "/models.modules",
+    "Module utilities": "/models.utils",
     "Title": "/params.parser"
   }
 }
