@@ -46,6 +46,8 @@ def _get_scheduler(opt, name, total_steps, lr):
 
 #Cell
 class BaseModule(pl.LightningModule):
+    """
+    """
     def __init__(self, hparams, metrics=None):
         super().__init__()
         self.hparams = hparams
@@ -63,7 +65,7 @@ class BaseModule(pl.LightningModule):
         self.save_path = hparams.savedir/f'level_{hparams.level}/{model_type}/{hparams.model if model_type == "classifier" else hparams.normalizer}'
 
     def post_init(self):
-        self.leaf_modules = named_leaf_modules('', self)
+        self.leaf_modules = named_leaf_modules(self)
         self.sizes, self.leaf_modules = get_sizes(self, input_shape=(3, self.hparams.size, self.hparams.size), leaf_modules=self.leaf_modules)
         self = self.to(self.main_device)
 
@@ -154,16 +156,28 @@ class BaseModule(pl.LightningModule):
         return DataLoader(self.data.test, batch_size=self.bs) if self.data.test is not None else None
 
     def load(self, version, ckpt_epoch=None):
+        """
+        Load a specific `version` of current model, stored in `self.save_path/lightning_logs`. If multiple
+        checkpoints have been stored, `ckpt_epoch` can be specified to load a specific epoch. Else the latest
+        epoch is loaded.
+        """
         save_dir = self.save_path/f'lightning_logs/version_{version}/checkpoints'
         path = list(save_dir.iterdir())[-1] if ckpt_epoch is None else save_dir/f'_ckpt_epoch_{ckpt_epoch}.ckpt'
         checkpoint = torch.load(path, map_location=lambda storage, loc: storage)
         self.load_state_dict(checkpoint['state_dict'])
 
     def my_summarize(self):
+        """
+        Get a DataFrame containing the list of all leaf modules of current model, with their corresponding output
+        shape.
+        """
         summary = pd.DataFrame({'Name': list(map(lambda x: x.name, self.leaf_modules)), 'Output Shape': self.sizes})
         return summary
 
     def fit(self):
+        """
+        Fit the model using parameters stored in `hparams`.
+        """
         logger = CometLogger(api_key=os.environ['COMET_API_KEY'], workspace='schwobr', save_dir=self.save_path, project_name='grade-classif')
         logger.experiment.add_tag('norm' if isinstance(self, Normalizer) else 'classif')
         ckpt_path = self.save_path/'lightning_logs'/f'version_{logger.version}'/'checkpoints'
@@ -173,10 +187,15 @@ class BaseModule(pl.LightningModule):
         trainer.fit(self)
 
     def predict(self, x):
+        """
+        Make a prediction on batch `x`.
+        """
         return self.eval()(x)
 
 #Cell
 class Normalizer(BaseModule):
+    """
+    """
     def __init__(self, hparams, **kwargs):
         super().__init__(hparams, **kwargs)
         input_shape = (3, hparams.size, hparams.size)
@@ -199,7 +218,11 @@ class Normalizer(BaseModule):
         return self.unet(x)
 
 
-    def show_results(self, n=16, random=False, imgsize=4, title=None, **kwargs):
+    def show_results(self, n=16, imgsize=4, title=None):
+        """
+        Plot `n` predictions from the normalizer. Each line will contain input, target and prediction
+        images (in that order).
+        """
         n = min(n, self.bs)
         fig, axs = plt.subplots(n, 3, figsize=(imgsize*3, imgsize*n))
         idxs = np.random.choice(np.arange(len(self.data.valid)), size=n, replace=False)
@@ -223,12 +246,18 @@ class Normalizer(BaseModule):
         plt.show()
 
     def freeze_encoder(self):
+        """
+        Freeze the encoder part of the normalizer.
+        """
         for m in self.leaf_modules('', self):
             if 'encoder' in m.name and not isinstance(m, nn.BatchNorm2d):
                 for param in m.parameters():
                     param.requires_grad = False
 
     def init_bn(self):
+        """
+        Initialize BatchNorm layers with bias `1e-3` and weights `1`.
+        """
         for m in self.modules():
             if isinstance(m, nn.BatchNorm2d):
                 with torch.no_grad():
@@ -237,6 +266,8 @@ class Normalizer(BaseModule):
 
 #Cell
 class GradesClassifModel(BaseModule):
+    """
+    """
     def __init__(self, hparams, **kwargs):
         super().__init__(hparams, **kwargs)
         tfms = get_transforms(hparams.size)
@@ -282,7 +313,7 @@ class GradesClassifModel(BaseModule):
         head += mods.bn_drop_lin(nf, nf, p=p/2) + mods.bn_drop_lin(nf, nc, p=p)
         self.head = nn.Sequential(*head)
         self.post_init()
-        self.create_normalizer()
+        self._create_normalizer()
 
     def validation_step(self, batch, batch_nb):
         # OPTIONAL
@@ -323,7 +354,7 @@ class GradesClassifModel(BaseModule):
             log[name] = metric(tp, fp, tn, fn)
         return {'val_loss': loss, 'log': log}
 
-    def create_normalizer(self):
+    def _create_normalizer(self):
         hparams = self.hparams
         if hparams.normalizer is not None:
             norm = mods.DynamicUnet(hparams.normalizer, n_classes=3, input_shape=(3, hparams.size, hparams.size), pretrained=True)
@@ -357,6 +388,8 @@ class GradesClassifModel(BaseModule):
 
 #Cell
 class RNNAttention(BaseModule):
+    """
+    """
     def __init__(self, hparams, **kwargs):
         super().__init__(hparams, **kwargs)
         tfms = get_transforms(hparams.size)
@@ -412,7 +445,10 @@ class RNNAttention(BaseModule):
         l = self.t_a(l)
         return fx, y, l
 
-    def compute_loss(self, X, Y)
+    def compute_loss(self, X, Y):
+        """
+        Compute the loss defined in the paper. Return the final slide-level prediction as well.
+        """
         l0 = torch.tensor([0, .5, self.hparams.size//self.hparams.glimpse_size]*2, device=self.main_device)
         loss = 0
         loss_prev = 0

@@ -36,7 +36,7 @@ summary: "summary"
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="named_leaf_modules" class="doc_header"><code>named_leaf_modules</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/utils.py#L11" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>named_leaf_modules</code>(<strong><code>name</code></strong>, <strong><code>model</code></strong>)</p>
+<h4 id="named_leaf_modules" class="doc_header"><code>named_leaf_modules</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/utils.py#L11" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>named_leaf_modules</code>(<strong><code>model</code></strong>, <strong><code>name</code></strong>=<em><code>''</code></em>)</p>
 </blockquote>
 
 </div>
@@ -46,6 +46,13 @@ summary: "summary"
 </div>
 </div>
 
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Recursive function that gets all leaf modules of <code>model</code> with their name (as _parent_n.parent_n-1.(...).parent_0.module_name_) added as an attribute. <code>name</code> is a convenience argument for recursion and should always be an empty string when manually called.</p>
+
+</div>
+</div>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 
@@ -70,6 +77,13 @@ summary: "summary"
 </div>
 
 </div>
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Get a tuple <code>(sizes, modules)</code> where <code>sizes</code> contains the output shapes of all <code>leaf_modules</code> from <code>model</code>. Both are ordered depending on the call order.</p>
+
+</div>
+</div>
+</div>
 <div class="cell border-box-sizing code_cell rendered">
 
 </div>
@@ -82,7 +96,7 @@ summary: "summary"
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="get_num_features" class="doc_header"><code>get_num_features</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/utils.py#L45" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>get_num_features</code>(<strong><code>model</code></strong>)</p>
+<h4 id="gaussian_mask" class="doc_header"><code>gaussian_mask</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/utils.py#L45" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>gaussian_mask</code>(<strong><code>m</code></strong>, <strong><code>s</code></strong>, <strong><code>d</code></strong>, <strong><code>R</code></strong>, <strong><code>C</code></strong>)</p>
 </blockquote>
 
 </div>
@@ -92,6 +106,43 @@ summary: "summary"
 </div>
 </div>
 
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Create a gaussian attention mask with mean <code>m</code>, standard deviation <code>s</code>, distance between centers <code>d</code>, <code>R</code> rows ans <code>C</code> colums. Explanations for gaussian attention can be found in <a href="http://akoriorek.github.io/ml/2017/10/14/visual-attention.html">this blog post</a>.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h4 id="get_num_features" class="doc_header"><code>get_num_features</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/utils.py#L57" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>get_num_features</code>(<strong><code>model</code></strong>)</p>
+</blockquote>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Get the number of features from the last layer of <code>model</code>.</p>
+
+</div>
+</div>
 </div>
 </div>
  

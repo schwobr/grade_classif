@@ -36,9 +36,8 @@ summary: "summary"
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="bn_drop_lin" class="doc_header"><code>bn_drop_lin</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/modules.py#L13" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>bn_drop_lin</code>(<strong><code>n_in</code></strong>, <strong><code>n_out</code></strong>, <strong><code>bn</code></strong>=<em><code>True</code></em>, <strong><code>p</code></strong>=<em><code>0.0</code></em>, <strong><code>actn</code></strong>=<em><code>None</code></em>)</p>
+<h4 id="bn_drop_lin" class="doc_header"><code>bn_drop_lin</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/modules.py#L15" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>bn_drop_lin</code>(<strong><code>n_in</code></strong>, <strong><code>n_out</code></strong>, <strong><code>bn</code></strong>=<em><code>True</code></em>, <strong><code>p</code></strong>=<em><code>0.0</code></em>, <strong><code>actn</code></strong>=<em><code>None</code></em>)</p>
 </blockquote>
-<p>Sequence of batchnorm (if <code>bn</code>), dropout (with <code>p</code>) and linear (<code>n_in</code>,<code>n_out</code>) layers followed by <code>actn</code>.</p>
 
 </div>
 
@@ -47,6 +46,13 @@ summary: "summary"
 </div>
 </div>
 
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Sequence of batchnorm (if <code>bn</code>), dropout (with <code>p</code>) and linear (<code>n_in</code>,<code>n_out</code>) layers followed by <code>actn</code> (if specified).</p>
+
+</div>
+</div>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 
@@ -60,48 +66,7 @@ summary: "summary"
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h2 id="ConvBnRelu" class="doc_header"><code>class</code> <code>ConvBnRelu</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/modules.py#L22" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>ConvBnRelu</code>(<strong><code>in_channels</code></strong>, <strong><code>out_channels</code></strong>, <strong><code>kernel_size</code></strong>, <strong><code>stride</code></strong>=<em><code>1</code></em>, <strong><code>padding</code></strong>=<em><code>0</code></em>, <strong><code>bias</code></strong>=<em><code>True</code></em>, <strong><code>eps</code></strong>=<em><code>1e-05</code></em>, <strong><code>momentum</code></strong>=<em><code>0.01</code></em>, <strong>**<code>kwargs</code></strong>) :: <code>Module</code></p>
-</blockquote>
-<p>Base class for all neural network modules.</p>
-<p>Your models should also subclass this class.</p>
-<p>Modules can also contain other Modules, allowing to nest them in
-a tree structure. You can assign the submodules as regular attributes::</p>
-
-<pre><code>import torch.nn as nn
-import torch.nn.functional as F
-
-class Model(nn.Module):
-    def __init__(self):
-        super(Model, self).__init__()
-        self.conv1 = nn.Conv2d(1, 20, 5)
-        self.conv2 = nn.Conv2d(20, 20, 5)
-
-    def forward(self, x):
-        x = F.relu(self.conv1(x))
-        return F.relu(self.conv2(x))
-
-</code></pre>
-<p>Submodules assigned in this way will be registered, and will have their
-parameters converted too when you call :meth:<code>to</code>, etc.</p>
-
-</div>
-
-</div>
-
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-
-<div class="output_wrapper">
-<div class="output">
-
-<div class="output_area">
-
-
-<div class="output_markdown rendered_html output_subarea ">
-<h2 id="ConvBn" class="doc_header"><code>class</code> <code>ConvBn</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/modules.py#L39" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>ConvBn</code>(<strong><code>in_channels</code></strong>, <strong><code>out_channels</code></strong>, <strong><code>kernel_size</code></strong>, <strong><code>stride</code></strong>=<em><code>1</code></em>, <strong><code>padding</code></strong>=<em><code>0</code></em>, <strong><code>bias</code></strong>=<em><code>True</code></em>, <strong><code>eps</code></strong>=<em><code>1e-05</code></em>, <strong><code>momentum</code></strong>=<em><code>0.01</code></em>, <strong>**<code>kwargs</code></strong>) :: <code>Module</code></p>
+<h2 id="ConvBnRelu" class="doc_header"><code>class</code> <code>ConvBnRelu</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/modules.py#L23" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>ConvBnRelu</code>(<strong><code>in_channels</code></strong>, <strong><code>out_channels</code></strong>, <strong><code>kernel_size</code></strong>, <strong><code>stride</code></strong>=<em><code>1</code></em>, <strong><code>padding</code></strong>=<em><code>0</code></em>, <strong><code>bias</code></strong>=<em><code>True</code></em>, <strong><code>eps</code></strong>=<em><code>1e-05</code></em>, <strong><code>momentum</code></strong>=<em><code>0.01</code></em>, <strong>**<code>kwargs</code></strong>) :: <code>Module</code></p>
 </blockquote>
 <p>Base class for all neural network modules.</p>
 <p>Your models should also subclass this class.</p>
@@ -142,7 +107,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h2 id="ConvRelu" class="doc_header"><code>class</code> <code>ConvRelu</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/modules.py#L54" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>ConvRelu</code>(<strong><code>in_channels</code></strong>, <strong><code>out_channels</code></strong>, <strong><code>kernel_size</code></strong>, <strong><code>stride</code></strong>=<em><code>1</code></em>, <strong><code>padding</code></strong>=<em><code>0</code></em>, <strong><code>bias</code></strong>=<em><code>True</code></em>, <strong>**<code>kwargs</code></strong>) :: <code>Module</code></p>
+<h2 id="ConvBn" class="doc_header"><code>class</code> <code>ConvBn</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/modules.py#L40" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>ConvBn</code>(<strong><code>in_channels</code></strong>, <strong><code>out_channels</code></strong>, <strong><code>kernel_size</code></strong>, <strong><code>stride</code></strong>=<em><code>1</code></em>, <strong><code>padding</code></strong>=<em><code>0</code></em>, <strong><code>bias</code></strong>=<em><code>True</code></em>, <strong><code>eps</code></strong>=<em><code>1e-05</code></em>, <strong><code>momentum</code></strong>=<em><code>0.01</code></em>, <strong>**<code>kwargs</code></strong>) :: <code>Module</code></p>
 </blockquote>
 <p>Base class for all neural network modules.</p>
 <p>Your models should also subclass this class.</p>
@@ -176,9 +141,6 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-
 <div class="output_wrapper">
 <div class="output">
 
@@ -186,27 +148,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="icnr" class="doc_header"><code>icnr</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/modules.py#L70" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>icnr</code>(<strong><code>x</code></strong>, <strong><code>scale</code></strong>=<em><code>2</code></em>, <strong><code>init</code></strong>=<em><code>'kaiming_normal_'</code></em>)</p>
-</blockquote>
-
-</div>
-
-</div>
-
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-
-<div class="output_wrapper">
-<div class="output">
-
-<div class="output_area">
-
-
-<div class="output_markdown rendered_html output_subarea ">
-<h2 id="PixelShuffleICNR" class="doc_header"><code>class</code> <code>PixelShuffleICNR</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/modules.py#L79" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>PixelShuffleICNR</code>(<strong><code>in_channels</code></strong>, <strong><code>out_channels</code></strong>, <strong><code>bias</code></strong>=<em><code>True</code></em>, <strong><code>scale_factor</code></strong>=<em><code>2</code></em>, <strong>**<code>kwargs</code></strong>) :: <code>Module</code></p>
+<h2 id="ConvRelu" class="doc_header"><code>class</code> <code>ConvRelu</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/modules.py#L55" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>ConvRelu</code>(<strong><code>in_channels</code></strong>, <strong><code>out_channels</code></strong>, <strong><code>kernel_size</code></strong>, <strong><code>stride</code></strong>=<em><code>1</code></em>, <strong><code>padding</code></strong>=<em><code>0</code></em>, <strong><code>bias</code></strong>=<em><code>True</code></em>, <strong>**<code>kwargs</code></strong>) :: <code>Module</code></p>
 </blockquote>
 <p>Base class for all neural network modules.</p>
 <p>Your models should also subclass this class.</p>
@@ -250,29 +192,8 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h2 id="DecoderBlock" class="doc_header"><code>class</code> <code>DecoderBlock</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/modules.py#L100" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>DecoderBlock</code>(<strong><code>in_chans</code></strong>, <strong><code>skip_chans</code></strong>, <strong><code>hook</code></strong>, <strong><code>final_div</code></strong>=<em><code>True</code></em>, <strong>**<code>kwargs</code></strong>) :: <code>Module</code></p>
+<h4 id="icnr" class="doc_header"><code>icnr</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/modules.py#L71" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>icnr</code>(<strong><code>x</code></strong>, <strong><code>scale</code></strong>=<em><code>2</code></em>, <strong><code>init</code></strong>=<em><code>'kaiming_normal_'</code></em>)</p>
 </blockquote>
-<p>Base class for all neural network modules.</p>
-<p>Your models should also subclass this class.</p>
-<p>Modules can also contain other Modules, allowing to nest them in
-a tree structure. You can assign the submodules as regular attributes::</p>
-
-<pre><code>import torch.nn as nn
-import torch.nn.functional as F
-
-class Model(nn.Module):
-    def __init__(self):
-        super(Model, self).__init__()
-        self.conv1 = nn.Conv2d(1, 20, 5)
-        self.conv2 = nn.Conv2d(20, 20, 5)
-
-    def forward(self, x):
-        x = F.relu(self.conv1(x))
-        return F.relu(self.conv2(x))
-
-</code></pre>
-<p>Submodules assigned in this way will be registered, and will have their
-parameters converted too when you call :meth:<code>to</code>, etc.</p>
 
 </div>
 
@@ -284,6 +205,9 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+
 <div class="output_wrapper">
 <div class="output">
 
@@ -291,7 +215,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h2 id="LastCross" class="doc_header"><code>class</code> <code>LastCross</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/modules.py#L121" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>LastCross</code>(<strong><code>n_chans</code></strong>, <strong><code>bottle</code></strong>=<em><code>False</code></em>) :: <code>Module</code></p>
+<h2 id="PixelShuffleICNR" class="doc_header"><code>class</code> <code>PixelShuffleICNR</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/modules.py#L81" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>PixelShuffleICNR</code>(<strong><code>in_channels</code></strong>, <strong><code>out_channels</code></strong>, <strong><code>bias</code></strong>=<em><code>True</code></em>, <strong><code>scale_factor</code></strong>=<em><code>2</code></em>, <strong>**<code>kwargs</code></strong>) :: <code>Module</code></p>
 </blockquote>
 <p>Base class for all neural network modules.</p>
 <p>Your models should also subclass this class.</p>
@@ -335,7 +259,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h2 id="DynamicUnet" class="doc_header"><code>class</code> <code>DynamicUnet</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/modules.py#L134" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>DynamicUnet</code>(<strong><code>encoder_name</code></strong>, <strong><code>cut</code></strong>=<em><code>-2</code></em>, <strong><code>n_classes</code></strong>=<em><code>2</code></em>, <strong><code>input_shape</code></strong>=<em><code>(3, 224, 224)</code></em>, <strong><code>pretrained</code></strong>=<em><code>True</code></em>) :: <code>Module</code></p>
+<h2 id="DecoderBlock" class="doc_header"><code>class</code> <code>DecoderBlock</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/modules.py#L102" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>DecoderBlock</code>(<strong><code>in_chans</code></strong>, <strong><code>skip_chans</code></strong>, <strong><code>hook</code></strong>, <strong><code>final_div</code></strong>=<em><code>True</code></em>, <strong>**<code>kwargs</code></strong>) :: <code>Module</code></p>
 </blockquote>
 <p>Base class for all neural network modules.</p>
 <p>Your models should also subclass this class.</p>
@@ -358,6 +282,547 @@ class Model(nn.Module):
 </code></pre>
 <p>Submodules assigned in this way will be registered, and will have their
 parameters converted too when you call :meth:<code>to</code>, etc.</p>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h2 id="LastCross" class="doc_header"><code>class</code> <code>LastCross</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/modules.py#L123" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>LastCross</code>(<strong><code>n_chans</code></strong>, <strong><code>bottle</code></strong>=<em><code>False</code></em>) :: <code>Module</code></p>
+</blockquote>
+<p>Base class for all neural network modules.</p>
+<p>Your models should also subclass this class.</p>
+<p>Modules can also contain other Modules, allowing to nest them in
+a tree structure. You can assign the submodules as regular attributes::</p>
+
+<pre><code>import torch.nn as nn
+import torch.nn.functional as F
+
+class Model(nn.Module):
+    def __init__(self):
+        super(Model, self).__init__()
+        self.conv1 = nn.Conv2d(1, 20, 5)
+        self.conv2 = nn.Conv2d(20, 20, 5)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        return F.relu(self.conv2(x))
+
+</code></pre>
+<p>Submodules assigned in this way will be registered, and will have their
+parameters converted too when you call :meth:<code>to</code>, etc.</p>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h2 id="DynamicUnet" class="doc_header"><code>class</code> <code>DynamicUnet</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/modules.py#L136" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>DynamicUnet</code>(<strong><code>encoder_name</code></strong>, <strong><code>cut</code></strong>=<em><code>-2</code></em>, <strong><code>n_classes</code></strong>=<em><code>2</code></em>, <strong><code>input_shape</code></strong>=<em><code>(3, 224, 224)</code></em>, <strong><code>pretrained</code></strong>=<em><code>True</code></em>) :: <code>Module</code></p>
+</blockquote>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>UNet created using encoder from <code>encoder_name</code>. Encoder can be anything coded in <code>timm</code>.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h2 id="CBR" class="doc_header"><code>class</code> <code>CBR</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/modules.py#L190" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>CBR</code>(<strong><code>kernel_size</code></strong>, <strong><code>n_kernels</code></strong>, <strong><code>n_layers</code></strong>, <strong><code>n_classes</code></strong>=<em><code>2</code></em>) :: <code>Module</code></p>
+</blockquote>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Build a basic CNN using a sequence of <code>n_layers</code> Conv-BatchNorm-ReLU. Conv layers use kernels of size <code>kernel_size</code> and have width doubled each time, initial width being <code>n_kernels</code>.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">CBR</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>CBR(
+  (cbr0): ConvBnRelu(
+    (conv): Conv2d(3, 32, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), padding_mode=reflect)
+    (bn): BatchNorm2d(32, eps=1e-05, momentum=0.01, affine=True, track_running_stats=True)
+    (relu): ReLU()
+  )
+  (cbr1): ConvBnRelu(
+    (conv): Conv2d(32, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), padding_mode=reflect)
+    (bn): BatchNorm2d(64, eps=1e-05, momentum=0.01, affine=True, track_running_stats=True)
+    (relu): ReLU()
+  )
+  (cbr2): ConvBnRelu(
+    (conv): Conv2d(64, 128, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), padding_mode=reflect)
+    (bn): BatchNorm2d(128, eps=1e-05, momentum=0.01, affine=True, track_running_stats=True)
+    (relu): ReLU()
+  )
+  (cbr3): ConvBnRelu(
+    (conv): Conv2d(128, 256, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), padding_mode=reflect)
+    (bn): BatchNorm2d(256, eps=1e-05, momentum=0.01, affine=True, track_running_stats=True)
+    (relu): ReLU()
+  )
+  (gap): AdaptiveAvgPool2d(output_size=1)
+  (flat): Flatten()
+  (fc): Linear(in_features=512, out_features=2, bias=True)
+)</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h2 id="SelfAttentionBlock" class="doc_header"><code>class</code> <code>SelfAttentionBlock</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/modules.py#L212" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>SelfAttentionBlock</code>(<strong><code>c_in</code></strong>, <strong><code>c_out</code></strong>, <strong><code>k</code></strong>, <strong><code>stride</code></strong>=<em><code>1</code></em>, <strong><code>groups</code></strong>=<em><code>1</code></em>, <strong><code>bias</code></strong>=<em><code>False</code></em>) :: <code>Module</code></p>
+</blockquote>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Self-Attention block as described in <a href="https://arxiv.org/pdf/1906.05909.pdf"><em>Stand-Alone Self-Attention in Vision Models</em></a>.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h2 id="SASA" class="doc_header"><code>class</code> <code>SASA</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/modules.py#L251" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>SASA</code>(<strong><code>kernel_size</code></strong>, <strong><code>n_kernels</code></strong>, <strong><code>n_layers</code></strong>, <strong><code>n_groups</code></strong>, <strong><code>n_classes</code></strong>=<em><code>2</code></em>) :: <code>Module</code></p>
+</blockquote>
+<p>Base class for all neural network modules.</p>
+<p>Your models should also subclass this class.</p>
+<p>Modules can also contain other Modules, allowing to nest them in
+a tree structure. You can assign the submodules as regular attributes::</p>
+
+<pre><code>import torch.nn as nn
+import torch.nn.functional as F
+
+class Model(nn.Module):
+    def __init__(self):
+        super(Model, self).__init__()
+        self.conv1 = nn.Conv2d(1, 20, 5)
+        self.conv2 = nn.Conv2d(20, 20, 5)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        return F.relu(self.conv2(x))
+
+</code></pre>
+<p>Submodules assigned in this way will be registered, and will have their
+parameters converted too when you call :meth:<code>to</code>, etc.</p>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Full transformer model as described in <a href="https://arxiv.org/pdf/1906.05909.pdf"><em>Stand-Alone Self-Attention in Vision Models</em></a>.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h2 id="SEModule" class="doc_header"><code>class</code> <code>SEModule</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/modules.py#L278" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>SEModule</code>(<strong><code>channels</code></strong>, <strong><code>reduction_channels</code></strong>) :: <code>Module</code></p>
+</blockquote>
+<p>Base class for all neural network modules.</p>
+<p>Your models should also subclass this class.</p>
+<p>Modules can also contain other Modules, allowing to nest them in
+a tree structure. You can assign the submodules as regular attributes::</p>
+
+<pre><code>import torch.nn as nn
+import torch.nn.functional as F
+
+class Model(nn.Module):
+    def __init__(self):
+        super(Model, self).__init__()
+        self.conv1 = nn.Conv2d(1, 20, 5)
+        self.conv2 = nn.Conv2d(20, 20, 5)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        return F.relu(self.conv2(x))
+
+</code></pre>
+<p>Submodules assigned in this way will be registered, and will have their
+parameters converted too when you call :meth:<code>to</code>, etc.</p>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h2 id="BasicBlock" class="doc_header"><code>class</code> <code>BasicBlock</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/modules.py#L296" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>BasicBlock</code>(<strong><code>inplanes</code></strong>, <strong><code>planes</code></strong>, <strong><code>kernel_size</code></strong>, <strong><code>downsample</code></strong>=<em><code>None</code></em>, <strong><code>groups</code></strong>=<em><code>1</code></em>, <strong><code>base_width</code></strong>=<em><code>64</code></em>, <strong><code>use_se</code></strong>=<em><code>False</code></em>, <strong><code>reduce_first</code></strong>=<em><code>1</code></em>, <strong><code>act_layer</code></strong>=<em><code>'ReLU'</code></em>, <strong><code>norm_layer</code></strong>=<em><code>'BatchNorm2d'</code></em>) :: <code>Module</code></p>
+</blockquote>
+<p>Base class for all neural network modules.</p>
+<p>Your models should also subclass this class.</p>
+<p>Modules can also contain other Modules, allowing to nest them in
+a tree structure. You can assign the submodules as regular attributes::</p>
+
+<pre><code>import torch.nn as nn
+import torch.nn.functional as F
+
+class Model(nn.Module):
+    def __init__(self):
+        super(Model, self).__init__()
+        self.conv1 = nn.Conv2d(1, 20, 5)
+        self.conv2 = nn.Conv2d(20, 20, 5)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        return F.relu(self.conv2(x))
+
+</code></pre>
+<p>Submodules assigned in this way will be registered, and will have their
+parameters converted too when you call :meth:<code>to</code>, etc.</p>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">class</span> <span class="nc">Bottleneck</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="n">__constants__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;se&#39;</span><span class="p">,</span> <span class="s1">&#39;downsample&#39;</span><span class="p">]</span>  <span class="c1"># for pre 1.4 torchscript compat</span>
+    <span class="n">expansion</span> <span class="o">=</span> <span class="mi">4</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inplanes</span><span class="p">,</span> <span class="n">planes</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">,</span> <span class="n">downsample</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">groups</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">base_width</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">use_se</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">reduce_first</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">act_layer</span><span class="o">=</span><span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">,</span> <span class="n">norm_layer</span><span class="o">=</span><span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm2d</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Bottleneck</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="n">width</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">planes</span> <span class="o">*</span> <span class="p">(</span><span class="n">base_width</span> <span class="o">/</span> <span class="mi">64</span><span class="p">)))</span>
+        <span class="n">first_planes</span> <span class="o">=</span> <span class="n">width</span> <span class="o">//</span> <span class="n">reduce_first</span>
+        <span class="n">outplanes</span> <span class="o">=</span> <span class="n">planes</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">expansion</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">conv1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">inplanes</span><span class="p">,</span> <span class="n">first_planes</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bn1</span> <span class="o">=</span> <span class="n">norm_layer</span><span class="p">(</span><span class="n">first_planes</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">act1</span> <span class="o">=</span> <span class="n">act_layer</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sa</span> <span class="o">=</span> <span class="n">SelfAttentionBlock</span><span class="p">(</span>
+            <span class="n">first_planes</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">,</span> <span class="n">groups</span><span class="o">=</span><span class="n">groups</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bn2</span> <span class="o">=</span> <span class="n">norm_layer</span><span class="p">(</span><span class="n">width</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">act2</span> <span class="o">=</span> <span class="n">act_layer</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conv2</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">outplanes</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bn3</span> <span class="o">=</span> <span class="n">norm_layer</span><span class="p">(</span><span class="n">outplanes</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">se</span> <span class="o">=</span> <span class="n">SEModule</span><span class="p">(</span><span class="n">outplanes</span><span class="p">,</span> <span class="n">planes</span> <span class="o">//</span> <span class="mi">4</span><span class="p">)</span> <span class="k">if</span> <span class="n">use_se</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">act3</span> <span class="o">=</span> <span class="n">act_layer</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">downsample</span> <span class="o">=</span> <span class="n">downsample</span>
+
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">residual</span> <span class="o">=</span> <span class="n">x</span>
+
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bn1</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">act1</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sa</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bn2</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">act2</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv2</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bn3</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">se</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">se</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">downsample</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">residual</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">downsample</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="n">out</span> <span class="o">+=</span> <span class="n">residual</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">act3</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">out</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h2 id="SANet" class="doc_header"><code>class</code> <code>SANet</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/modules.py#L340" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>SANet</code>(<strong><code>block</code></strong>, <strong><code>layers</code></strong>, <strong><code>kernel_size</code></strong>, <strong><code>num_classes</code></strong>=<em><code>1000</code></em>, <strong><code>in_chans</code></strong>=<em><code>3</code></em>, <strong><code>use_se</code></strong>=<em><code>False</code></em>, <strong><code>groups</code></strong>=<em><code>1</code></em>, <strong><code>base_width</code></strong>=<em><code>64</code></em>, <strong><code>stem_width</code></strong>=<em><code>64</code></em>, <strong><code>stem_type</code></strong>=<em><code>''</code></em>, <strong><code>block_reduce_first</code></strong>=<em><code>1</code></em>, <strong><code>avg_down</code></strong>=<em><code>False</code></em>, <strong><code>act_layer</code></strong>=<em><code>'ReLU'</code></em>, <strong><code>norm_layer</code></strong>=<em><code>'BatchNorm2d'</code></em>, <strong><code>drop_rate</code></strong>=<em><code>0.0</code></em>, <strong><code>global_pool</code></strong>=<em><code>'avg'</code></em>, <strong><code>zero_init_last_bn</code></strong>=<em><code>True</code></em>, <strong><code>block_args</code></strong>=<em><code>None</code></em>) :: <code>Module</code></p>
+</blockquote>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Modification of ResNet where each 3x3 convolution (except for the stem) is replaced by a <a href="/models.modules.html#SelfAttentionBlock"><code>SelfAttentionBlock</code></a>. ResNet architecure is directly taken from <code>pytorch-image-models</code>.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h4 id="sanet18" class="doc_header"><code>sanet18</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/modules.py#L465" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>sanet18</code>(<strong><code>kernel_size</code></strong>, <strong><code>num_classes</code></strong>=<em><code>2</code></em>, <strong><code>in_chans</code></strong>=<em><code>3</code></em>, <strong>**<code>kwargs</code></strong>)</p>
+</blockquote>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h4 id="sanet34" class="doc_header"><code>sanet34</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/modules.py#L469" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>sanet34</code>(<strong><code>kernel_size</code></strong>, <strong><code>num_classes</code></strong>=<em><code>2</code></em>, <strong><code>in_chans</code></strong>=<em><code>3</code></em>, <strong>**<code>kwargs</code></strong>)</p>
+</blockquote>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h4 id="sanet26" class="doc_header"><code>sanet26</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/modules.py#L473" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>sanet26</code>(<strong><code>kernel_size</code></strong>, <strong><code>num_classes</code></strong>=<em><code>2</code></em>, <strong><code>in_chans</code></strong>=<em><code>3</code></em>, <strong>**<code>kwargs</code></strong>)</p>
+</blockquote>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h4 id="sanet26d" class="doc_header"><code>sanet26d</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/modules.py#L477" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>sanet26d</code>(<strong><code>kernel_size</code></strong>, <strong><code>num_classes</code></strong>=<em><code>2</code></em>, <strong><code>in_chans</code></strong>=<em><code>3</code></em>, <strong>**<code>kwargs</code></strong>)</p>
+</blockquote>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h4 id="sanet50" class="doc_header"><code>sanet50</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/modules.py#L483" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>sanet50</code>(<strong><code>kernel_size</code></strong>, <strong><code>num_classes</code></strong>=<em><code>2</code></em>, <strong><code>in_chans</code></strong>=<em><code>3</code></em>, <strong>**<code>kwargs</code></strong>)</p>
+</blockquote>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h4 id="sanet50d" class="doc_header"><code>sanet50d</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/modules.py#L487" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>sanet50d</code>(<strong><code>kernel_size</code></strong>, <strong><code>num_classes</code></strong>=<em><code>2</code></em>, <strong><code>in_chans</code></strong>=<em><code>3</code></em>, <strong>**<code>kwargs</code></strong>)</p>
+</blockquote>
 
 </div>
 

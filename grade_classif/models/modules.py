@@ -5,7 +5,7 @@ __all__ = ['bn_drop_lin', 'ConvBnRelu', 'ConvBn', 'ConvRelu', 'icnr', 'PixelShuf
            'sanet26', 'sanet26d', 'sanet50', 'sanet50d']
 
 #Cell
-from .utils import get_sizes, register_model
+from .utils import get_sizes
 from .hooks import Hooks
 from ..imports import *
 from torch.nn.functional import interpolate, pad
@@ -13,7 +13,6 @@ from timm.models.adaptive_avgmax_pool import SelectAdaptivePool2d
 
 #Cell
 def bn_drop_lin(n_in, n_out, bn=True, p=0., actn=None):
-    "Sequence of batchnorm (if `bn`), dropout (with `p`) and linear (`n_in`,`n_out`) layers followed by `actn`."
     layers = [nn.BatchNorm1d(n_in)] if bn else []
     if p != 0: layers.append(nn.Dropout(p))
     layers.append(nn.Linear(n_in, n_out))
@@ -78,6 +77,7 @@ def icnr(x, scale=2, init=nn.init.kaiming_normal_):
     k = k.contiguous().view([nf, ni, h, w]).transpose(0, 1)
     x.data.copy_(k)
 
+#Cell
 class PixelShuffleICNR(nn.Module):
     def __init__(
             self, in_channels, out_channels, bias=True, scale_factor=2, **kwargs):
@@ -134,12 +134,14 @@ class LastCross(nn.Module):
 
 #Cell
 class DynamicUnet(nn.Module):
+    """
+    """
     def __init__(self, encoder_name, cut=-2, n_classes=2, input_shape=(3, 224, 224), pretrained=True):
         super().__init__()
         encoder = timm.create_model(encoder_name, pretrained=pretrained)
         # encoder = resnet34()
         self.encoder = nn.Sequential(*(list(encoder.children())[:cut]+[nn.ReLU()]))
-        encoder_sizes, idxs = self.register_output_hooks(input_shape=input_shape)
+        encoder_sizes, idxs = self._register_output_hooks(input_shape=input_shape)
         n_chans = encoder_sizes[-1][1]
         middle_conv = nn.Sequential(ConvBnRelu(n_chans, n_chans//2, 3),
                                     ConvBnRelu(n_chans//2, n_chans, 3))
@@ -165,7 +167,7 @@ class DynamicUnet(nn.Module):
         return y
 
 
-    def register_output_hooks(self, input_shape=(3, 224, 224)):
+    def _register_output_hooks(self, input_shape=(3, 224, 224)):
         sizes, modules = get_sizes(self.encoder, input_shape=input_shape)
         mods = []
         idxs = np.where(sizes[:-1, -1] != sizes[1:, -1])[0]
@@ -186,6 +188,8 @@ class DynamicUnet(nn.Module):
 
 #Cell
 class CBR(nn.Module):
+    """
+    """
     def __init__(self, kernel_size, n_kernels, n_layers, n_classes=2):
         super().__init__()
         in_c = 3
@@ -206,6 +210,8 @@ class CBR(nn.Module):
 
 #Cell
 class SelfAttentionBlock(nn.Module):
+    """
+    """
     def __init__(self, c_in, c_out, k, stride=1, groups=1, bias=False):
         super().__init__()
         assert c_in % groups == c_out % groups == 0, "c_in and c_out must be divided by groups"
@@ -243,9 +249,6 @@ class SelfAttentionBlock(nn.Module):
 
 #Cell
 class SASA(nn.Module):
-    """
-    Stand-Alone Self-Attention as described in arxiv:1906.05909.
-    """
     def __init__(self, kernel_size, n_kernels, n_layers, n_groups, n_classes=2):
         super().__init__()
 
@@ -335,6 +338,8 @@ class BasicBlock(nn.Module):
 
 #Cell
 class SANet(nn.Module):
+    """
+    """
     def __init__(self, block, layers, kernel_size, num_classes=1000, in_chans=3, use_se=False,
                  groups=1, base_width=64, stem_width=64, stem_type='',
                  block_reduce_first=1, avg_down=False,
@@ -457,36 +462,30 @@ class SANet(nn.Module):
         return x
 
 #Cell
-@register_model
 def sanet18(kernel_size, num_classes=2, in_chans=3, **kwargs):
     model = SANet(BasicBlock, [2, 2, 2, 2], kernel_size, num_classes=num_classes, in_chans=in_chans, **kwargs)
     return model
 
-@register_model
 def sanet34(kernel_size, num_classes=2, in_chans=3, **kwargs):
     model = SANet(BasicBlock, [3, 4, 6, 3], kernel_size, num_classes=num_classes, in_chans=in_chans, **kwargs)
     return model
 
-@register_model
 def sanet26(kernel_size, num_classes=2, in_chans=3, **kwargs):
     model = SANet(Bottleneck, [2, 2, 2, 2], kernel_size, num_classes=num_classes, in_chans=in_chans, **kwargs)
     return model
 
-@register_model
 def sanet26d(kernel_size, num_classes=2, in_chans=3, **kwargs):
     model = SANet(
         Bottleneck, [2, 2, 2, 2], kernel_size, stem_width=32, stem_type='deep', avg_down=True,
         num_classes=num_classes, in_chans=in_chans, **kwargs)
     return model
 
-@register_model
 def sanet50(kernel_size, num_classes=2, in_chans=3, **kwargs):
     model = SANet(Bottleneck, [3, 4, 6, 3], kernel_size, num_classes=num_classes, in_chans=in_chans, **kwargs)
     return model
 
-@register_model
 def sanet50d(kernel_size, num_classes=2, in_chans=3, **kwargs):
-    model = SaNet(
+    model = SANet(
         Bottleneck, [3, 4, 6, 3], kernel_size, stem_width=32, stem_type='deep', avg_down=True,
         num_classes=num_classes, in_chans=in_chans, **kwargs)
     return model

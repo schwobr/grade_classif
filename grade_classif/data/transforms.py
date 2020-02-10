@@ -21,3 +21,4 @@ def get_transforms(size):
             GaussianBlur(blur_limit=5, p=0.2),
             RandomCrop(size, size)]
     val_tfms = [RandomCrop(size, size)]
+    return tfms, val_tfms
