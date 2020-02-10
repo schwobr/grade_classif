@@ -7,7 +7,7 @@ from ..data.dataset import ImageClassifDataset, NormDataset
 from ..data.transforms import get_transforms
 from ..data.utils import show_img
 from .utils import named_leaf_modules, get_sizes, get_num_features, gaussian_mask
-import grade_classif.models.modules as mods
+from .modules import *
 from .losses import FocalLoss, BCE
 from ..core import ifnone
 from ..imports import *
@@ -199,7 +199,7 @@ class Normalizer(BaseModule):
     def __init__(self, hparams, **kwargs):
         super().__init__(hparams, **kwargs)
         input_shape = (3, hparams.size, hparams.size)
-        self.unet = mods.DynamicUnet(hparams.normalizer, n_classes=3, input_shape=input_shape, pretrained=not hparams.rand_weights)
+        self.unet = DynamicUnet(hparams.normalizer, n_classes=3, input_shape=input_shape, pretrained=not hparams.rand_weights)
         # meta = cnn_config(resnet34)
         # body = create_body(resnet34, True, None)
         # size = (224, 224)
@@ -291,16 +291,16 @@ class GradesClassifModel(BaseModule):
         self.loss = _get_loss(hparams.loss, weight if hparams.sample_mode == 0 else 1., hparams.reduction, device=self.main_device)
         if 'cbr' in hparams.model:
             args = map(int, hparams.model.split('_')[1:])
-            base_model = mods.CBR(*args)
+            base_model = CBR(*args)
             cut = -3
         elif 'sasa' in hparams.model:
             args = map(int, hparams.model.split('_')[1:])
-            base_model = mods.SASA(*args)
+            base_model = SASA(*args)
             cut = -3
         elif 'sanet' in hparams.model:
             splits = hparams.model.split('_')
             kernel_size = int(splits[-1])
-            base_model = getattr(mods, splits[0])(kernel_size)
+            base_model = globals()[splits[0]](kernel_size)
             cut = -2
         else:
             base_model = timm.create_model(hparams.model, pretrained=not hparams.rand_weights)
@@ -310,7 +310,7 @@ class GradesClassifModel(BaseModule):
         nf = get_num_features(self.base_model)
         p = hparams.dropout
         nc = 2 if hparams.loss == 'cross-entropy' else 1
-        head += mods.bn_drop_lin(nf, nf, p=p/2) + mods.bn_drop_lin(nf, nc, p=p)
+        head += bn_drop_lin(nf, nf, p=p/2) + bn_drop_lin(nf, nc, p=p)
         self.head = nn.Sequential(*head)
         self.post_init()
         self._create_normalizer()
@@ -357,7 +357,7 @@ class GradesClassifModel(BaseModule):
     def _create_normalizer(self):
         hparams = self.hparams
         if hparams.normalizer is not None:
-            norm = mods.DynamicUnet(hparams.normalizer, n_classes=3, input_shape=(3, hparams.size, hparams.size), pretrained=True)
+            norm = DynamicUnet(hparams.normalizer, n_classes=3, input_shape=(3, hparams.size, hparams.size), pretrained=True)
             if hparams.norm_version is not None:
                 save_dir = self.save_path.parents[1]/'normalizer'/f'{hparams.normalizer}/lightning_logs/version_{hparams.norm_version}/checkpoints'
                 path = next(save_dir.iterdir())

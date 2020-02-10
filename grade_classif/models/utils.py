@@ -22,7 +22,7 @@ def named_leaf_modules(model, name=''):
 
 #Cell
 def get_sizes(model, input_shape=(3, 224, 224), leaf_modules=None):
-    leaf_modules = ifnone(leaf_modules, named_leaf_modules('', model))
+    leaf_modules = ifnone(leaf_modules, named_leaf_modules(model))
 
     class Count:
         def __init__(self):
