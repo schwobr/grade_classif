@@ -192,6 +192,18 @@ class BaseModule(pl.LightningModule):
         """
         return self.eval()(x)
 
+    def show_some(self, n=8, split='train', imgsize=4):
+        fig, axs = plt.subplots(n, 2, figsize=(imgsize*2, imgsize*n))
+        data = getattr(self.data, split)
+        idxs = np.random.choice(np.arange(len(data)), size=n, replace=False)
+        for ax_r, idx in zip(axs, idxs):
+            x, x_tfmed = data.get_orig_tfmed(idx)
+            show_img(x, ax=ax_r[0])
+            show_img(x_tfmed, ax=ax_r[1])
+        title = 'original/transformed'
+        fig.suptitle(title)
+        plt.show()
+
 #Cell
 class Normalizer(BaseModule):
     """

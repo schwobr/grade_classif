@@ -239,5 +239,15 @@ class TensorDataset(Dataset):
         y = np_to_tensor(y, type(self._ds.label_loader).__name__.lower().replace('loader', ''))
         return x, y
 
+    def get_orig_tfmed(self, i):
+        x, _ = self._ds[i]
+        if self.tfms != []:
+            aug = Compose(self.tfms)
+            augmented = aug(image=x)
+            x_tfmed = augmented['image']
+        else:
+            x_tfmed = x
+        return x, x_tfmed
+
     def __getattr__(self, name):
         return getattr(self._ds, name)
