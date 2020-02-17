@@ -137,7 +137,8 @@ class BaseModule(pl.LightningModule):
             if sm == 1:
                 sampler = WeightedRandomSampler(weights, 2*len(np.argwhere(~labels)))
             else:
-                sampler = WeightedRandomSampler(weights, 2*len(np.argwhere(labels)), replacement=False)
+                # sampler = WeightedRandomSampler(weights, 2*len(np.argwhere(labels)), replacement=False)
+                sampler = WeightedRandomSampler(weights, 65000, replacement=False)
         else:
             sampler = RandomSampler(self.data.train)
         return DataLoader(self.data.train, batch_size=self.bs, sampler=sampler, drop_last=True)
