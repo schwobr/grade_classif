@@ -16,6 +16,7 @@ _parser.add_argument('--data', default=DATA, help='path to folder containing dat
 _parser.add_argument('--data-csv', default=DATA_CSV, help='path to csv listing scans with their grades and split')
 _parser.add_argument('--concepts', default=CONCEPTS, help='path to csv listing pathes with their corresponding concept')
 _parser.add_argument('--concept-classes', default=CONCEPT_CLASSES, help='path to csv giving a class for each concept')
+_parser.add_argument('--patch-classes', default=PATCH_CLASSES, help='path to csv giving a class for each patcgh; overrides concepts and concept-classes if specified.')
 _parser.add_argument('--level', default=LEVEL, type=int, help='zoom level to work on')
 _parser.add_argument('--full-data', default=FULL_DATA, help='path to folder containing all data (different levels)')
 _parser.add_argument('--scan', default=SCAN, help='name of scan to predict. If not specified, all valid scans are predicted')

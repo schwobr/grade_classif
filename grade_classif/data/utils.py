@@ -23,10 +23,12 @@ def show_img(x, ax=None, figsize=(3,3), title=None, hide_axis=True, cmap='viridi
     return ax
 
 #Cell
-def load_batches(folder, bs=16, device='cpu'):
+def load_batches(folder, bs=16, device='cpu', filt=None):
     x = []
     image_loader = ImageLoader('3G')
     for fn in folder.iterdir():
+        if filt is not None and not filt(fn):
+            continue
         if len(x) < bs:
             img = image_loader(fn)
             img = np_to_tensor(img, 'image').to(device)

@@ -212,7 +212,7 @@ class CBR(nn.Module):
 class SelfAttentionBlock(nn.Module):
     """
     """
-    def __init__(self, c_in, c_out, k, stride=1, groups=1, bias=False):
+    def __init__(self, c_in, c_out, k, stride=1, groups=8, bias=False):
         super().__init__()
         assert c_in % groups == c_out % groups == 0, "c_in and c_out must be divided by groups"
         assert k % 2 == 1, "k must be odd"
@@ -237,13 +237,13 @@ class SelfAttentionBlock(nn.Module):
         n = self.c_out // self.groups
 
         q = self.query_conv(x).view(b, self.groups, n, h, w, 1)
-        k = self.key_conv(x).unfold(2, self.k, self.stride).unfold(3, self.k, self.stride).view(b, self.groups, n, h, w, -1)
-        v = self.value_conv(x).unfold(2, self.k, self.stride).unfold(3, self.k, self.stride).view(b, self.groups, n, h, w, -1)
+        k = self.key_conv(x).unfold(2, self.k, self.stride).unfold(3, self.k, self.stride).contiguous().view(b, self.groups, n, h, w, -1)
+        v = self.value_conv(x).unfold(2, self.k, self.stride).unfold(3, self.k, self.stride).contiguous().view(b, self.groups, n, h, w, -1)
 
         r = torch.cat((self.r_ai.expand(b, -1, -1, self.k), self.r_aj.expand(b, -1, self.k, -1)), dim=1).view(b, self.groups, n, -1)
         r = r[..., None, None, :].expand(-1, -1, -1, h, w, -1)
 
-        y = (torch.softmax((q*(k+r)).sum(2, keepdims=True), dim=-1) * v).sum(-1).view(b, c_out, h, w)
+        y = (torch.softmax((q*(k+r)).sum(2, keepdims=True), dim=-1) * v).sum(-1).view(b, self.c_out, h, w)
 
         return y
 
@@ -298,7 +298,7 @@ class BasicBlock(nn.Module):
     expansion = 1
 
     def __init__(self, inplanes, planes, kernel_size, downsample=None,
-                 groups=1, base_width=64, use_se=False,
+                 groups=8, base_width=64, use_se=False,
                  reduce_first=1, act_layer=nn.ReLU, norm_layer=nn.BatchNorm2d):
         super(BasicBlock, self).__init__()
         assert base_width == 64, 'BasicBlock doest not support changing base width'
@@ -341,7 +341,7 @@ class SANet(nn.Module):
     """
     """
     def __init__(self, block, layers, kernel_size, num_classes=1000, in_chans=3, use_se=False,
-                 groups=1, base_width=64, stem_width=64, stem_type='',
+                 groups=8, base_width=64, stem_width=64, stem_type='',
                  block_reduce_first=1, avg_down=False,
                  act_layer=nn.ReLU, norm_layer=nn.BatchNorm2d, drop_rate=0.0, global_pool='avg',
                  zero_init_last_bn=True, block_args=None):
@@ -428,7 +428,7 @@ class SANet(nn.Module):
         self.inplanes = planes * block.expansion
         for i in range(1, blocks):
             layers.append(block(
-                self.inplanes, planes, self.kernel_size, downsample, **bkwargs))
+                self.inplanes, planes, self.kernel_size, **bkwargs))
 
         return nn.Sequential(*layers)
 

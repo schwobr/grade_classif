@@ -138,7 +138,7 @@ class BaseModule(pl.LightningModule):
                 sampler = WeightedRandomSampler(weights, 2*len(np.argwhere(~labels)))
             else:
                 # sampler = WeightedRandomSampler(weights, 2*len(np.argwhere(labels)), replacement=False)
-                sampler = WeightedRandomSampler(weights, 65000, replacement=False)
+                sampler = WeightedRandomSampler(weights, 40000, replacement=False)
         else:
             sampler = RandomSampler(self.data.train)
         return DataLoader(self.data.train, batch_size=self.bs, sampler=sampler, drop_last=True)
@@ -284,7 +284,15 @@ class GradesClassifModel(BaseModule):
     def __init__(self, hparams, **kwargs):
         super().__init__(hparams, **kwargs)
         tfms = get_transforms(hparams.size)
-        if hparams.concepts is not None and hparams.concept_classes is not None:
+        if hparams.patch_classes is not None:
+            patch_classes_df = pd.read_csv(hparams.patch_classes, index_col='patchId')
+            if hparams.filt != 'all':
+                def filt(x):
+                    return patch_classes_df.loc[x.stem, 'type'] == hparams.filt
+            else:
+                def filt(x):
+                    return patch_classes_df.loc[x.stem, 'type'] != 'garb'
+        elif hparams.concepts is not None and hparams.concept_classes is not None:
             conc_classes_df = pd.read_csv(hparams.concept_classes, index_col=0)
             if hparams.filt != 'all':
                 ok = conc_classes_df.loc[conc_classes_df['type'] == hparams.filt].index.values
@@ -295,6 +303,7 @@ class GradesClassifModel(BaseModule):
                 return conc_df.loc[x.stem, 'concept'] in ok
         else:
             filt = None
+        self.filt = filt
         self.data = (ImageClassifDataset.
                      from_folder(Path(hparams.data), lambda x: x.parts[-3], classes=['1', '3'], extensions=['.png'], include=['1', '3'], open_mode=hparams.open_mode, filterfunc=filt).
                      split_by_csv(hparams.data_csv).
