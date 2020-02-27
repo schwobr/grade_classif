@@ -9,16 +9,16 @@ __all__ = ['PROJECT', 'CSVS', 'LEVEL', 'FULL_DATA', 'DATA', 'DATA_CSV', 'MODELS'
 from ..imports import *
 
 #Cell
-PROJECT = Path('/home/DeepLearning/grade_classif')
-_PROJECT = Path('/work/stages/schwob/grade_classif')
+_PROJECT = Path('/home/DeepLearning/grade_classif')
+PROJECT = Path('/work/stages/schwob/grade_classif')
 CSVS = PROJECT/'csvs'
 LEVEL = 1
 FULL_DATA = Path(f'/data/DeepLearning/SCHWOB_Robin/Patches_1024')
 _FULL_DATA = Path(f'/work/stages/schwob/Patches_256')
 DATA = FULL_DATA/f'Patches_1024_{LEVEL}'
 DATA_CSV = CSVS/f'scans.csv'
-MODELS = Path('/data/DeepLearning/SCHWOB_Robin/models/logs')
-_MODELS = PROJECT/'models/logs'
+_MODELS = Path('/data/DeepLearning/SCHWOB_Robin/models/logs')
+MODELS = PROJECT/'models/logs'
 NORM_CSV = CSVS/'categories.csv'
 CONCEPTS = CSVS/f'concepts_{LEVEL}.csv'
 _CONCEPTS = None

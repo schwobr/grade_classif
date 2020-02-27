@@ -14,7 +14,10 @@ def predict_one_scan_one_level(model, fn, thrs=None):
     preds = []
     for x in load_batches(fn, bs=model.bs, device=model.main_device, filt=model.filt):
         preds.append(model.predict(x).detach().cpu()[:, -1])
-    preds = torch.cat(preds)
+    try:
+        preds = torch.cat(preds)
+    except:
+        preds = torch.tensor([1.])
     if thrs is None:
         return preds.sum().item()/len(preds)
     else:
