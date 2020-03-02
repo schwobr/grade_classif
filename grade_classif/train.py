@@ -10,7 +10,8 @@ from .imports import *
 #Cell
 def train_normalizer(hparams):
     model = Normalizer(hparams)
-    model.fit()
+    model.freeze_encoder()
+    model.fit(amp_level='O1', use_amp=True)
     return model
 
 #Cell

@@ -163,7 +163,7 @@ class BaseModule(pl.LightningModule):
         summary = pd.DataFrame({'Name': list(map(lambda x: x.name, self.leaf_modules)), 'Output Shape': self.sizes})
         return summary
 
-    def fit(self):
+    def fit(self, **kwargs):
         """
         Fit the model using parameters stored in `hparams`.
         """
@@ -171,7 +171,7 @@ class BaseModule(pl.LightningModule):
         logger.experiment.add_tag('norm' if isinstance(self, Normalizer) else 'classif')
         ckpt_path = self.save_path/'lightning_logs'/f'version_{logger.version}'/'checkpoints'
         ckpt_callback = ModelCheckpoint(ckpt_path, save_top_k=3)
-        trainer = pl.Trainer(gpus=self.hparams.gpus, checkpoint_callback=ckpt_callback, logger=logger, min_epochs=self.hparams.epochs, max_epochs=self.hparams.epochs)
+        trainer = pl.Trainer(gpus=self.hparams.gpus, checkpoint_callback=ckpt_callback, logger=logger, min_epochs=self.hparams.epochs, max_epochs=self.hparams.epochs, **kwargs)
         self.version = trainer.logger.version
         trainer.fit(self)
 
@@ -250,7 +250,7 @@ class Normalizer(BaseModule):
         """
         Freeze the encoder part of the normalizer.
         """
-        for m in self.leaf_modules('', self):
+        for m in self.leaf_modules:
             if 'encoder' in m.name and not isinstance(m, nn.BatchNorm2d):
                 for param in m.parameters():
                     param.requires_grad = False
