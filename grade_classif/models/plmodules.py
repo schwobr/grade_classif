@@ -129,19 +129,7 @@ class BaseModule(pl.LightningModule):
 
     @pl.data_loader
     def train_dataloader(self):
-        sm = self.hparams.sample_mode
-        w = self.hparams.weight
-        if sm > 0:
-            labels = self.data.train.labels == '1'
-            weights = np.where(labels, w, 1.)
-            if sm == 1:
-                sampler = WeightedRandomSampler(weights, 2*len(np.argwhere(~labels)))
-            else:
-                # sampler = WeightedRandomSampler(weights, 2*len(np.argwhere(labels)), replacement=False)
-                sampler = WeightedRandomSampler(weights, 40000, replacement=False)
-        else:
-            sampler = RandomSampler(self.data.train)
-        return DataLoader(self.data.train, batch_size=self.bs, sampler=sampler, drop_last=True)
+        return DataLoader(self.data.train, batch_size=self.bs, shuffle=True, drop_last=True)
 
 
     @pl.data_loader
@@ -336,6 +324,21 @@ class GradesClassifModel(BaseModule):
         self.head = nn.Sequential(*head)
         self.post_init()
         self._create_normalizer()
+
+    @pl.data_loader
+    def train_dataloader(self):
+        sm = self.hparams.sample_mode
+        w = self.hparams.weight
+        if sm > 0:
+            labels = self.data.train.labels == '1'
+            weights = np.where(labels, w, 1.)
+            if sm == 1:
+                sampler = WeightedRandomSampler(weights, 2*len(np.argwhere(~labels)))
+            else:
+                # sampler = WeightedRandomSampler(weights, 2*len(np.argwhere(labels)), replacement=False)
+                sampler = WeightedRandomSampler(weights, 40000, replacement=False)
+        else:
+            sampler = RandomSampler(self.data.train)
 
     def validation_step(self, batch, batch_nb):
         # OPTIONAL

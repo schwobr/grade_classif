@@ -25,3 +25,8 @@ class Capturing(list):
         self.extend(self._stringio.getvalue().splitlines())
         del self._stringio    # free up some memory
         sys.stdout = self._stdout
+        
+def imread(*args, **kwargs):
+    img = cv2.imread(*args, **kwargs)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    return img

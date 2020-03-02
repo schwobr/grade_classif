@@ -20,7 +20,7 @@ def get_transforms(size):
             GridDistortion(distort_limit=0.05, p=0.2),
             RandomGamma(p=0.2),
             GaussianBlur(blur_limit=3, p=0.2),
-            RGBShift(0.15, 0.15, 0.15),
+            #RGBShift(0.15, 0.15, 0.15),
             RandomCrop(size, size)]
     val_tfms = [RandomCrop(size, size)]
     return tfms, val_tfms
