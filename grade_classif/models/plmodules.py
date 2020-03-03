@@ -4,7 +4,7 @@ __all__ = ['BaseModule', 'Normalizer', 'GradesClassifModel', 'RNNAttention']
 
 #Cell
 from ..data.dataset import ImageClassifDataset, NormDataset
-from ..data.transforms import get_transforms
+from ..data.transforms import *
 from ..data.utils import show_img
 from .utils import named_leaf_modules, get_sizes, get_num_features, gaussian_mask
 from .modules import *
@@ -201,15 +201,13 @@ class Normalizer(BaseModule):
         super().__init__(hparams, **kwargs)
         input_shape = (3, hparams.size, hparams.size)
         self.unet = DynamicUnet(hparams.normalizer, n_classes=3, input_shape=input_shape, pretrained=not hparams.rand_weights)
-        # meta = cnn_config(resnet34)
-        # body = create_body(resnet34, True, None)
-        # size = (224, 224)
-        # self.unet = models.unet.DynamicUnet(body, n_classes=3, img_size=size, blur=False, blur_final=True,
-        #      self_attention=False, y_range=None, norm_type=NormType, last_cross=True,
-        #      bottle=False)
-        tfms = get_transforms(hparams.size)
+
+        if hparams.transforms:
+            tfms = globals()[f'get_transforms{hparams.transforms}'](hparams.size)
+        else:
+            tfms = []
         self.data = (NormDataset.
-                     from_folder(Path(hparams.data), extensions=['.png']).
+                     from_folder(Path(hparams.data), extensions=['.png'], open_mode=hparams.open_mode).
                      split_by_csv(hparams.data_csv).
                      to_tensor(tfms=tfms))
         self.post_init()
@@ -271,7 +269,12 @@ class GradesClassifModel(BaseModule):
     """
     def __init__(self, hparams, **kwargs):
         super().__init__(hparams, **kwargs)
-        tfms = get_transforms(hparams.size)
+
+        if hparams.transforms:
+            tfms = globals()[f'get_transforms{hparams.transforms}'](hparams.size)
+        else:
+            tfms = []
+
         if hparams.patch_classes is not None:
             patch_classes_df = pd.read_csv(hparams.patch_classes, index_col='patchId')
             if hparams.filt != 'all':
@@ -291,6 +294,7 @@ class GradesClassifModel(BaseModule):
                 return conc_df.loc[x.stem, 'concept'] in ok
         else:
             filt = None
+
         self.filt = filt
         self.data = (ImageClassifDataset.
                      from_folder(Path(hparams.data), lambda x: x.parts[-3], classes=['1', '3'], extensions=['.png'], include=['1', '3'], open_mode=hparams.open_mode, filterfunc=filt).
@@ -299,6 +303,7 @@ class GradesClassifModel(BaseModule):
         weight = np.float32((self.data.train.labels == '3').sum()/(self.data.train.labels == '1').sum())
         self.hparams.weight = weight
         self.loss = _get_loss(hparams.loss, weight if hparams.sample_mode == 0 else 1., hparams.reduction, device=self.main_device)
+
         if 'cbr' in hparams.model:
             args = map(int, hparams.model.split('_')[1:])
             base_model = CBR(*args)
@@ -417,7 +422,12 @@ class RNNAttention(BaseModule):
     """
     def __init__(self, hparams, **kwargs):
         super().__init__(hparams, **kwargs)
-        tfms = get_transforms(hparams.size)
+
+        if hparams.transforms:
+            tfms = globals()[f'get_transforms{hparams.transforms}'](hparams.size)
+        else:
+            tfms = []
+
         if hparams.concepts is not None and hparams.concept_classes is not None:
             conc_classes_df = pd.read_csv(hparams.concept_classes, index_col=0)
             if hparams.filt != 'all':
@@ -429,6 +439,7 @@ class RNNAttention(BaseModule):
                 return conc_df.loc[x.stem, 'concept'] in ok
         else:
             filt = None
+
         self.data = (ImageClassifDataset.
                      from_folder(Path(hparams.data), lambda x: x.parts[-3], classes=['1', '3'], extensions=['.png'], include=['1', '3'], open_mode=hparams.open_mode, filterfunc=filt).
                      split_by_csv(hparams.data_csv).

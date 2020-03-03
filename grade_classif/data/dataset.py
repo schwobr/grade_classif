@@ -185,15 +185,15 @@ class NormDataset(MyDataset):
         self.show(k, axs=axs, figsize=figsize, hide_axis=hide_axis, cmap=cmap, **kwargs)
 
     @classmethod
-    def from_folder(cls, folder, id_column='scan', recurse=True, extensions=None, include=None, exclude=None):
+    def from_folder(cls, folder, recurse=True, extensions=None, include=None, exclude=None, filterfunc=None, **kwargs):
         """
         Overwrites `MyDataset.from_folder` so that it doesn't need the loaders or a `label_func`.
         """
         def _label_func(x):
             return x
         folder = Path(folder)
-        items, labels = get_items(folder, _label_func, recurse=recurse, extensions=extensions, include=include, exclude=exclude)
-        return cls(items, labels, ImageLoader(open_mode='3G'), ImageLoader())
+        items, labels = get_items(folder, _label_func, recurse=recurse, extensions=extensions, include=include, exclude=exclude, filterfunc=None)
+        return cls(items, labels, ImageLoader(**kwargs), ImageLoader())
 
 #Cell
 @dataclass
