@@ -10,7 +10,8 @@ from albumentations import (RandomRotate90,
                             RandomCrop,
                             GaussianBlur,
                             RandomGamma,
-                            RGBShift)
+                            RGBShift,
+                            CenterCrop)
 
 #Cell
 def get_transforms1(size):
@@ -21,7 +22,7 @@ def get_transforms1(size):
             RandomGamma(p=0.2),
             GaussianBlur(blur_limit=3, p=0.2),
             RandomCrop(size, size)]
-    val_tfms = [RandomCrop(size, size)]
+    val_tfms = [CenterCrop(size, size)]
     return tfms, val_tfms
 
 #Cell
@@ -34,7 +35,7 @@ def get_transforms2(size):
             GaussianBlur(blur_limit=3, p=0.2),
             RGBShift(0.15, 0.15, 0.15),
             RandomCrop(size, size)]
-    val_tfms = [RandomCrop(size, size)]
+    val_tfms = [CenterCrop(size, size)]
     return tfms, val_tfms
 
 #Cell
@@ -47,5 +48,5 @@ def get_transforms3(size):
             GaussianBlur(blur_limit=3, p=0.2),
             RGBShift(0.15, 0.15, 0.15, p=0.7),
             RandomCrop(size, size)]
-    val_tfms = [RandomCrop(size, size)]
+    val_tfms = [CenterCrop(size, size)]
     return tfms, val_tfms
