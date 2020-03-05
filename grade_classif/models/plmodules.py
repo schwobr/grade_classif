@@ -416,6 +416,15 @@ class GradesClassifModel(BaseModule):
             pred = torch.sigmoid(pred)
         return pred
 
+    def freeze_base(self):
+        """
+        Freeze the base model.
+        """
+        for m in self.leaf_modules:
+            if 'base_model' in m.name and not isinstance(m, nn.BatchNorm2d):
+                for param in m.parameters():
+                    param.requires_grad = False
+
 #Cell
 class RNNAttention(BaseModule):
     """
