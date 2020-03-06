@@ -344,6 +344,7 @@ class GradesClassifModel(BaseModule):
                 sampler = WeightedRandomSampler(weights, 40000, replacement=False)
         else:
             sampler = RandomSampler(self.data.train)
+        return DataLoader(self.data.train, batch_size=self.bs, sampler=sampler, drop_last=True)
 
     def validation_step(self, batch, batch_nb):
         # OPTIONAL

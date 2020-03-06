@@ -443,15 +443,15 @@ class DynamicUnet(nn.Module):
     def __init__(self, encoder_name, n_classes=2, input_shape=(3, 224, 224), pretrained=True):
         super().__init__()
 
-        if 'cbr' in hparams.model:
+        if 'cbr' in encoder_name:
             args = map(int, encoder_name.split('_')[1:])
             encoder = CBR(*args)
             cut = -3
-        elif 'sasa' in hparams.model:
+        elif 'sasa' in encoder_name:
             args = map(int, encoder_name.split('_')[1:])
             encoder = SASA(*args)
             cut = -3
-        elif 'sanet' in hparams.model:
+        elif 'sanet' in encoder_name:
             splits = encoder_name.split('_')
             kernel_size = int(splits[-1])
             encoder = globals()[splits[0]](kernel_size)

@@ -192,7 +192,7 @@ class NormDataset(MyDataset):
         def _label_func(x):
             return x
         folder = Path(folder)
-        items, labels = get_items(folder, _label_func, recurse=recurse, extensions=extensions, include=include, exclude=exclude, filterfunc=None)
+        items, labels = get_items(folder, _label_func, recurse=recurse, extensions=extensions, include=include, exclude=exclude, filterfunc=filterfunc)
         return cls(items, labels, ImageLoader(**kwargs), ImageLoader())
 
 #Cell

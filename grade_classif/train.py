@@ -11,7 +11,7 @@ from .imports import *
 def train_normalizer(hparams):
     model = Normalizer(hparams)
     model.freeze_encoder()
-    model.fit(amp_level='O1', use_amp=True)
+    model.fit()
     return model
 
 #Cell
