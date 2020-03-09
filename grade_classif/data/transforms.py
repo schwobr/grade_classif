@@ -15,6 +15,7 @@ from albumentations import (RandomRotate90,
                             HueSaturationValue,
                             RGBShift,
                             CenterCrop)
+from ..imports import *
 
 #Cell
 class DeterministicHSV(HueSaturationValue):
@@ -109,9 +110,10 @@ def get_transforms4(size, num_els=1):
             Flip(),
             Transpose(),
             GridDistortion(distort_limit=0.05, p=0.2),
-            RandomBrightnessContrast(0.1, 0.1, p=0.7),
+            #RandomBrightnessContrast(0.1, 0.1, p=0.7),
             GaussianBlur(blur_limit=3, p=0.2),
-            HueSaturationValue(30, 0., 0., p=0.8),
+            RandomGamma(gamma_limit=(50, 150), p=1.),
+            HueSaturationValue(30, 0., 0, p=0.8),
             RandomCrop(size, size)]
     val_tfms = [DeterministicBrightnessContrast(num_els=num_els, brightness_limit=0.1, contrast_limit=0.1),
                 DeterministicHSV(num_els=num_els, hue_shift_limit=30, sat_shift_limit=0., val_shift_limit=0.),
