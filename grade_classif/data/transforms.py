@@ -20,6 +20,7 @@ from albumentations import (RandomRotate90,
 class DeterministicHSV(HueSaturationValue):
     def __init__(self, num_els=1, **kwargs):
         super().__init__(**kwargs)
+        self.always_apply = True
         self.num_els = num_els
         self.base_values = super().get_params()
         self.max_values = {"hue_shift": self.hue_shift_limit,
@@ -43,6 +44,7 @@ class DeterministicHSV(HueSaturationValue):
 class DeterministicBrightnessContrast(RandomBrightnessContrast):
     def __init__(self, num_els=1, **kwargs):
         super().__init__(**kwargs)
+        self.always_apply = True
         self.num_els = num_els
         self.base_values = super().get_params()
         self.max_values = {"alpha": tuple(x + 1 for x in self.contrast_limit),
@@ -111,7 +113,7 @@ def get_transforms4(size, num_els=1):
             GaussianBlur(blur_limit=3, p=0.2),
             HueSaturationValue(30, 0., 0., p=0.8),
             RandomCrop(size, size)]
-    val_tfms = [DeterministicBrightnessContrast(num_els=num_els, brightness_limit=0.1, contrast_limit=0.1, p=0.7),
-                DeterministicHSV(num_els=num_els, hue_shift_limit=30, sat_shift_limit=0., val_shift_limit=0., p=0.8),
+    val_tfms = [DeterministicBrightnessContrast(num_els=num_els, brightness_limit=0.1, contrast_limit=0.1),
+                DeterministicHSV(num_els=num_els, hue_shift_limit=30, sat_shift_limit=0., val_shift_limit=0.),
                 CenterCrop(size, size)]
     return tfms, val_tfms
