@@ -52,6 +52,7 @@ class BaseModule(pl.LightningModule):
         super().__init__()
         self.hparams = hparams
         self.main_device = 'cpu' if hparams.gpus is None else f'cuda:{hparams.gpus[0]}'
+        # self.main_device = 'cuda:1'
         try:
             weight = hparams.weight if hparams.sample_mode == 0 else 1.
         except AttributeError:
@@ -111,12 +112,12 @@ class BaseModule(pl.LightningModule):
 
     def configure_optimizers(self):
         # REQUIRED
-        opt = torch.optim.Adam(self.parameters(), lr=self.lr)
-        self.sched = _get_scheduler(opt, self.hparams.sched, self.hparams.epochs*len(self.train_dataloader()), self.lr)
+        self.opt = torch.optim.Adam(self.parameters(), lr=self.lr)
+        self.sched = _get_scheduler(self.opt, self.hparams.sched, self.hparams.epochs*len(self.train_dataloader()), self.lr)
         return opt
 
     def on_after_backward(self):
-        for pg in self.sched.optimizer.param_groups:
+        for pg in self.opt.param_groups:
             for p in pg['params']: p.data.mul_(1 - self.wd*pg['lr'])
 
     def on_batch_end(self):
@@ -202,14 +203,16 @@ class Normalizer(BaseModule):
         input_shape = (3, hparams.size, hparams.size)
         self.unet = DynamicUnet(hparams.normalizer, n_classes=3, input_shape=input_shape, pretrained=not hparams.rand_weights)
 
+        data = (NormDataset.
+                from_folder(Path(hparams.data), extensions=['.png'], open_mode=hparams.open_mode).
+                split_by_csv(hparams.data_csv))
+
         if hparams.transforms:
-            tfms = globals()[f'get_transforms{hparams.transforms}'](hparams.size)
+            tfms = globals()[f'get_transforms{hparams.transforms}'](hparams.size, num_els=len(data.valid))
         else:
             tfms = []
-        self.data = (NormDataset.
-                     from_folder(Path(hparams.data), extensions=['.png'], open_mode=hparams.open_mode).
-                     split_by_csv(hparams.data_csv).
-                     to_tensor(tfms=tfms))
+
+        self.data = data.to_tensor(tfms=tfms)
         self.post_init()
 
 
@@ -232,7 +235,7 @@ class Normalizer(BaseModule):
             inputs.append(x)
             targs.append(y)
         inputs = torch.stack(inputs).to(next(self.parameters()).device)
-        preds = self.eval()(inputs).clamp(0, 1)
+        preds = self.predict(inputs).clamp(0, 1)
         for ax_r, x, y, z in zip(axs, inputs, targs, preds):
             x = x.cpu().numpy().transpose(1, 2, 0)
             y = y.numpy().transpose(1, 2, 0)

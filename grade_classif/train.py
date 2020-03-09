@@ -9,8 +9,9 @@ from .imports import *
 
 #Cell
 def train_normalizer(hparams):
+    os.environ['CUDA_VSIBLE_DEVICES'] = '1'
     model = Normalizer(hparams)
-    model.freeze_encoder()
+    #model.freeze_encoder()
     model.fit()
     return model
 
