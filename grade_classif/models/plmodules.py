@@ -516,7 +516,7 @@ class RNNAttention(BaseModule):
                 loss -= loss_a - loss_prev / t
             loss_prev += loss_a
             loss += self.hparams.gamma * torch.exp(-torch.abs(l-l0))
-            l0 = l
+            l0 = l.detach()
         # n_glimpses x bs x C
         fts = torch.cat(fts)
         fts = fts.view(fts.shape[1], -1)
