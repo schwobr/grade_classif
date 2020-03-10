@@ -33,7 +33,7 @@ def _get_params(tfm):
 class DeterministicHSV(HueSaturationValue):
     def __init__(self, num_els=1, **kwargs):
         super().__init__(**kwargs)
-        _init_attrs(self, num_els)
+        _init_attrs(self, HueSaturationValue, num_els)
         self.max_values = {"hue_shift": self.hue_shift_limit,
                            "sat_shift": self.sat_shift_limit,
                            "val_shift": self.val_shift_limit}
@@ -45,7 +45,7 @@ class DeterministicHSV(HueSaturationValue):
 class DeterministicBrightnessContrast(RandomBrightnessContrast):
     def __init__(self, num_els=1, **kwargs):
         super().__init__(**kwargs)
-        _init_attrs(self, num_els)
+        _init_attrs(self, RandomBrightnessContrast, num_els)
         self.max_values = {"alpha": tuple(x + 1 for x in self.contrast_limit),
                            "beta": self.brightness_limit}
 
@@ -56,7 +56,7 @@ class DeterministicBrightnessContrast(RandomBrightnessContrast):
 class DeterministicGamma(RandomGamma):
     def __init__(self, num_els=1, **kwargs):
         super().__init__(**kwargs)
-        _init_attrs(self, num_els)
+        _init_attrs(self, RandomGamma, num_els)
         self.max_values = {"gamma": tuple(x/100 for x in self.gamma_limit)}
 
     def get_params(self):

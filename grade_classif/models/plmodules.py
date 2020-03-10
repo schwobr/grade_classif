@@ -215,6 +215,11 @@ class Normalizer(BaseModule):
         self.data = data.to_tensor(tfms=tfms)
         self.post_init()
 
+    def on_epoch_start(self):
+        for tfm in self.data.valid.tfms:
+            if 'Deterministic' in type(tfm):
+                tfm.n = 0
+
 
     def forward(self, x):
         return self.unet(x)
