@@ -16,24 +16,42 @@ from albumentations import (RandomRotate90,
                             RGBShift,
                             CenterCrop)
 from ..imports import *
+from math import floor
+
+#Cell
+def _mod(x, y):
+    x -= floor(x / y) * y
+    return x
 
 #Cell
 def _get_params(tfm):
     params = {}
     for k, v in tfm.base_values.items():
         v_min, v_max = tfm.max_values[k]
-        p = v + tfm.n * tfm.mult
-        p = (p - v_min) % (v_max - v_min) + v_min
-        params[k] = p
+        if v_min == v_max:
+            params[k] = v_min
+        else:
+            p = v + tfm.n * tfm.mult
+            p = _mod(p - v_min, v_max - v_min) + v_min
+            params[k] = p
     tfm.n += 1
     tfm.n %= tfm.num_els
     return params
 
 #Cell
+def _init_attrs(tfm, num_els=1):
+    tfm.always_apply = True
+    tfm.num_els = num_els
+    tfm.p = 1
+    tfm.n = 0
+    tfm.mult = np.random.randint(10000)
+
+#Cell
 class DeterministicHSV(HueSaturationValue):
     def __init__(self, num_els=1, **kwargs):
         super().__init__(**kwargs)
-        _init_attrs(self, HueSaturationValue, num_els)
+        _init_attrs(self, num_els)
+        self.base_values = super().get_params()
         self.max_values = {"hue_shift": self.hue_shift_limit,
                            "sat_shift": self.sat_shift_limit,
                            "val_shift": self.val_shift_limit}
@@ -45,7 +63,8 @@ class DeterministicHSV(HueSaturationValue):
 class DeterministicBrightnessContrast(RandomBrightnessContrast):
     def __init__(self, num_els=1, **kwargs):
         super().__init__(**kwargs)
-        _init_attrs(self, RandomBrightnessContrast, num_els)
+        _init_attrs(self,  num_els)
+        self.base_values = super().get_params()
         self.max_values = {"alpha": tuple(x + 1 for x in self.contrast_limit),
                            "beta": self.brightness_limit}
 
@@ -56,7 +75,8 @@ class DeterministicBrightnessContrast(RandomBrightnessContrast):
 class DeterministicGamma(RandomGamma):
     def __init__(self, num_els=1, **kwargs):
         super().__init__(**kwargs)
-        _init_attrs(self, RandomGamma, num_els)
+        _init_attrs(self, num_els)
+        self.base_values = super().get_params()
         self.max_values = {"gamma": tuple(x/100 for x in self.gamma_limit)}
 
     def get_params(self):
