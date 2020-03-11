@@ -114,7 +114,7 @@ class BaseModule(pl.LightningModule):
         # REQUIRED
         self.opt = torch.optim.Adam(self.parameters(), lr=self.lr)
         self.sched = _get_scheduler(self.opt, self.hparams.sched, self.hparams.epochs*len(self.train_dataloader()), self.lr)
-        return opt
+        return self.opt
 
     def on_after_backward(self):
         for pg in self.opt.param_groups:
@@ -205,10 +205,39 @@ class Normalizer(BaseModule):
 
         if hparams.norm_csv is not None:
             df = pd.read_csv(hparams.norm_csv, index_col='scan')
-            def filt(x):
+            def filt1(x):
                 return df.loc[x.parent.name, 'category'] == 1
         else:
-            filt = None
+            filt1 = None
+
+        if hparams.patch_classes is not None:
+            patch_classes_df = pd.read_csv(hparams.patch_classes, index_col='patchId')
+            if hparams.filt != 'all':
+                def filt2(x):
+                    return patch_classes_df.loc[x.stem, 'type'] == hparams.filt
+            else:
+                def filt2(x):
+                    return patch_classes_df.loc[x.stem, 'type'] != 'garb'
+        elif hparams.concepts is not None and hparams.concept_classes is not None:
+            conc_classes_df = pd.read_csv(hparams.concept_classes, index_col=0)
+            if hparams.filt2 != 'all':
+                ok = conc_classes_df.loc[conc_classes_df['type'] == hparams.filt].index.values
+            else:
+                ok = conc_classes_df.loc[conc_classes_df['type'] != 'garb'].index.values
+            conc_df = pd.read_csv(hparams.concepts, index_col='patchId')
+            def filt2(x):
+                return conc_df.loc[x.stem, 'concept'] in ok
+        else:
+            filt2 = None
+
+        if filt1 is None:
+            filt = filt2
+        else:
+            if filt2 is None:
+                filt = filt1
+            else:
+                def filt(x):
+                    return filt1(x) and filt2(x)
 
         data = (NormDataset.
                 from_folder(Path(hparams.data), extensions=['.png'], open_mode=hparams.open_mode, filterfunc=filt).
@@ -224,7 +253,7 @@ class Normalizer(BaseModule):
 
     def on_epoch_start(self):
         for tfm in self.data.valid.tfms:
-            if 'Deterministic' in type(tfm):
+            if 'Deterministic' in str(type(tfm)):
                 tfm.n = 0
 
 

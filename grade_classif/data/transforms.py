@@ -141,17 +141,17 @@ def get_transforms3(size, num_els=1):
 
 #Cell
 def get_transforms4(size, num_els=1):
-    tfms = [RandomRotate90(),
+    tfms = [RandomCrop(size, size),
+            RandomRotate90(),
             Flip(),
             Transpose(),
             GridDistortion(distort_limit=0.05, p=0.2),
             #RandomBrightnessContrast(0.2, 0., p=0.2),
             GaussianBlur(blur_limit=3, p=0.2),
             RandomGamma(gamma_limit=(40, 160), p=1),
-            HueSaturationValue(40, .1, .2, p=1),
-            RandomCrop(size, size)]
-    val_tfms = [DeterministicGamma(num_els=num_els, gamma_limit=(40, 160)),
+            HueSaturationValue(40, .1, .15, p=1)]
+    val_tfms = [CenterCrop(size, size),
+                DeterministicGamma(num_els=num_els, gamma_limit=(40, 160)),
                 #DeterministicBrightnessContrast(num_els=num_els, brightness_limit=0.2, contrast_limit=0.),
-                DeterministicHSV(num_els=num_els, hue_shift_limit=40, sat_shift_limit=.1, val_shift_limit=.2),
-                CenterCrop(size, size)]
+                DeterministicHSV(num_els=num_els, hue_shift_limit=40, sat_shift_limit=.1, val_shift_limit=.15)]
     return tfms, val_tfms
