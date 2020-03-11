@@ -15,8 +15,25 @@ from albumentations import (RandomRotate90,
                             HueSaturationValue,
                             RGBShift,
                             CenterCrop)
+import albumentations.augmentations.functional as F
 from ..imports import *
 from math import floor
+
+#Cell
+def _shift_hsv_non_uint8(img, hue_shift, sat_shift, val_shift):
+    dtype = img.dtype
+    img = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
+    hue, sat, val = cv2.split(img)
+    hue = cv2.add(hue, hue_shift)
+    hue = np.where(hue < 0, hue + 360, hue)
+    hue = np.where(hue > 360, hue - 360, hue)
+    hue = hue.astype(dtype)
+    sat = F.clip(sat + sat_shift * (sat > 0.1), dtype, 255 if dtype == np.uint8 else 1.0)
+    val = F.clip(val + val_shift * (sat > 0.1), dtype, 255 if dtype == np.uint8 else 1.0)
+    img = cv2.merge((hue, sat, val)).astype(dtype)
+    img = cv2.cvtColor(img, cv2.COLOR_HSV2RGB)
+    return img
+F._shift_hsv_non_uint8 = _shift_hsv_non_uint8
 
 #Cell
 def _mod(x, y):
@@ -128,13 +145,13 @@ def get_transforms4(size, num_els=1):
             Flip(),
             Transpose(),
             GridDistortion(distort_limit=0.05, p=0.2),
-            RandomBrightnessContrast(0.2, 0., p=0.2),
+            #RandomBrightnessContrast(0.2, 0., p=0.2),
             GaussianBlur(blur_limit=3, p=0.2),
-            RandomGamma(gamma_limit=(40, 160), p=0.8),
-            HueSaturationValue(30, 0., 0, p=0.8),
+            RandomGamma(gamma_limit=(40, 160), p=1),
+            HueSaturationValue(40, .1, .2, p=1),
             RandomCrop(size, size)]
     val_tfms = [DeterministicGamma(num_els=num_els, gamma_limit=(40, 160)),
-                DeterministicBrightnessContrast(num_els=num_els, brightness_limit=0.2, contrast_limit=0.),
-                DeterministicHSV(num_els=num_els, hue_shift_limit=30, sat_shift_limit=0., val_shift_limit=0.),
+                #DeterministicBrightnessContrast(num_els=num_els, brightness_limit=0.2, contrast_limit=0.),
+                DeterministicHSV(num_els=num_els, hue_shift_limit=40, sat_shift_limit=.1, val_shift_limit=.2),
                 CenterCrop(size, size)]
     return tfms, val_tfms

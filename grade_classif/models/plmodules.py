@@ -203,8 +203,15 @@ class Normalizer(BaseModule):
         input_shape = (3, hparams.size, hparams.size)
         self.unet = DynamicUnet(hparams.normalizer, n_classes=3, input_shape=input_shape, pretrained=not hparams.rand_weights)
 
+        if hparams.norm_csv is not None:
+            df = pd.read_csv(hparams.norm_csv, index_col='scan')
+            def filt(x):
+                return df.loc[x.parent.name, 'category'] == 1
+        else:
+            filt = None
+
         data = (NormDataset.
-                from_folder(Path(hparams.data), extensions=['.png'], open_mode=hparams.open_mode).
+                from_folder(Path(hparams.data), extensions=['.png'], open_mode=hparams.open_mode, filterfunc=filt).
                 split_by_csv(hparams.data_csv))
 
         if hparams.transforms:
