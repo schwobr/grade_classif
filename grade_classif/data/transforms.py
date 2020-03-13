@@ -61,17 +61,17 @@ def _init_attrs(tfm, num_els=1):
     tfm.num_els = num_els
     tfm.p = 1
     tfm.n = 0
-    tfm.mult = np.random.randint(10000)
+    tfm.mult = 83
+    tfm.base_values = {x: (x_lim[1]-x_lim[0])/7 for x, x_lim in tfm.max_values.items()}
 
 #Cell
 class DeterministicHSV(HueSaturationValue):
     def __init__(self, num_els=1, **kwargs):
         super().__init__(**kwargs)
-        _init_attrs(self, num_els)
-        self.base_values = super().get_params()
         self.max_values = {"hue_shift": self.hue_shift_limit,
                            "sat_shift": self.sat_shift_limit,
                            "val_shift": self.val_shift_limit}
+        _init_attrs(self, num_els)
 
     def get_params(self):
         return _get_params(self)
@@ -80,10 +80,9 @@ class DeterministicHSV(HueSaturationValue):
 class DeterministicBrightnessContrast(RandomBrightnessContrast):
     def __init__(self, num_els=1, **kwargs):
         super().__init__(**kwargs)
-        _init_attrs(self,  num_els)
-        self.base_values = super().get_params()
         self.max_values = {"alpha": tuple(x + 1 for x in self.contrast_limit),
                            "beta": self.brightness_limit}
+        _init_attrs(self,  num_els)
 
     def get_params(self):
         return _get_params(self)
@@ -92,9 +91,8 @@ class DeterministicBrightnessContrast(RandomBrightnessContrast):
 class DeterministicGamma(RandomGamma):
     def __init__(self, num_els=1, **kwargs):
         super().__init__(**kwargs)
-        _init_attrs(self, num_els)
-        self.base_values = super().get_params()
         self.max_values = {"gamma": tuple(x/100 for x in self.gamma_limit)}
+        _init_attrs(self, num_els)
 
     def get_params(self):
         return _get_params(self)
@@ -103,11 +101,10 @@ class DeterministicGamma(RandomGamma):
 class DeterministicRGBShift(RGBShift):
     def __init__(self, num_els=1, **kwargs):
         super().__init__(**kwargs)
-        _init_attrs(self, num_els)
-        self.base_values = super().get_params()
         self.max_values = {"r_shift": self.r_shift_limit,
                            "g_shift": self.g_shift_limit,
                            "b_shift": self.b_shift_limit}
+        _init_attrs(self, num_els)
 
     def get_params(self):
         return _get_params(self)
