@@ -22,6 +22,7 @@ def _check_valid(obj, include, exclude):
 def get_items(folder, label_func, recurse=True, extensions=None, include=None, exclude=None, filterfunc=None):
     items = []
     labels = []
+    folder = Path(folder)
     filterfunc = ifnone(filterfunc, lambda x: True)
     for obj in folder.iterdir():
         if obj.is_file():
@@ -37,6 +38,7 @@ def get_items(folder, label_func, recurse=True, extensions=None, include=None, e
 #Cell
 def get_scan(folder, scan_name, include=None, exclude=None):
     dirs = []
+    folder = Path(folder)
     for item in folder.iterdir():
         if item.name == scan_name:
             return item

@@ -63,7 +63,7 @@ class BaseModule(pl.LightningModule):
         self.wd = hparams.wd
         self.metrics = ifnone(metrics, [])
         model_type = 'normalizer' if isinstance(self, Normalizer) else 'classifier'
-        self.save_path = hparams.savedir/f'level_{hparams.level}/{model_type}/{hparams.model if model_type == "classifier" else hparams.normalizer}'
+        self.save_path = Path(hparams.savedir)/f'level_{hparams.level}/{model_type}/{hparams.model if model_type == "classifier" else hparams.normalizer}'
 
     def post_init(self):
         self.leaf_modules = named_leaf_modules(self)
@@ -240,7 +240,7 @@ class Normalizer(BaseModule):
                     return filt1(x) and filt2(x)
 
         data = (NormDataset.
-                from_folder(Path(hparams.data), extensions=['.png'], open_mode=hparams.open_mode, filterfunc=filt).
+                from_folder(hparams.data, extensions=['.png'], open_mode=hparams.open_mode, filterfunc=filt).
                 split_by_csv(hparams.data_csv))
 
         if hparams.transforms:
@@ -341,7 +341,7 @@ class GradesClassifModel(BaseModule):
 
         self.filt = filt
         self.data = (ImageClassifDataset.
-                     from_folder(Path(hparams.data), lambda x: x.parts[-3], classes=['1', '3'], extensions=['.png'], include=['1', '3'], open_mode=hparams.open_mode, filterfunc=filt).
+                     from_folder(hparams.data, lambda x: x.parts[-3], classes=['1', '3'], extensions=['.png'], include=['1', '3'], open_mode=hparams.open_mode, filterfunc=filt).
                      split_by_csv(hparams.data_csv).
                      to_tensor(tfms=tfms, tfm_y=False))
         weight = np.float32((self.data.train.labels == '3').sum()/(self.data.train.labels == '1').sum())
