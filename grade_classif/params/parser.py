@@ -20,6 +20,7 @@ _parser.add_argument('--patch-classes', default=PATCH_CLASSES, help='path to csv
 _parser.add_argument('--level', default=LEVEL, type=int, help='zoom level to work on')
 _parser.add_argument('--full-data', default=FULL_DATA, help='path to folder containing all data (different levels)')
 _parser.add_argument('--scan', default=SCAN, help='name of scan to predict. If not specified, all valid scans are predicted')
+_parser.add_argument('--resume', default=RESUME, help='version of model to load before training')
 _parser.add_argument('--levels', default=PRED_LEVELS, type=int, help='zoom levels to work on for prediction')
 _parser.add_argument('--versions', default=VERSIONS, type=int, nargs='*', help='list of model versions to use. Must specify one for each level the in same order.')
 _parser.add_argument('--checkpoints', default=CHECKPOINTS, nargs='*', help='checkpoint to load for each version. None will load the last one.')

@@ -69,6 +69,8 @@ class BaseModule(pl.LightningModule):
         self.leaf_modules = named_leaf_modules(self)
         self.sizes, self.leaf_modules = get_sizes(self, input_shape=(3, self.hparams.size, self.hparams.size), leaf_modules=self.leaf_modules)
         self = self.to(self.main_device)
+        if self.hparams.resume is not None:
+            self.load(self.hparams.resume)
 
     def on_train_start(self):
         self.train()
