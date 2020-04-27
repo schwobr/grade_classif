@@ -3,14 +3,17 @@
 __all__ = ['train_normalizer', 'train_classifier']
 
 #Cell
-from .models.plmodules import Normalizer, GradesClassifModel
+from .models.plmodules import Normalizer, GradesClassifModel, NormalizerAN
 from .models.metrics import accuracy, precision, recall, f_1
 from .imports import *
 
 #Cell
 def train_normalizer(hparams):
     os.environ['CUDA_VSIBLE_DEVICES'] = '1'
-    model = Normalizer(hparams)
+    if hparams.adversarial:
+        model = NormalizerAN(hparams)
+    else:
+        model = Normalizer(hparams)
     #model.freeze_encoder()
     model.fit()
     return model
