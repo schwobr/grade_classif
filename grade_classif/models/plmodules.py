@@ -391,6 +391,12 @@ class NormalizerAN(BaseModule):
                 from_folder(hparams.data, label_func, classes=['04', '05', '08'], extensions=['.png'], open_mode=hparams.open_mode, filterfunc=filt).
                 split_by_csv(hparams.data_csv))
 
+        n = len(data.train)
+        weights = [np.float32(n/(data.train.labels == '04').sum()),
+                   np.float32(n/(data.train.labels == '05').sum()),
+                   np.float32(n/(data.train.labels == '08').sum())]
+        self.hparams.weights = weights
+
         if hparams.transforms:
             tfms = globals()[f'get_transforms{hparams.transforms}'](hparams.size, num_els=len(data.valid))
         else:
@@ -412,28 +418,60 @@ class NormalizerAN(BaseModule):
     def forward(self, x):
         return self.unet(x)
 
+    @pl.data_loader
+    def train_dataloader(self):
+        sm = self.hparams.sample_mode
+        w = self.hparams.weights
+        labels = self.data.train.labels
+        if sm > 0:
+            weights = np.where(labels == '04', w[0], 1.)
+            weights[labels == '05'] = w[1]
+            weights[labels == '08'] = w[2]
+            n = min((labels == '04').sum(), )
+            if sm == 1:
+                sampler = WeightedRandomSampler(weights, 3*len(np.argwhere(labels == '04')))
+            else:
+                # sampler = WeightedRandomSampler(weights, 2*len(np.argwhere(labels)), replacement=False)
+                sampler = WeightedRandomSampler(weights, 40000, replacement=False)
+        else:
+            sampler = RandomSampler(self.data.train)
+        return DataLoader(self.data.train, batch_size=self.bs, sampler=sampler, drop_last=True)
+
     def training_step(self, batch, batch_nb, optimizer_idx):
         x, y = batch
         normalized_imgs = self(x)
 
+        mse = self.geometric_loss(normalized_imgs, x)
+        d_loss = self.loss(self.discriminator(normalized_imgs), y)
+        g_loss = mse - d_loss
         # train generator
         if optimizer_idx == 0:
-            loss = self.geometric_loss(normalized_imgs, x) - self.loss(self.discriminator(normalized_imgs), y)
+            loss = mse - d_loss
 
         # train discriminator
         if optimizer_idx == 1:
             loss = self.loss(self.discriminator(normalized_imgs.detach()), y)
 
         lr = self.sched.optimizer.param_groups[-1]['lr']
-        log = {'train_loss': loss, 'learning_rate': lr}
+        log = {'d_loss': d_loss, 'mse': mse, 'g_loss': g_loss, 'learning_rate': lr}
         return {'loss': loss, 'log': log}
 
     def validation_step(self, batch, batch_nb):
         # OPTIONAL
         x, y = batch
         normalized_imgs = self(x)
-        loss = self.geometric_loss(normalized_imgs, x) - self.loss(self.discriminator(normalized_imgs), y)
-        return {'val_loss': loss}
+        mse = self.geometric_loss(normalized_imgs, x)
+        d_loss = self.loss(self.discriminator(normalized_imgs), y)
+        g_loss = mse - d_loss
+        return {'val_loss': g_loss, 'd_loss': d_loss, 'mse': mse, 'g_loss': g_loss}
+
+    def validation_end(self, outputs):
+        # OPTIONAL
+        d_loss = torch.stack([x['d_loss'] for x in outputs]).mean()
+        g_loss = torch.stack([x['g_loss'] for x in outputs]).mean()
+        mse = torch.stack([x['mse'] for x in outputs]).mean()
+        log = {'d_loss': d_loss, 'mse': mse, 'g_loss': g_loss}
+        return {'val_loss': loss, 'log': log}
 
     def configure_optimizers(self):
         self.opt = torch.optim.Adam(self.unet.parameters(), lr=self.lr)
