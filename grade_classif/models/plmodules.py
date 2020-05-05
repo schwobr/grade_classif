@@ -427,12 +427,13 @@ class NormalizerAN(BaseModule):
             weights = np.where(labels == '04', w[0], 1.)
             weights[labels == '05'] = w[1]
             weights[labels == '08'] = w[2]
-            n = min((labels == '04').sum(), )
             if sm == 1:
-                sampler = WeightedRandomSampler(weights, 3*len(np.argwhere(labels == '04')))
+                n = max((labels == '04').sum(), (labels == '05').sum(), (labels == '08').sum())
+                sampler = WeightedRandomSampler(weights, int(3*n))
             else:
-                # sampler = WeightedRandomSampler(weights, 2*len(np.argwhere(labels)), replacement=False)
-                sampler = WeightedRandomSampler(weights, 40000, replacement=False)
+                n = min((labels == '04').sum(), (labels == '05').sum(), (labels == '08').sum())
+                print(n, len(labels), type(n))
+                sampler = WeightedRandomSampler(weights, int(3*n), replacement=False)
         else:
             sampler = RandomSampler(self.data.train)
         return DataLoader(self.data.train, batch_size=self.bs, sampler=sampler, drop_last=True)
@@ -446,7 +447,7 @@ class NormalizerAN(BaseModule):
         g_loss = mse - d_loss
         # train generator
         if optimizer_idx == 0:
-            loss = mse - d_loss
+            loss = g_loss
 
         # train discriminator
         if optimizer_idx == 1:
@@ -471,7 +472,7 @@ class NormalizerAN(BaseModule):
         g_loss = torch.stack([x['g_loss'] for x in outputs]).mean()
         mse = torch.stack([x['mse'] for x in outputs]).mean()
         log = {'d_loss': d_loss, 'mse': mse, 'g_loss': g_loss}
-        return {'val_loss': loss, 'log': log}
+        return {'val_loss': g_loss, 'log': log}
 
     def configure_optimizers(self):
         self.opt = torch.optim.Adam(self.unet.parameters(), lr=self.lr)
@@ -479,6 +480,34 @@ class NormalizerAN(BaseModule):
 
         opt_d = torch.optim.Adam(self.discriminator.parameters(), lr=self.lr)
         return [self.opt, opt_d], [self.sched]
+
+    def show_results(self, n=16, imgsize=4, title=None):
+        """
+        Plot `n` predictions from the normalizer. Each line will contain input, target and prediction
+        images (in that order).
+        """
+        n = min(n, self.bs)
+        fig, axs = plt.subplots(n, 2, figsize=(imgsize*2, imgsize*n))
+        idxs = np.random.choice(np.arange(len(self.data.valid)), size=n, replace=False)
+        inputs = []
+        targs = []
+        for idx in idxs:
+            x, y = self.data.valid[idx]
+            inputs.append(x)
+            targs.append(y)
+        inputs = torch.stack(inputs).to(next(self.parameters()).device)
+        normalized = self.predict(inputs).clamp(0, 1).detach()
+        preds = self.discriminator(normalized).detach().argmax(1)
+        for ax_r, x, y, p, z in zip(axs, inputs, targs, preds, normalized):
+            x = x.cpu().numpy().transpose(1, 2, 0)
+            y = y.item()
+            p = p.item()
+            z = z.detach().cpu().numpy().transpose(1, 2, 0)
+            show_img(x, ax=ax_r[0], title=self.data.train._ds.label_loader.classes[y])
+            show_img(z, ax=ax_r[1], title=self.data.train._ds.label_loader.classes[p])
+        title = ifnone(title, 'input/target/prediction')
+        fig.suptitle(title)
+        plt.show()
 
 #Cell
 class GradesClassifModel(BaseModule):
