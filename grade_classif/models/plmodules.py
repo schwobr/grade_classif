@@ -444,7 +444,7 @@ class NormalizerAN(BaseModule):
 
         mse = self.geometric_loss(normalized_imgs, x)
         d_loss = self.loss(self.discriminator(normalized_imgs), y)
-        g_loss = mse - d_loss
+        g_loss = mse - 0.5*d_loss
         # train generator
         if optimizer_idx == 0:
             loss = g_loss
@@ -463,15 +463,15 @@ class NormalizerAN(BaseModule):
         normalized_imgs = self(x)
         mse = self.geometric_loss(normalized_imgs, x)
         d_loss = self.loss(self.discriminator(normalized_imgs), y)
-        g_loss = mse - d_loss
-        return {'val_loss': g_loss, 'd_loss': d_loss, 'mse': mse, 'g_loss': g_loss}
+        g_loss = mse - 0.5*d_loss
+        return {'val_loss': g_loss, 'val_d_loss': d_loss, 'val_mse': mse, 'val_g_loss': g_loss}
 
     def validation_end(self, outputs):
         # OPTIONAL
-        d_loss = torch.stack([x['d_loss'] for x in outputs]).mean()
-        g_loss = torch.stack([x['g_loss'] for x in outputs]).mean()
-        mse = torch.stack([x['mse'] for x in outputs]).mean()
-        log = {'d_loss': d_loss, 'mse': mse, 'g_loss': g_loss}
+        d_loss = torch.stack([x['val_d_loss'] for x in outputs]).mean()
+        g_loss = torch.stack([x['val_g_loss'] for x in outputs]).mean()
+        mse = torch.stack([x['val_mse'] for x in outputs]).mean()
+        log = {'val_d_loss': d_loss, 'val_mse': mse, 'val_g_loss': g_loss}
         return {'val_loss': g_loss, 'log': log}
 
     def configure_optimizers(self):
