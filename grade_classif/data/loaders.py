@@ -4,6 +4,7 @@ __all__ = ['ItemLoader', 'ImageLoader', 'MaskLoader', 'CategoryLoader']
 
 #Cell
 from ..imports import *
+from skimage.color import rgb2hed
 
 #Cell
 class ItemLoader:
@@ -17,13 +18,23 @@ class ImageLoader(ItemLoader):
         self.div = div
 
     def __call__(self, item):
-        mode = cv2.IMREAD_COLOR if self.open_mode == 'RGB' else cv2.IMREAD_GRAYSCALE
+        mode = cv2.IMREAD_GRAYSCALE if self.open_mode in ['G', '3G'] else cv2.IMREAD_COLOR
         img = cv2.imread(str(item), mode)
         if self.open_mode is not 'G':
-            cvt_mode = cv2.COLOR_BGR2RGB if self.open_mode == 'RGB' else cv2.COLOR_GRAY2RGB
+            cvt_mode = cv2.COLOR_GRAY2RGB if self.open_mode == '3G' else cv2.COLOR_BGR2RGB
             img = cv2.cvtColor(img, cvt_mode)
         if self.div:
             img = img.astype(np.float32)/255
+        if self.open_mode in ['HED', 'H', 'E']:
+            img = rgb2hed(img).astype(np.float32)
+            if self.open_mode == 'H':
+                img = img[..., 0]
+                img = (img + 0.7) / 0.46
+                img = np.stack((img, img, img), axis=-1)
+            elif self.open_mode == 'E':
+                img = img[..., 1]
+                img = (img + 0.1) / 0.47
+                img = np.stack((img, img, img), axis=-1)
         return img
 
 #Cell
