@@ -13,34 +13,28 @@ class ItemLoader:
 
 #Cell
 class ImageLoader(ItemLoader):
-    def __init__(self, open_mode='RGB', div=True):
-        self.open_mode = open_mode
+    def __init__(self, div=True):
+        # self.open_mode = open_mode
         self.div = div
+        # self.add_tfms = ['RGB2'+self.open_mode] if self.open_mode in ['HEG', 'H', 'E'] else []
 
     def __call__(self, item):
-        mode = cv2.IMREAD_GRAYSCALE if self.open_mode in ['G', '3G'] else cv2.IMREAD_COLOR
-        img = cv2.imread(str(item), mode)
-        if self.open_mode is not 'G':
-            cvt_mode = cv2.COLOR_GRAY2RGB if self.open_mode == '3G' else cv2.COLOR_BGR2RGB
-            img = cv2.cvtColor(img, cvt_mode)
+        # mode = cv2.IMREAD_GRAYSCALE if self.open_mode in ['G', '3G'] else cv2.IMREAD_COLOR
+        # img = cv2.imread(str(item), mode)
+        img = cv2.imread(str(item), cv2.IMREAD_UNCHANGED)
+        # if self.open_mode is not 'G':
+        #    cvt_mode = cv2.COLOR_GRAY2RGB if self.open_mode == '3G' else cv2.COLOR_BGR2RGB
+        #    img = cv2.cvtColor(img, cvt_mode)
+        if img.shape[-1] == 3:
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         if self.div:
             img = img.astype(np.float32)/255
-        if self.open_mode in ['HED', 'H', 'E']:
-            img = rgb2hed(img).astype(np.float32)
-            if self.open_mode == 'H':
-                img = img[..., 0]
-                img = (img + 0.7) / 0.46
-                img = np.stack((img, img, img), axis=-1)
-            elif self.open_mode == 'E':
-                img = img[..., 1]
-                img = (img + 0.1) / 0.47
-                img = np.stack((img, img, img), axis=-1)
         return img
 
 #Cell
 class MaskLoader(ImageLoader):
     def __init__(self):
-        super().__init__(open_mode='G', div=False)
+        super().__init__(div=False)
 
 #Cell
 class CategoryLoader(ItemLoader):

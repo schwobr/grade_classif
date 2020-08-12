@@ -7,6 +7,7 @@ __all__ = ['MyDataset', 'ClassDataset', 'ImageClassifDataset', 'ImageSegmentData
 from .loaders import ImageLoader, MaskLoader, CategoryLoader
 from .utils import show_img, np_to_tensor
 from .read import get_items
+from .transforms import *
 from ..core import ifnone
 from ..imports import *
 from albumentations import Compose
@@ -222,6 +223,9 @@ class TensorDataset(Dataset):
     def __init__(self, ds, tfms=None, tfm_y=True):
         self._ds = ds
         self.tfms = ifnone(tfms, [])
+        # for tfm_name in self._ds.item_loader.add_tfms:
+        #    tfm = globals()[tfm_name]()
+        #    self.tfms.append(tfm)
         self.tfm_y = tfm_y
 
     def __len__(self):

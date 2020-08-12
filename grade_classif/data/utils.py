@@ -25,7 +25,7 @@ def show_img(x, ax=None, figsize=(3,3), title=None, hide_axis=True, cmap='viridi
 #Cell
 def load_batches(folder, bs=16, device='cpu', filt=None):
     x = []
-    image_loader = ImageLoader('3G')
+    image_loader = ImageLoader()
     for fn in folder.iterdir():
         if filt is not None and not filt(fn):
             continue

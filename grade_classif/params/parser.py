@@ -4,7 +4,7 @@ __all__ = ['hparams']
 
 #Cell
 from .defaults import *
-from ..imports import *
+import os
 from argparse import ArgumentParser
 
 #Cell
@@ -27,6 +27,7 @@ _parser.add_argument('--checkpoints', default=CHECKPOINTS, nargs='*', help='chec
 _parser.add_argument('--norm-versions', default=NORM_VERSIONS, type=int, nargs='*', help='list of normalizer versionsto use. Must specify one for each level the in same order.')
 _parser.add_argument('--batch-size', default=BATCH_SIZE, type=int, help='batch size')
 _parser.add_argument('--size', default=SIZE, type=int, help='size of the image (as an integer, image is supposed square)')
+_parser.add_argument('--window-size', default=WINDOW_SIZE, type=int, help='size of moving windows for normalizer metrics')
 _parser.add_argument('--loss', default=LOSS, choices=['cross-entropy', 'mse', 'focal', 'bce'], help='loss function')
 _parser.add_argument('--geometric-loss', default=GEOMETRIC_LOSS, help='geometric loss function for adversarial normalizer')
 _parser.add_argument('--norm-csv', default=NORM_CSV, help='path to csv where normalizer train images are stored')
@@ -35,7 +36,7 @@ _parser.add_argument('--model', default=MODEL, help='name of the base architectu
 _parser.add_argument('--normalizer', default=NORMALIZER, help='encoder to use for normalization unet')
 _parser.add_argument('--discriminator', default=DISCRIMINATOR, help='discriminator model to use for AN normalizer')
 _parser.add_argument('--adversarial', action='store_true', help='specify to use adversarial version of normalizer')
-_parser.add_argument('--norm-version', default=NORM_VERSION, type=int, help='version of the encoder to load for classification')
+_parser.add_argument('--norm-version', default=NORM_VERSION, help='version of the encoder to load for classification')
 _parser.add_argument('--rand-weights', action='store_true', help='specify to avoid using a pretrained model for training')
 _parser.add_argument('--gpus', default=GPUS, nargs='*', type=int, help='list of gpus you want to use for training (as numbers)')
 _parser.add_argument('--reduction', default=REDUCTION, choices=['mean', 'sum', 'none'], help='reduction to apply to loss')
@@ -44,10 +45,15 @@ _parser.add_argument('--weight', type=float, default=WEIGHT, help='weight to giv
 _parser.add_argument('--dropout', default=DROPOUT, type=float, help='dropout value')
 _parser.add_argument('--lr', default=LR, type=float, help='learning rate')
 _parser.add_argument('--wd', type=float, default=WD, help='weight decay')
-_parser.add_argument('--sample-mode', type=int, default=0, choices=[0, 1, 2], help='type 0 for regular sampling, 1 for oversampling, 2 for undersampling')
+_parser.add_argument('--sample-mode', type=int, default=SAMPLE_MODE, choices=[0, 1, 2], help='type 0 for regular sampling, 1 for oversampling, 2 for undersampling')
 _parser.add_argument('--transforms', type=int, default=TRANSFORMS, choices=[0, 1, 2, 3, 4], help='0 means no transform, above enables use of function `get_transformX` with X the number entered.')
 _parser.add_argument('--filt', default=FILT, choices=['K', 'K_inter', 'out', 'all', 'K_all'], help='patches to filter depending on their corresponding concept')
-_parser.add_argument('--open-mode', default=OPEN_MODE, choices=['3G', 'RGB', 'H', 'E', 'HED'], help='How the image should be opened (3G for grayscale and RGB for color)')
+_parser.add_argument('--open-mode', default=OPEN_MODE, choices=['3G', 'RGB', 'H', 'E', 'HEG'], help='How the image should be opened (3G for grayscale and RGB for color)')
+_parser.add_argument('--train-percent', default=TRAIN_PERCENT, type=float, help='Portion of the training set to run fit on.')
 
 #Cell
 hparams = _parser.parse_args()
+
+#Cell
+os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+os.environ['CUDA_VISIBLE_DEVICES'] = ','.join(map(str, hparams.gpus))
