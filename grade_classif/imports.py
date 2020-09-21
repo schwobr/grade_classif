@@ -36,7 +36,7 @@ def in_notebook():
 IN_NOTEBOOK = in_notebook()
 
 if IN_NOTEBOOK:
-    from tqdm import tqdm_notebook as tqdm
+    from tqdm.notebook import tqdm
 else:
     from tqdm import tqdm
 

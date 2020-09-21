@@ -3,28 +3,34 @@
 __all__ = ['train_normalizer', 'train_classifier', 'train_discriminator']
 
 #Cell
-from .models.plmodules import Normalizer, GradesClassifModel, NormalizerAN, PACSDiscriminator
+from .models.plmodules import (Normalizer, GradesClassifModel,
+                                            NormalizerAN, PACSDiscriminator,
+                                            NormDataModule, DiscrimDataModule,
+                                            GradeClassifDataModule)
 from .models.metrics import accuracy, precision, recall, f_1
 from .imports import *
 
 #Cell
 def train_normalizer(hparams):
+    dm = NormDataModule(hparams)
     if hparams.adversarial:
         model = NormalizerAN(hparams)
     else:
         model = Normalizer(hparams)
     #model.freeze_encoder()
-    model.fit()
+    model.fit(dm)
     return model
 
 #Cell
 def train_classifier(hparams):
+    dm = GradeClassifDataModule(hparams)
     model = GradesClassifModel(hparams, metrics=[accuracy] + [met for i in range(2) for met in (partial(precision, cat=i), partial(recall, cat=i), partial(f_1, cat=i))])
-    model.fit()
+    model.fit(dm)
     return model
 
 #Cell
 def train_discriminator(hparams):
+    dm = DiscrimDataModule(hparams)
     model = PACSDiscriminator(hparams, metrics=[accuracy] + [met for met in (precision, recall, f_1)])
-    model.fit()
+    model.fit(dm)
     return model
