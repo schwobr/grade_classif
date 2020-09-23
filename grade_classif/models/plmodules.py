@@ -181,7 +181,6 @@ class BaseModule(pl.LightningModule):
     def training_step(self, batch, batch_nb):
         # REQUIRED
         x, y = batch
-        x = _open_functions[self.hparams.open_mode](x).detach()
         y_hat = self(x)
         loss = self.loss(y_hat, y)
         lr = self.sched.optimizer.param_groups[-1]['lr']
@@ -194,7 +193,6 @@ class BaseModule(pl.LightningModule):
     def validation_step(self, batch, batch_nb):
         # OPTIONAL
         x, y = batch
-        x = _open_functions[self.hparams.open_mode](x).detach()
         y_hat = self(x)
         loss = self.loss(y_hat, y)
         result = pl.EvalResult(checkpoint_on=loss)
@@ -205,7 +203,6 @@ class BaseModule(pl.LightningModule):
     def test_step(self, batch, batch_nb):
         # OPTIONAL
         x, y = batch
-        x = _open_functions[self.hparams.open_mode](x).detach()
         y_hat = self(x)
         loss = self.loss(y_hat, y)
         result = pl.EvalResult()
@@ -319,6 +316,7 @@ class Normalizer(BaseModule):
                 tfm.n = 0
 
     def forward(self, x):
+        x = _open_functions[self.hparams.open_mode](x).detach()
         return self.unet(x)
 
     def show_results(self, ds, n=16, imgsize=4, title=None):
@@ -371,7 +369,6 @@ class Normalizer(BaseModule):
     def validation_step(self, batch, batch_nb):
         # OPTIONAL
         x, y = batch
-        x = _open_functions[self.hparams.open_mode](x).detach()
         y_hat = self.predict(x)
         loss = self.loss(y_hat, y)
         ret = pl.EvalResult(checkpoint_on=loss)
@@ -705,7 +702,6 @@ class PACSDiscriminator(BaseModule):
     def validation_step(self, batch, batch_nb):
         # OPTIONAL
         x, y = batch
-        x = _open_functions[self.hparams.open_mode](x).detach()
         y_hat = self(x)
         loss = self.loss(y_hat, y)
         ret = pl.EvalResult(loss)
@@ -772,6 +768,7 @@ class PACSDiscriminator(BaseModule):
             self.norm = norm.__call__
 
     def forward(self, x):
+        x = _open_functions[self.hparams.open_mode](x).detach()
         if hasattr(self, 'norm'):
             x = self.norm(x)
         x = self.base_model(x)
@@ -864,7 +861,6 @@ class GradesClassifModel(BaseModule):
     def validation_step(self, batch, batch_nb):
         # OPTIONAL
         x, y = batch
-        x = _open_functions[self.hparams.open_mode](x).detach()
         y_hat = self(x)
         loss = self.loss(y_hat, y)
         ret = pl.EvalResult(loss)
@@ -925,6 +921,7 @@ class GradesClassifModel(BaseModule):
             self.norm = norm.__call__
 
     def forward(self, x):
+        x = _open_functions[self.hparams.open_mode](x).detach()
         if hasattr(self, 'norm'):
             x = self.norm(x)
         x = self.base_model(x)
@@ -976,6 +973,7 @@ class RNNAttention(BaseModule):
 
 
     def forward(self, X, l):
+        X = _open_functions[self.hparams.open_mode](X).detach()
         Ai = gaussian_mask(*l[:3], self.hparams.glimpse_size,
                            self.hparams.size)
         Aj = gaussian_mask(*l[3:], self.hparams.glimpse_size,
@@ -1021,7 +1019,6 @@ class RNNAttention(BaseModule):
     def training_step(self, batch, batch_nb):
         # REQUIRED
         X, Y = batch
-        X = _open_functions[self.hparams.open_mode](X).detach()
         loss, _ = self.compute_loss(X, Y)
         lr = self.sched.optimizer.param_groups[-1]['lr']
         log = {'train_loss': loss, 'learning_rate': lr}
@@ -1030,7 +1027,6 @@ class RNNAttention(BaseModule):
     def validation_step(self, batch, batch_nb):
         # OPTIONAL
         x, y = batch
-        x = _open_functions[self.hparams.open_mode](x).detach()
         loss, y_hat = self.compute_loss(x, y)
         ret = pl.EvalResult(loss)
         ret.log('val_loss', loss)
