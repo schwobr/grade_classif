@@ -78,13 +78,13 @@ class BaseDataModule(pl.LightningDataModule):
 
     def train_dataloader(self):
         return DataLoader(self.data.train, batch_size=self.bs,
-                          shuffle=True, drop_last=True, num_workers=40)
+                          shuffle=True, drop_last=True, num_workers=2)
 
 
     def val_dataloader(self):
         # OPTIONAL
         # can also return a list of val dataloaders
-        return DataLoader(self.data.valid, batch_size=self.bs, num_workers=40)
+        return DataLoader(self.data.valid, batch_size=self.bs, num_workers=2)
 
     def test_dataloader(self):
         # OPTIONAL
