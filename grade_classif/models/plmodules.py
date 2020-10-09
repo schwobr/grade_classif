@@ -78,13 +78,15 @@ class BaseDataModule(pl.LightningDataModule):
 
     def train_dataloader(self):
         return DataLoader(self.data.train, batch_size=self.bs,
-                          shuffle=True, drop_last=True, num_workers=2)
+                          shuffle=True, drop_last=True,
+                          num_workers=4, pin_memory=True)
 
 
     def val_dataloader(self):
         # OPTIONAL
         # can also return a list of val dataloaders
-        return DataLoader(self.data.valid, batch_size=self.bs, num_workers=2)
+        return DataLoader(self.data.valid, batch_size=self.bs,
+                          num_workers=4, pin_memory=True)
 
     def test_dataloader(self):
         # OPTIONAL
@@ -185,9 +187,8 @@ class BaseModule(pl.LightningModule):
         loss = self.loss(y_hat, y)
         lr = self.sched.optimizer.param_groups[-1]['lr']
         log = {'train_loss': loss, 'learning_rate': lr}
-        result = pl.TrainResult(loss)
-        result.log_dict(log, on_step=True, on_epoch=False)
-        return result
+        self.log_dict(log, on_step=True, on_epoch=False)
+        return loss
 
 
     def validation_step(self, batch, batch_nb):
@@ -195,9 +196,8 @@ class BaseModule(pl.LightningModule):
         x, y = batch
         y_hat = self(x)
         loss = self.loss(y_hat, y)
-        result = pl.EvalResult(checkpoint_on=loss)
-        result.log('val_loss', loss)
-        return result
+        self.log('val_loss', loss)
+        return loss
 
 
     def test_step(self, batch, batch_nb):
@@ -205,9 +205,8 @@ class BaseModule(pl.LightningModule):
         x, y = batch
         y_hat = self(x)
         loss = self.loss(y_hat, y)
-        result = pl.EvalResult()
-        result.log('test_loss', loss)
-        return result
+        self.log('test_loss', loss)
+        return loss
 
     def configure_optimizers(self):
         # REQUIRED
@@ -298,6 +297,18 @@ class NormDataModule(BaseDataModule):
         self.data = data.to_tensor(tfms=self.tfms)
 
 #Cell
+def _get_keys_in_list_and_apply(list_of_dicts, *keys, apply_func=None):
+    res = []
+    for k in keys:
+        sub_list = []
+        for d in list_of_dicts:
+            sub_list.append(d[k])
+        if apply_func is not None:
+            sub_list = apply_func(sub_list)
+        res.append(sub_list)
+    return res
+
+#Cell
 class Normalizer(BaseModule):
     """
     """
@@ -334,7 +345,7 @@ class Normalizer(BaseModule):
             x, y = ds[idx]
             inputs.append(x)
             targs.append(y)
-        inputs = torch.stack(inputs).to(next(self.parameters()).device)
+        inputs = torch.stack(inputs).to(next(self.main_device))
         preds = self.predict(inputs).clamp(0, 1)
         for ax_r, x, y, z in zip(axs, inputs, targs, preds):
             x = x.cpu().numpy().transpose(1, 2, 0)
@@ -371,37 +382,35 @@ class Normalizer(BaseModule):
         x, y = batch
         y_hat = self.predict(x)
         loss = self.loss(y_hat, y)
-        ret = pl.EvalResult(checkpoint_on=loss)
-        ret.log('val_loss', loss)
+        ret = {'loss': loss}
         size = self.hparams.window_size
         n = self.hparams.size // size
         bs = y.shape[0]
         y = rgb_to_lab(y.detach())
         y_hat = rgb_to_lab(y_hat.detach())
-        ret.mu_x = torch.mean(y[:, 0], axis=(1, 2))
-        ret.sigma_x = torch.std(y[:, 0], axis=(1, 2))
-        ret.mu_y = torch.mean(y_hat[:, 0], axis=(1, 2))
-        ret.sigma_y = torch.std(y_hat[:, 0], axis=(1, 2))
-        ret.mu_xy = torch.mean(y[:, 0]*y_hat[:, 0], axis=(1, 2))
+        ret['mu_x'] = torch.mean(y[:, 0], axis=(1, 2))
+        ret['sigma_x'] = torch.std(y[:, 0], axis=(1, 2))
+        ret['mu_y'] = torch.mean(y_hat[:, 0], axis=(1, 2))
+        ret['sigma_y'] = torch.std(y_hat[:, 0], axis=(1, 2))
+        ret['mu_xy'] = torch.mean(y[:, 0]*y_hat[:, 0], axis=(1, 2))
         return ret
 
     def validation_epoch_end(self, outputs):
         # OPTIONAL
         log = {}
-        mu_x = outputs.mu_x
-        sigma_x = outputs.sigma_x
-        mu_y = outputs.mu_y
-        sigma_y = outputs.sigma_y
-        mu_xy = outputs.mu_xy
+        mu_x, sigma_x, mu_y, sigma_y, mu_xy = get_keys_in_list_and_apply(outputs,
+                                                                         'mu_x', 'sigma_x',
+                                                                         'mu_y', 'sigma_y',
+                                                                         'mu_xy',
+                                                                         apply_func=torch.cat)
         m_ssim = ssim(mu_x, sigma_x, mu_y, sigma_y, mu_xy)
         m_pcc = pcc(mu_x, sigma_x, mu_y, sigma_y, mu_xy)
         m_cd = sigma_y/mu_y - sigma_x/mu_x
         log['ssim'] = m_ssim.mean()
         log['pcc'] = m_pcc.mean()
         log['cd'] = m_cd.mean()
-        outputs['val_loss'] = outputs['val_loss'].mean()
-        outputs.log_dict(log)
-        return outputs
+        log['val_loss'] = torch.mean([output['loss'] for output in outputs])
+        self.log_dict(log)
 
     def test_step(self, batch, batch_nb):
         return self.validation_step(batch, batch_nb)
@@ -662,7 +671,8 @@ class DiscrimDataModule(BaseDataModule):
         else:
             sampler = RandomSampler(self.data.train)
         return DataLoader(self.data.train, batch_size=self.bs,
-                          sampler=sampler, drop_last=True)
+                          sampler=sampler, drop_last=True,
+                          num_workers=4, pin_memory=True)
 
 #Cell
 class PACSDiscriminator(BaseModule):
@@ -704,29 +714,27 @@ class PACSDiscriminator(BaseModule):
         x, y = batch
         y_hat = self(x)
         loss = self.loss(y_hat, y)
-        ret = pl.EvalResult(loss)
-        ret.log('val_loss', loss)
+        ret ={'loss': loss}
         n = y.shape[0]
         y_hat = torch.softmax(y_hat, dim=1)
         y_hat = y_hat.argmax(dim=-1).view(n,-1)
         y = y.view(n,-1)
-        ret.t0 = ((y_hat==0)&(y==0)).float().sum()
-        ret.t1 = ((y_hat==1)&(y==1)).float().sum()
-        ret.t2 = ((y_hat==2)&(y==2)).float().sum()
-        ret.f0 = ((y_hat==0)&(y!=0)).float().sum()
-        ret.f1 = ((y_hat==1)&(y!=1)).float().sum()
-        ret.f2 = ((y_hat==2)&(y!=2)).float().sum()
+        ret['t0'] = ((y_hat==0)&(y==0)).float().sum()
+        ret['t1'] = ((y_hat==1)&(y==1)).float().sum()
+        ret['t2'] = ((y_hat==2)&(y==2)).float().sum()
+        ret['f0'] = ((y_hat==0)&(y!=0)).float().sum()
+        ret['f1'] = ((y_hat==1)&(y!=1)).float().sum()
+        ret['f2'] = ((y_hat==2)&(y!=2)).float().sum()
         return ret
 
     def validation_epoch_end(self, outputs):
         # OPTIONAL
         log = {}
-        t0 = outputs.t0.sum()
-        f0 = outputs.f0.sum()
-        t1 = outputs.t1.sum()
-        f1 = outputs.f1.sum()
-        t2 = outputs.t2.sum()
-        f2 = outputs.f2.sum()
+        t0, f0, t1, f1, t2, f2 = _get_keys_in_list_and_apply(outputs,
+                                                             't0', 'f0',
+                                                             't1', 'f1',
+                                                             't2', 'f2',
+                                                             apply_func=torch.sum)
         t = torch.stack((t0, t1, t2))
         f = torch.stack((f0, f1, f2))
         for metric in self.metrics:
@@ -741,9 +749,8 @@ class PACSDiscriminator(BaseModule):
                 c_name = name + f'_{c}'
                 log[c_name] = metric(t[c], f[c], t[:c].sum()+t[c+1:].sum(),
                                      f[:c].sum()+f[c+1:].sum())
+        log['val_loss'] = torch.mean([output['loss'] for output in outputs])
         outputs.log_dict(log)
-        outputs['val_loss'] = outputs['val_loss'].mean()
-        return outputs
 
     def _create_normalizer(self):
         hparams = self.hparams
@@ -817,11 +824,13 @@ class GradeClassifDataModule(BaseDataModule):
                 #                                 2*len(np.argwhere(labels)),
                 #                                 replacement=False)
                 sampler = WeightedRandomSampler(weights, 40000,
-                                                replacement=False)
+                                                replacement=False,
+                                                num_workers=4)
         else:
             sampler = RandomSampler(self.data.train)
         return DataLoader(self.data.train, batch_size=self.bs,
-                          sampler=sampler, drop_last=True)
+                          sampler=sampler, drop_last=True,
+                          num_workers=4, pin_memory=True)
 
 #Cell
 class GradesClassifModel(BaseModule):
@@ -863,7 +872,7 @@ class GradesClassifModel(BaseModule):
         x, y = batch
         y_hat = self(x)
         loss = self.loss(y_hat, y)
-        ret = pl.EvalResult(loss)
+        ret = {'loss': loss}
         n = y.shape[0]
         if self.hparams.loss == 'cross-entropy':
             y_hat = torch.softmax(y_hat, dim=1)
@@ -872,18 +881,18 @@ class GradesClassifModel(BaseModule):
             y_hat = torch.sigmoid(y_hat)
             y_hat = (y_hat > 0.5).view(n, -1)
         y = y.view(n,-1)
-        ret.tp = ((y_hat)&(y==1)).float().sum()
-        ret.tn = ((~y_hat)&(y==0)).float().sum()
-        ret.fp = ((y_hat)&(y==0)).float().sum()
-        ret.fn = ((~y_hat)&(y==1)).float().sum()
+        ret['tp'] = ((y_hat)&(y==1)).float().sum()
+        ret['tn'] = ((~y_hat)&(y==0)).float().sum()
+        ret['fp'] = ((y_hat)&(y==0)).float().sum()
+        ret['fn'] = ((~y_hat)&(y==1)).float().sum()
         return ret
 
     def validation_epoch_end(self, outputs):
         # OPTIONAL
-        tp = outputs.tp.sum()
-        fp = outputs.fp.sum()
-        tn = outputs.tn.sum()
-        fn = outputs.fn.sum()
+        tp, fp, tn, fn = _get_keys_in_list_and_apply(outputs,
+                                                     'tp', 'fp',
+                                                     'tn', 'fn',
+                                                     apply_func=torch.sum)
         log = {}
         for metric in self.metrics:
             try:
@@ -894,9 +903,8 @@ class GradesClassifModel(BaseModule):
                 for k in kws:
                     name += f'_{k}_{kws[k]}'
             log[name] = metric(tp, fp, tn, fn)
-        outputs.log_dict(log)
-        outputs['val_loss'] = outputs['val_loss'].mean()
-        return outputs
+        log['val_loss'] = torch.mean([output['loss'] for output in outputs])
+        self.log_dict(log)
 
     def _create_normalizer(self):
         hparams = self.hparams
@@ -1022,14 +1030,15 @@ class RNNAttention(BaseModule):
         loss, _ = self.compute_loss(X, Y)
         lr = self.sched.optimizer.param_groups[-1]['lr']
         log = {'train_loss': loss, 'learning_rate': lr}
-        return {'loss': loss, 'log': log}
+        self.log_dict(log)
+        return {'loss': loss}
 
     def validation_step(self, batch, batch_nb):
         # OPTIONAL
         x, y = batch
-        loss, y_hat = self.compute_loss(x, y)
-        ret = pl.EvalResult(loss)
-        ret.log('val_loss', loss)
+        y_hat = self(x)
+        loss = self.loss(y_hat, y)
+        ret = {'loss': loss}
         n = y.shape[0]
         if self.hparams.loss == 'cross-entropy':
             y_hat = torch.softmax(y_hat, dim=1)
@@ -1038,19 +1047,19 @@ class RNNAttention(BaseModule):
             y_hat = torch.sigmoid(y_hat)
             y_hat = (y_hat > 0.5).view(n, -1)
         y = y.view(n,-1)
-        ret.tp = ((y_hat)&(y==1)).float().sum()
-        ret.tn = ((~y_hat)&(y==0)).float().sum()
-        ret.fp = ((y_hat)&(y==0)).float().sum()
-        ret.fn = ((~y_hat)&(y==1)).float().sum()
+        ret['tp'] = ((y_hat)&(y==1)).float().sum()
+        ret['tn'] = ((~y_hat)&(y==0)).float().sum()
+        ret['fp'] = ((y_hat)&(y==0)).float().sum()
+        ret['fn'] = ((~y_hat)&(y==1)).float().sum()
         return ret
 
-    def validation_end(self, outputs):
+    def validation_epoch_end(self, outputs):
         # OPTIONAL
+        tp, fp, tn, fn = _get_keys_in_list_and_apply(outputs,
+                                                     'tp', 'fp',
+                                                     'tn', 'fn',
+                                                     apply_func=torch.sum)
         log = {}
-        tp = outputs.tp.sum()
-        fp = outputs.fp.sum()
-        tn = outputs.tn.sum()
-        fn = outputs.fn.sum()
         for metric in self.metrics:
             try:
                 name = metric.__name__
@@ -1060,5 +1069,5 @@ class RNNAttention(BaseModule):
                 for k in kws:
                     name += f'_{k}_{kws[k]}'
             log[name] = metric(tp, fp, tn, fn)
-        outputs.log_dict(log)
-        return outputs
+        log['val_loss'] = torch.mean([output['loss'] for output in outputs])
+        self.log_dict(log)

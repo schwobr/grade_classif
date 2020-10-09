@@ -9,7 +9,7 @@ from .utils import get_sizes
 from .hooks import Hooks
 from ..imports import *
 from torch.nn.functional import interpolate, pad
-from timm.models.adaptive_avgmax_pool import SelectAdaptivePool2d
+from timm.models.layers.adaptive_avgmax_pool import SelectAdaptivePool2d
 
 #Cell
 def bn_drop_lin(n_in, n_out, bn=True, p=0., actn=None):
