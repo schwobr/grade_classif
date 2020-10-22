@@ -22,15 +22,14 @@ _parser.add_argument('--full-data', default=FULL_DATA, help='path to folder cont
 _parser.add_argument('--scan', default=SCAN, help='name of scan to predict. If not specified, all valid scans are predicted')
 _parser.add_argument('--resume', default=RESUME, help='version of model to load before training')
 _parser.add_argument('--levels', default=PRED_LEVELS, type=int, help='zoom levels to work on for prediction')
-_parser.add_argument('--versions', default=VERSIONS, type=int, nargs='*', help='list of model versions to use. Must specify one for each level the in same order.')
+_parser.add_argument('--versions', default=VERSIONS, nargs='*', help='list of model versions to use. Must specify one for each level the in same order.')
 _parser.add_argument('--checkpoints', default=CHECKPOINTS, nargs='*', help='checkpoint to load for each version. None will load the last one.')
-_parser.add_argument('--norm-versions', default=NORM_VERSIONS, type=int, nargs='*', help='list of normalizer versionsto use. Must specify one for each level the in same order.')
+_parser.add_argument('--norm-versions', default=NORM_VERSIONS, nargs='*', help='list of normalizer versions to use. Must specify one for each level the in same order.')
 _parser.add_argument('--batch-size', default=BATCH_SIZE, type=int, help='batch size')
 _parser.add_argument('--size', default=SIZE, type=int, help='size of the image (as an integer, image is supposed square)')
 _parser.add_argument('--window-size', default=WINDOW_SIZE, type=int, help='size of moving windows for normalizer metrics')
 _parser.add_argument('--loss', default=LOSS, choices=['cross-entropy', 'mse', 'focal', 'bce'], help='loss function')
 _parser.add_argument('--geometric-loss', default=GEOMETRIC_LOSS, help='geometric loss function for adversarial normalizer')
-_parser.add_argument('--norm-csv', default=NORM_CSV, help='path to csv where normalizer train images are stored')
 _parser.add_argument('--savedir', default=MODELS, help='directory to save models and logs in')
 _parser.add_argument('--model', default=MODEL, help='name of the base architecture to use for classification')
 _parser.add_argument('--normalizer', default=NORMALIZER, help='encoder to use for normalization unet')
@@ -55,5 +54,5 @@ _parser.add_argument('--train-percent', default=TRAIN_PERCENT, type=float, help=
 hparams = _parser.parse_args()
 
 #Cell
-os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ['CUDA_VISIBLE_DEVICES'] = ','.join(map(str, hparams.gpus))
+#os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+#os.environ['CUDA_VISIBLE_DEVICES'] = ','.join(map(str, hparams.gpus))

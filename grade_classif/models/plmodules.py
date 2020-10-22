@@ -143,22 +143,13 @@ class BaseModule(pl.LightningModule):
     def __init__(self, hparams, metrics=None):
         super().__init__()
         self.hparams = hparams
-        if len(hparams.gpus) == 1:
+        """if len(hparams.gpus) == 1:
             os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
             os.environ['CUDA_VISIBLE_DEVICES'] = str(hparams.gpus[0])
-            hparams.gpus = [0]
+            hparams.gpus = [0]"""
         self.main_device = ('cpu' if hparams.gpus is None else
                             f'cuda:{hparams.gpus[0]}')
         # self.main_device = 'cuda:1'
-        try:
-            weight = hparams.weight if hparams.sample_mode == 0 else 1.
-        except AttributeError:
-            weight = 1.
-        self.loss = _get_loss(hparams.loss, weight,
-                              hparams.reduction, device=self.main_device)
-        self.bs = hparams.batch_size
-        self.lr = hparams.lr
-        self.wd = hparams.wd
         self.metrics = ifnone(metrics, [])
         model_type = ('normalizer' if isinstance(self, Normalizer) else
                       'classifier')
@@ -211,6 +202,14 @@ class BaseModule(pl.LightningModule):
     def configure_optimizers(self):
         # REQUIRED
         hparams = self.hparams
+        try:
+            weight = hparams.weight if hparams.sample_mode == 0 else 1.
+        except AttributeError:
+            weight = 1.
+        self.loss = _get_loss(hparams.loss, weight,
+                              hparams.reduction, device=self.main_device)
+        self.lr = hparams.lr
+        self.wd = hparams.wd
         self.opt = torch.optim.Adam(self.parameters(), lr=self.lr)
         n_train_dl = len(self.trainer.datamodule.train_dataloader())
         n_iter = int(hparams.train_percent*hparams.epochs*n_train_dl)
@@ -383,8 +382,6 @@ class Normalizer(BaseModule):
         y_hat = self.predict(x)
         loss = self.loss(y_hat, y)
         ret = {'loss': loss}
-        size = self.hparams.window_size
-        n = self.hparams.size // size
         bs = y.shape[0]
         y = rgb_to_lab(y.detach())
         y_hat = rgb_to_lab(y_hat.detach())
