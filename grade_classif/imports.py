@@ -12,6 +12,11 @@ import random
 from dataclasses import dataclass
 from functools import partial
 from io import StringIO 
+from typing import Dict, Iterable, List, Optional, Union, Callable, Any, Sequence, Tuple
+from argparse import Namespace
+from numbers import Number
+from nptyping import NDArray
+from matplotlib.axes import Axes
 
 def in_colab():
     "Check if the code is running in Google Colaboratory"

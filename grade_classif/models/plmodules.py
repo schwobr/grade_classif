@@ -4,166 +4,224 @@ __all__ = ['BaseDataModule', 'BaseModule', 'NormDataModule', 'Normalizer', 'Norm
            'PACSDiscriminator', 'GradeClassifDataModule', 'GradesClassifModel', 'RNNAttention']
 
 #Cell
+import pytorch_lightning as pl
+from kornia.color import rgb_to_grayscale, rgb_to_hsv
+from pytorch_lightning.callbacks import ModelCheckpoint
+from pytorch_lightning.loggers import CometLogger
+from torch.optim.lr_scheduler import CosineAnnealingLR, OneCycleLR, ReduceLROnPlateau
+from torch.utils.data import DataLoader, RandomSampler, WeightedRandomSampler, Dataset
+from torch.optim import Optimizer
+from ..core import ifnone
+from ..data.color import rgb_to_e, rgb_to_h, rgb_to_heg, rgb_to_lab
 from ..data.dataset import ImageClassifDataset, NormDataset
 from ..data.transforms import *
-from ..data.color import rgb_to_lab, rgb_to_h, rgb_to_e, rgb_to_heg
 from ..data.utils import show_img
-from .utils import (named_leaf_modules, get_sizes,
-                                        get_num_features, gaussian_mask)
-from .modules import *
-from .losses import FocalLoss, BCE
-from .metrics import pcc, ssim
-from ..core import ifnone
 from ..imports import *
-from kornia.color import rgb_to_hsv, rgb_to_grayscale
-import pytorch_lightning as pl
-from pytorch_lightning.loggers import CometLogger
-from pytorch_lightning.callbacks import ModelCheckpoint
-from torch.utils.data import DataLoader, RandomSampler, WeightedRandomSampler
-from torch.optim.lr_scheduler import (OneCycleLR, CosineAnnealingLR,
-                                      ReduceLROnPlateau)
+from .losses import BCE, FocalLoss
+from .metrics import pcc, ssim
+from .modules import *
+from .utils import (
+    gaussian_mask,
+    get_num_features,
+    get_sizes,
+    named_leaf_modules,
+)
 
 #Cell
 _open_functions = {
-    'LAB': rgb_to_lab,
-    'HSV': rgb_to_hsv,
-    '3G': rgb_to_grayscale,
-    'H': rgb_to_h,
-    'E': rgb_to_e,
-    'HEG': rgb_to_heg
+    "LAB": rgb_to_lab,
+    "HSV": rgb_to_hsv,
+    "3G": rgb_to_grayscale,
+    "H": rgb_to_h,
+    "E": rgb_to_e,
+    "HEG": rgb_to_heg,
 }
 
 #Cell
-def _get_loss(loss_name, weight, reduction, device='cpu', nc=2):
-    if loss_name == 'cross-entropy':
-        loss = nn.CrossEntropyLoss(torch.tensor([weight] + [1.]*(nc - 1),
-                                                device=device),
-                                   reduction=reduction)
-    elif loss_name == 'bce':
-        loss = BCE(reduction=reduction,pos_weight=torch.tensor([1/weight],
-                                                               device=device))
-    elif loss_name == 'mse':
+def _get_loss(
+    loss_name: str, weight: float, reduction: str, device: str = "cpu", nc: int = 2
+) -> Callable[[torch.Tensor, torch.Tensor], torch.Tensor]:
+    if loss_name == "cross-entropy":
+        loss = nn.CrossEntropyLoss(
+            torch.tensor([weight] + [1.0] * (nc - 1), device=device),
+            reduction=reduction,
+        )
+    elif loss_name == "bce":
+        loss = BCE(
+            reduction=reduction, pos_weight=torch.tensor([1 / weight], device=device)
+        )
+    elif loss_name == "mse":
         loss = nn.MSELoss(reduction=reduction)
-    elif loss_name == 'focal':
+    elif loss_name == "focal":
         loss = FocalLoss(reduction=reduction)
     return loss.__call__
 
 #Cell
-def _get_scheduler(opt, name, total_steps, lr):
-    if name == 'one-cycle':
+def _get_scheduler(
+    opt: Optimizer, name: str, total_steps: int, lr: float
+) -> torch.optim.lr_scheduler._LRScheduler:
+    if name == "one-cycle":
         sched = OneCycleLR(opt, lr, total_steps=total_steps)
-        interval = 'step'
-    elif name == 'cosine-anneal':
+        interval = "step"
+    elif name == "cosine-anneal":
         sched = CosineAnnealingLR(opt, total_steps)
-        interval = 'step'
-    elif name == 'reduce-on-plateau':
-        sched= ReduceLROnPlateau(opt)
-        interval = 'epoch'
+        interval = "step"
+    elif name == "reduce-on-plateau":
+        sched = ReduceLROnPlateau(opt)
+        interval = "epoch"
     else:
         return None
-    return {'scheduler': sched,
-            'interval': interval}
+    return {"scheduler": sched, "interval": interval}
 
 #Cell
 class BaseDataModule(pl.LightningDataModule):
-    def __init__(self, hparams):
+    def __init__(
+        self,
+        datafolder: Path,
+        data_csv: Path,
+        batch_size: int = 32,
+        size: int = 299,
+        transforms: Optional[int] = None,
+        patch_classes: Optional[Path] = None,
+        concepts: Optional[Path] = None,
+        concept_classes: Optional[Path] = None,
+        **kwargs,
+    ):
         super().__init__()
-        self.bs = hparams.batch_size
-        if hparams.transforms:
-            tfm_func = globals()[f'get_transforms{hparams.transforms}']
+        self.datafolder = datafolder
+        self.data_csv = data_csv
+        self.batch_size = batch_size
+        self.patch_classes = None
+        self.concepts = None
+        self.concept_classes = None
+        self.size = 299
+        self.transforms = transforms
+        if transforms is not None:
+            tfm_func = globals()[f"get_transforms{transforms}"]
+            self.tfms = tfm_func(size)
         else:
-            tfms = []
-        self.tfms = tfm_func(hparams.size)
-        self.hparams = hparams
+            self.tfms = []
 
-    def train_dataloader(self):
-        return DataLoader(self.data.train, batch_size=self.bs,
-                          shuffle=True, drop_last=True,
-                          num_workers=4, pin_memory=True)
+    def train_dataloader(self) -> DataLoader:
+        return DataLoader(
+            self.data.train,
+            batch_size=self.batch_size,
+            shuffle=True,
+            drop_last=True,
+            num_workers=4,
+            pin_memory=True,
+        )
 
-
-    def val_dataloader(self):
+    def val_dataloader(self) -> DataLoader:
         # OPTIONAL
         # can also return a list of val dataloaders
-        return DataLoader(self.data.valid, batch_size=self.bs,
-                          num_workers=4, pin_memory=True)
+        return DataLoader(
+            self.data.valid, batch_size=self.batch_size, num_workers=4, pin_memory=True
+        )
 
-    def test_dataloader(self):
+    def test_dataloader(self) -> DataLoader:
         # OPTIONAL
         # can also return a list of test dataloaders
         if self.data.test is not None:
-            return DataLoader(self.data.test, batch_size=self.bs)
+            return DataLoader(self.data.test, batch_size=self.batch_size)
         else:
             return None
 
-    def get_filt(self):
-        hparams= self.hparams
-        if hparams.patch_classes is not None:
-            patch_classes_df = pd.read_csv(hparams.patch_classes,
-                                           index_col='patchId')
-            x_type = patch_classes_df.loc[x.stem, 'type']
-            if hparams.filt != 'all':
+    def get_filt(self) -> Optional[Callable[[Path], bool]]:
+        if self.patch_classes is not None:
+            patch_classes_df = pd.read_csv(self.patch_classes, index_col="patchId")
+            x_type = patch_classes_df.loc[x.stem, "type"]
+            if self.filt != "all":
+
                 def filt(x):
-                    return  x_type == hparams.filt
+                    return x_type == self.filt
+
             else:
+
                 def filt(x):
-                    return x_type != 'garb'
-        elif (hparams.concepts is not None and
-              hparams.concept_classes is not None):
-            conc_classes_df = pd.read_csv(hparams.concept_classes, index_col=0)
-            if hparams.filt != 'all':
-                ok = conc_classes_df.loc[conc_classes_df['type']
-                                         == hparams.filt].index.values
+                    return x_type != "garb"
+
+        elif self.concepts is not None and self.concept_classes is not None:
+            conc_classes_df = pd.read_csv(self.concept_classes, index_col=0)
+            if self.filt != "all":
+                ok = conc_classes_df.loc[
+                    conc_classes_df["type"] == self.filt
+                ].index.values
             else:
-                ok = conc_classes_df.loc[conc_classes_df['type']
-                                         != 'garb'].index.values
-            conc_df = pd.read_csv(hparams.concepts, index_col='patchId')
+                ok = conc_classes_df.loc[conc_classes_df["type"] != "garb"].index.values
+            conc_df = pd.read_csv(self.concepts, index_col="patchId")
+
             def filt(x):
-                return conc_df.loc[x.stem, 'concept'] in ok
+                return conc_df.loc[x.stem, "concept"] in ok
+
         else:
             filt = None
         return filt
 
-    def show_some(self, n=8, split='train', imgsize=4):
-        fig, axs = plt.subplots(n, 2, figsize=(imgsize*2, imgsize*n))
+    def show_some(self, n: int = 8, split: str = "train", imgsize: int = 4):
+        fig, axs = plt.subplots(n, 2, figsize=(imgsize * 2, imgsize * n))
         data = getattr(self.data, split)
         idxs = np.random.choice(np.arange(len(data)), size=n, replace=False)
         for ax_r, idx in zip(axs, idxs):
             x, x_tfmed = data.get_orig_tfmed(idx)
             show_img(x, ax=ax_r[0])
             show_img(x_tfmed, ax=ax_r[1])
-        title = 'original/transformed'
+        title = "original/transformed"
         fig.suptitle(title)
         plt.show()
 
 #Cell
 class BaseModule(pl.LightningModule):
-    """
-    """
-    def __init__(self, hparams, metrics=None):
+    """"""
+
+    def __init__(
+        self,
+        size: int = 299,
+        gpus: Optional[List[int]] = None,
+        model: Optional[str] = None,
+        normalizer: Optional[str] = None,
+        metrics: Optional[List[Callable[..., Number]]] = None,
+        savedir: Optional[Union[Path, str]] = None,
+        level: Optional[int] = None,
+        resume: Optional[str] = None,
+        sample_mode: int = 0,
+        weight: float = 1,
+        epochs: int = 5,
+        loss: str = "mse",
+        reduction: str = "mean",
+        lr: float = 1e-3,
+        wd: float = 0.01,
+        train_percent: float = 1.0,
+        sched: Optional[str] = None,
+        rand_weights: bool = False,
+        dropout: float = 0.5,
+        version: Optional[str] = None,
+        norm_version: Optional[str] = None,
+        open_mode: str = "RGB",
+        **kwargs,
+    ):
         super().__init__()
-        self.hparams = hparams
-        """if len(hparams.gpus) == 1:
-            os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-            os.environ['CUDA_VISIBLE_DEVICES'] = str(hparams.gpus[0])
-            hparams.gpus = [0]"""
-        self.main_device = ('cpu' if hparams.gpus is None else
-                            f'cuda:{hparams.gpus[0]}')
+        if model is None and normalizer is None:
+            raise AttributeError(
+                "at least one of model and normalizer should ne specified"
+            )
+        self.main_device = "cpu" if gpus is None else f"cuda:{gpus[0]}"
         # self.main_device = 'cuda:1'
         self.metrics = ifnone(metrics, [])
-        model_type = ('normalizer' if isinstance(self, Normalizer) else
-                      'classifier')
-        model_name = (hparams.model if model_type == "classifier" else
-                      hparams.normalizer)
-        self.save_path = Path(hparams.savedir)/f'level_{hparams.level}'
-        self.save_path = self.save_path/f'{model_type}/{model_name}'
+        model_type = "normalizer" if isinstance(self, Normalizer) else "classifier"
+        model_name = model if model_type == "classifier" else normalizer
+        savedir = ifnone(Path(savedir), Path.cwd() / "log")
+        level = ifnone(level, -1)
+        self.save_path = Path(savedir) / f"level_{level}"
+        self.save_path = self.save_path / f"{model_type}/{model_name}"
+        self.save_hyperparameters()
 
     def post_init(self):
         leaf_modules = named_leaf_modules(self)
         size = self.hparams.size
-        self.sizes, self.leaf_modules = get_sizes(self,
-                                                  input_shape=(3, size, size),
-                                                  leaf_modules=leaf_modules)
+        self.sizes, self.leaf_modules = get_sizes(
+            self, input_shape=(3, size, size), leaf_modules=leaf_modules
+        )
         self = self.to(self.main_device)
         if self.hparams.resume is not None:
             self.load(self.hparams.resume)
@@ -171,109 +229,122 @@ class BaseModule(pl.LightningModule):
     def on_train_start(self):
         self.train()
 
-    def training_step(self, batch, batch_nb):
+    def training_step(
+        self, batch: Tuple[torch.Tensor, torch.Tensor], batch_nb: int
+    ) -> torch.Tensor:
         # REQUIRED
         x, y = batch
         y_hat = self(x)
         loss = self.loss(y_hat, y)
-        lr = self.sched.optimizer.param_groups[-1]['lr']
-        log = {'train_loss': loss, 'learning_rate': lr}
+        lr = self.sched.optimizer.param_groups[-1]["lr"]
+        log = {"train_loss": loss, "learning_rate": lr}
         self.log_dict(log, on_step=True, on_epoch=False)
         return loss
 
-
-    def validation_step(self, batch, batch_nb):
+    def validation_step(
+        self, batch: Tuple[torch.Tensor, torch.Tensor], batch_nb: int
+    ) -> torch.Tensor:
         # OPTIONAL
         x, y = batch
         y_hat = self(x)
         loss = self.loss(y_hat, y)
-        self.log('val_loss', loss)
+        self.log("val_loss", loss)
         return loss
 
-
-    def test_step(self, batch, batch_nb):
+    def test_step(
+        self, batch: Tuple[torch.Tensor, torch.Tensor], batch_nb: int
+    ) -> torch.Tensor:
         # OPTIONAL
         x, y = batch
         y_hat = self(x)
         loss = self.loss(y_hat, y)
-        self.log('test_loss', loss)
+        self.log("test_loss", loss)
         return loss
 
-    def configure_optimizers(self):
+    def configure_optimizers(self) -> Union[Optimizer, Dict[str, Any]]:
         # REQUIRED
         hparams = self.hparams
         try:
-            weight = hparams.weight if hparams.sample_mode == 0 else 1.
+            weight = hparams.weight if hparams.sample_mode == 0 else 1.0
         except AttributeError:
-            weight = 1.
-        self.loss = _get_loss(hparams.loss, weight,
-                              hparams.reduction, device=self.main_device)
+            weight = 1.0
+        self.loss = _get_loss(
+            hparams.loss, weight, hparams.reduction, device=self.main_device
+        )
         self.lr = hparams.lr
         self.wd = hparams.wd
         self.opt = torch.optim.Adam(self.parameters(), lr=self.lr)
         n_train_dl = len(self.trainer.datamodule.train_dataloader())
-        n_iter = int(hparams.train_percent*hparams.epochs*n_train_dl)
+        n_iter = int(hparams.train_percent * hparams.epochs * n_train_dl)
         sched = _get_scheduler(self.opt, hparams.sched, n_iter, self.lr)
         if sched is None:
             return self.opt
         else:
-            self.sched = sched['scheduler']
-            return {'optimizer': self.opt,
-                    'lr_scheduler': sched}
+            self.sched = sched["scheduler"]
+            return {"optimizer": self.opt, "lr_scheduler": sched}
 
     def on_after_backward(self):
         for pg in self.opt.param_groups:
-            for p in pg['params']: p.data.mul_(1 - self.wd*pg['lr'])
+            for p in pg["params"]:
+                p.data.mul_(1 - self.wd * pg["lr"])
 
-
-    def load(self, version, ckpt_epoch=None):
+    def load(self, version: str, ckpt_epoch: int = None):
         """
         Load a specific `version` of current model, stored in
         `self.save_path/lightning_logs`. If multiple checkpoints have been
         stored, `ckpt_epoch` can be specified to load a specific epoch. Else
         the latest epoch is loaded.
         """
-        save_dir = (self.save_path/
-                    f'lightning_logs/version_{version}/checkpoints')
-        path = (list(save_dir.iterdir())[-1] if ckpt_epoch is None else
-                save_dir/f'_ckpt_epoch_{ckpt_epoch}.ckpt')
+        save_dir = self.save_path / f"lightning_logs/version_{version}/checkpoints"
+        path = (
+            list(save_dir.iterdir())[-1]
+            if ckpt_epoch is None
+            else save_dir / f"_ckpt_epoch_{ckpt_epoch}.ckpt"
+        )
         checkpoint = torch.load(path, map_location=lambda stor, loc: stor)
-        self.load_state_dict(checkpoint['state_dict'])
+        self.load_state_dict(checkpoint["state_dict"])
 
-    def my_summarize(self):
+    def my_summarize(self) -> pd.DataFrame:
         """
         Get a DataFrame containing the list of all leaf modules of current
         model, with their corresponding output shape.
         """
         named_modules = list(map(lambda x: x.name, self.leaf_modules))
-        summary = pd.DataFrame({'Name': named_modules,
-                                'Output Shape': self.sizes})
+        summary = pd.DataFrame({"Name": named_modules, "Output Shape": self.sizes})
         return summary
 
-    def fit(self, dm, **kwargs):
+    def fit(self, dm: pl.LightningDataModule, **kwargs):
         """
         Fit the model using parameters stored in `hparams`.
         """
-        logger = CometLogger(api_key=os.environ['COMET_API_KEY'],
-                             workspace='schwobr', save_dir=self.save_path,
-                             project_name='grade-classif')
-        logger.experiment.add_tag('norm' if isinstance(self, Normalizer) else
-                                  'classif')
-        ckpt_path = (self.save_path/'lightning_logs'/
-                     f'version_{logger.version}'/'checkpoints')
+        logger = CometLogger(
+            api_key=os.environ["COMET_API_KEY"],
+            workspace="schwobr",
+            save_dir=self.save_path,
+            project_name="grade-classif",
+        )
+        logger.experiment.add_tag("norm" if isinstance(self, Normalizer) else "classif")
+        ckpt_path = (
+            self.save_path
+            / "lightning_logs"
+            / f"version_{logger.version}"
+            / "checkpoints"
+        )
         ckpt_callback = ModelCheckpoint(ckpt_path, save_top_k=3)
-        trainer = pl.Trainer(gpus=self.hparams.gpus,
-                             checkpoint_callback=ckpt_callback,
-                             logger=logger,
-                             min_epochs=self.hparams.epochs,
-                             max_epochs=self.hparams.epochs,
-                             train_percent_check=self.hparams.train_percent,
-                             val_percent_check=self.hparams.train_percent,
-                             **kwargs)
+        trainer = pl.Trainer(
+            gpus=self.hparams.gpus,
+            checkpoint_callback=ckpt_callback,
+            logger=logger,
+            min_epochs=self.hparams.epochs,
+            max_epochs=self.hparams.epochs,
+            train_percent_check=self.hparams.train_percent,
+            val_percent_check=self.hparams.train_percent,
+            **kwargs,
+        )
         self.version = trainer.logger.version
         trainer.fit(self, dm)
 
-    def predict(self, x):
+    def predict(self, x: torch.Tensor) -> torch.Tensor:
         """
         Make a prediction on batch `x`.
         """
@@ -281,22 +352,23 @@ class BaseModule(pl.LightningModule):
 
 #Cell
 class NormDataModule(BaseDataModule):
-    def setup(self, stage=None):
-        data = (NormDataset.
-                from_folder(self.hparams.data, extensions=['.png'],
-                            filterfunc=self.get_filt()).
-                split_by_csv(self.hparams.data_csv))
+    def setup(self, stage: Optional[str] = None):
+        data = NormDataset.from_folder(
+            self.datafolder, extensions=[".png"], filterfunc=self.get_filt()
+        ).split_by_csv(self.data_csv)
 
-        if self.hparams.transforms:
-            tfm_func = globals()[f'get_transforms{self.hparams.transforms}']
-            self.tfms = tfm_func(self.hparams.size, num_els=len(data.valid))
-        else:
-            tfms = []
+        if self.transforms is not None:
+            tfm_func = globals()[f"get_transforms{self.transforms}"]
+            self.tfms = tfm_func(self.size, num_els=len(data.valid))
 
         self.data = data.to_tensor(tfms=self.tfms)
 
 #Cell
-def _get_keys_in_list_and_apply(list_of_dicts, *keys, apply_func=None):
+def _get_keys_in_list_and_apply(
+    list_of_dicts: Sequence[Dict[str, Any]],
+    *keys,
+    apply_func: Optional[Callable[[Any], Any]] = None
+) -> List[List[Any]]:
     res = []
     for k in keys:
         sub_list = []
@@ -309,34 +381,38 @@ def _get_keys_in_list_and_apply(list_of_dicts, *keys, apply_func=None):
 
 #Cell
 class Normalizer(BaseModule):
-    """
-    """
-    def __init__(self, hparams, **kwargs):
-        super().__init__(hparams, **kwargs)
-        input_shape = (3, hparams.size, hparams.size)
-        self.unet = DynamicUnet(hparams.normalizer, n_classes=3,
-                                input_shape=input_shape,
-                                pretrained=not hparams.rand_weights)
-        self.post_init()
+    """"""
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        input_shape = (3, self.hparams.size, self.hparams.size)
+        self.unet = DynamicUnet(
+            self.hparams.normalizer,
+            n_classes=3,
+            input_shape=input_shape,
+            pretrained=not self.hparams.rand_weights,
+        )
+        self.post_init()
 
     def on_epoch_start(self):
         for tfm in self.trainer.datamodule.data.valid.tfms:
-            if 'Deterministic' in str(type(tfm)):
+            if "Deterministic" in str(type(tfm)):
                 tfm.n = 0
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = _open_functions[self.hparams.open_mode](x).detach()
         return self.unet(x)
 
-    def show_results(self, ds, n=16, imgsize=4, title=None):
+    def show_results(
+        self, ds: Dataset, n: int = 16, imgsize: int = 4, title: Optional[str] = None
+    ):
         """
-        Plot `n` predictions from the normalizer using samples from datasey
+        Plot `n` predictions from the normalizer using samples from dataset
         `ds`. Each line will contain input, target and prediction images (in
         that order).
         """
         n = min(n, self.bs)
-        fig, axs = plt.subplots(n, 3, figsize=(imgsize*3, imgsize*n))
+        fig, axs = plt.subplots(n, 3, figsize=(imgsize * 3, imgsize * n))
         idxs = np.random.choice(np.arange(len(ds)), size=n, replace=False)
         inputs = []
         targs = []
@@ -353,7 +429,7 @@ class Normalizer(BaseModule):
             show_img(x, ax=ax_r[0])
             show_img(y, ax=ax_r[1])
             show_img(z, ax=ax_r[2])
-        title = ifnone(title, 'input/target/prediction')
+        title = ifnone(title, "input/target/prediction")
         fig.suptitle(title)
         plt.show()
 
@@ -362,7 +438,7 @@ class Normalizer(BaseModule):
         Freeze the encoder part of the normalizer.
         """
         for m in self.leaf_modules:
-            if 'encoder' in m.name and not isinstance(m, nn.BatchNorm2d):
+            if "encoder" in m.name and not isinstance(m, nn.BatchNorm2d):
                 for param in m.parameters():
                     param.requires_grad = False
 
@@ -374,111 +450,128 @@ class Normalizer(BaseModule):
             if isinstance(m, nn.BatchNorm2d):
                 with torch.no_grad():
                     m.bias.fill_(1e-3)
-                    m.weight.fill_(1.)
+                    m.weight.fill_(1.0)
 
-    def validation_step(self, batch, batch_nb):
+    def validation_step(
+        self, batch: Tuple[torch.Tensor, torch.Tensor], batch_nb: int
+    ) -> Dict[str, torch.Tensor]:
         # OPTIONAL
         x, y = batch
         y_hat = self.predict(x)
         loss = self.loss(y_hat, y)
-        ret = {'loss': loss}
+        ret = {"loss": loss}
         bs = y.shape[0]
         y = rgb_to_lab(y.detach())
         y_hat = rgb_to_lab(y_hat.detach())
-        ret['mu_x'] = torch.mean(y[:, 0], axis=(1, 2))
-        ret['sigma_x'] = torch.std(y[:, 0], axis=(1, 2))
-        ret['mu_y'] = torch.mean(y_hat[:, 0], axis=(1, 2))
-        ret['sigma_y'] = torch.std(y_hat[:, 0], axis=(1, 2))
-        ret['mu_xy'] = torch.mean(y[:, 0]*y_hat[:, 0], axis=(1, 2))
+        ret["mu_x"] = torch.mean(y[:, 0], axis=(1, 2))
+        ret["sigma_x"] = torch.std(y[:, 0], axis=(1, 2))
+        ret["mu_y"] = torch.mean(y_hat[:, 0], axis=(1, 2))
+        ret["sigma_y"] = torch.std(y_hat[:, 0], axis=(1, 2))
+        ret["mu_xy"] = torch.mean(y[:, 0] * y_hat[:, 0], axis=(1, 2))
         return ret
 
-    def validation_epoch_end(self, outputs):
+    def validation_epoch_end(self, outputs: List[Dict[str, torch.Tensor]]):
         # OPTIONAL
         log = {}
-        mu_x, sigma_x, mu_y, sigma_y, mu_xy = get_keys_in_list_and_apply(outputs,
-                                                                         'mu_x', 'sigma_x',
-                                                                         'mu_y', 'sigma_y',
-                                                                         'mu_xy',
-                                                                         apply_func=torch.cat)
+        mu_x, sigma_x, mu_y, sigma_y, mu_xy = get_keys_in_list_and_apply(
+            outputs, "mu_x", "sigma_x", "mu_y", "sigma_y", "mu_xy", apply_func=torch.cat
+        )
         m_ssim = ssim(mu_x, sigma_x, mu_y, sigma_y, mu_xy)
         m_pcc = pcc(mu_x, sigma_x, mu_y, sigma_y, mu_xy)
-        m_cd = sigma_y/mu_y - sigma_x/mu_x
-        log['ssim'] = m_ssim.mean()
-        log['pcc'] = m_pcc.mean()
-        log['cd'] = m_cd.mean()
-        log['val_loss'] = torch.mean([output['loss'] for output in outputs])
+        m_cd = sigma_y / mu_y - sigma_x / mu_x
+        log["ssim"] = m_ssim.mean()
+        log["pcc"] = m_pcc.mean()
+        log["cd"] = m_cd.mean()
+        log["val_loss"] = torch.mean([output["loss"] for output in outputs])
         self.log_dict(log)
 
-    def test_step(self, batch, batch_nb):
+    def test_step(
+        self, batch: Tuple[torch.Tensor, torch.Tensor], batch_nb: int
+    ) -> Dict[str, torch.Tensor]:
         return self.validation_step(batch, batch_nb)
 
-    def test_end(self, outputs):
-        return self.validation_end(outputs)
+    def test_epoch_end(self, outputs: List[Dict[str, torch.tensor]]):
+        return self.validation_epoch_end(outputs)
 
 #Cell
 # FULLY DEPRECATED FOR NOW
 class NormalizerAN(BaseModule):
-    """
-    """
+    """"""
+
     def __init__(self, hparams, **kwargs):
         super().__init__(hparams, **kwargs)
         input_shape = (3, hparams.size, hparams.size)
-        self.unet = DynamicUnet(hparams.normalizer, n_classes=3, input_shape=input_shape,
-                                pretrained=not hparams.rand_weights)
+        self.unet = DynamicUnet(
+            hparams.normalizer,
+            n_classes=3,
+            input_shape=input_shape,
+            pretrained=not hparams.rand_weights,
+        )
 
-        if 'cbr' in hparams.discriminator:
-            args = map(int, hparams.discriminator.split('_')[1:])
+        if "cbr" in hparams.discriminator:
+            args = map(int, hparams.discriminator.split("_")[1:])
             base_model = CBR(*args)
             cut = -3
-        elif 'sasa' in hparams.discriminator:
-            args = map(int, hparams.discriminator.split('_')[1:])
+        elif "sasa" in hparams.discriminator:
+            args = map(int, hparams.discriminator.split("_")[1:])
             base_model = SASA(*args)
             cut = -3
-        elif 'sanet' in hparams.discriminator:
-            splits = hparams.discriminator.split('_')
+        elif "sanet" in hparams.discriminator:
+            splits = hparams.discriminator.split("_")
             kernel_size = int(splits[-1])
             base_model = globals()[splits[0]](kernel_size)
             cut = -2
         else:
-            base_model = timm.create_model(hparams.discriminator,
-                                           pretrained=not hparams.rand_weights)
+            base_model = timm.create_model(
+                hparams.discriminator, pretrained=not hparams.rand_weights
+            )
             cut = -2
         base_model = nn.Sequential(*list(base_model.children())[:cut])
         head = [nn.AdaptiveAvgPool2d(1), nn.Flatten()]
         nf = get_num_features(base_model)
         p = hparams.dropout
         nc = 3
-        head += bn_drop_lin(nf, nf, p=p/2) + bn_drop_lin(nf, nc, p=p)
+        head += bn_drop_lin(nf, nf, p=p / 2) + bn_drop_lin(nf, nc, p=p)
         head = nn.Sequential(*head)
         self.discriminator = nn.Sequential(base_model, head)
-        self.loss = _get_loss(hparams.loss, 1, hparams.reduction,
-                              device=self.main_device, nc=3)
+        self.loss = _get_loss(
+            hparams.loss, 1, hparams.reduction, device=self.main_device, nc=3
+        )
 
         if hparams.norm_csv is not None:
-            df = pd.read_csv(hparams.norm_csv, index_col='scan')
+            df = pd.read_csv(hparams.norm_csv, index_col="scan")
+
             def filt1(x):
-                return df.loc[x.parent.name, 'category'] == 1
+                return df.loc[x.parent.name, "category"] == 1
+
         else:
             filt1 = None
 
         if hparams.patch_classes is not None:
-            patch_classes_df = pd.read_csv(hparams.patch_classes,
-                                           index_col='patchId')
-            if hparams.filt != 'all':
+            patch_classes_df = pd.read_csv(hparams.patch_classes, index_col="patchId")
+            if hparams.filt != "all":
+
                 def filt2(x):
-                    return patch_classes_df.loc[x.stem, 'type'] == hparams.filt
+                    return patch_classes_df.loc[x.stem, "type"] == hparams.filt
+
             else:
+
                 def filt2(x):
-                    return patch_classes_df.loc[x.stem, 'type'] != 'garb'
+                    return patch_classes_df.loc[x.stem, "type"] != "garb"
+
         elif hparams.concepts is not None and hparams.concept_classes is not None:
             conc_classes_df = pd.read_csv(hparams.concept_classes, index_col=0)
-            if hparams.filt2 != 'all':
-                ok = conc_classes_df.loc[conc_classes_df['type'] == hparams.filt].index.values
+            if hparams.filt2 != "all":
+                ok = conc_classes_df.loc[
+                    conc_classes_df["type"] == hparams.filt
+                ].index.values
             else:
-                ok = conc_classes_df.loc[conc_classes_df['type'] != 'garb'].index.values
-            conc_df = pd.read_csv(hparams.concepts, index_col='patchId')
+                ok = conc_classes_df.loc[conc_classes_df["type"] != "garb"].index.values
+            conc_df = pd.read_csv(hparams.concepts, index_col="patchId")
+
             def filt2(x):
-                return conc_df.loc[x.stem, 'concept'] in ok
+                return conc_df.loc[x.stem, "concept"] in ok
+
         else:
             filt2 = None
 
@@ -488,40 +581,57 @@ class NormalizerAN(BaseModule):
             if filt2 is None:
                 filt = filt1
             else:
+
                 def filt(x):
                     return filt1(x) and filt2(x)
 
         def label_func(x):
-            if 'PACS04' in x.name:
-                return '04'
-            elif 'PACS05' in x.name:
-                return '05'
+            if "PACS04" in x.name:
+                return "04"
+            elif "PACS05" in x.name:
+                return "05"
             else:
-                return '08'
-        data = (ImageClassifDataset.
-                from_folder(hparams.data, label_func, classes=['04', '05', '08'], extensions=['.png'], open_mode=hparams.open_mode, filterfunc=filt).
-                split_by_csv(hparams.data_csv))
+                return "08"
+
+        data = ImageClassifDataset.from_folder(
+            hparams.data,
+            label_func,
+            classes=["04", "05", "08"],
+            extensions=[".png"],
+            open_mode=hparams.open_mode,
+            filterfunc=filt,
+        ).split_by_csv(hparams.data_csv)
 
         n = len(data.train)
-        weights = [np.float32(n/(data.train.labels == '04').sum()),
-                   np.float32(n/(data.train.labels == '05').sum()),
-                   np.float32(n/(data.train.labels == '08').sum())]
+        weights = [
+            np.float32(n / (data.train.labels == "04").sum()),
+            np.float32(n / (data.train.labels == "05").sum()),
+            np.float32(n / (data.train.labels == "08").sum()),
+        ]
         self.hparams.weights = weights
 
         if hparams.transforms:
-            tfms = globals()[f'get_transforms{hparams.transforms}'](hparams.size, num_els=len(data.valid))
+            tfms = globals()[f"get_transforms{hparams.transforms}"](
+                hparams.size, num_els=len(data.valid)
+            )
         else:
             tfms = []
 
         if hparams.geometric_loss is not None:
-            self.geometric_loss = _get_loss(hparams.geometric_loss, 1, hparams.reduction, device=self.main_device)
+            self.geometric_loss = _get_loss(
+                hparams.geometric_loss, 1, hparams.reduction, device=self.main_device
+            )
         else:
             self.geometric_loss = lambda x: 0
 
         self.data = data.to_tensor(tfms=tfms, tfm_y=False)
 
         self.leaf_modules = named_leaf_modules(self.unet)
-        self.sizes, self.leaf_modules = get_sizes(self.unet, input_shape=(3, self.hparams.size, self.hparams.size), leaf_modules=self.leaf_modules)
+        self.sizes, self.leaf_modules = get_sizes(
+            self.unet,
+            input_shape=(3, self.hparams.size, self.hparams.size),
+            leaf_modules=self.leaf_modules,
+        )
         self = self.to(self.main_device)
         if self.hparams.resume is not None:
             self.load(self.hparams.resume)
@@ -534,19 +644,29 @@ class NormalizerAN(BaseModule):
         w = self.hparams.weights
         labels = self.data.train.labels
         if sm > 0:
-            weights = np.where(labels == '04', w[0], 1.)
-            weights[labels == '05'] = w[1]
-            weights[labels == '08'] = w[2]
+            weights = np.where(labels == "04", w[0], 1.0)
+            weights[labels == "05"] = w[1]
+            weights[labels == "08"] = w[2]
             if sm == 1:
-                n = max((labels == '04').sum(), (labels == '05').sum(), (labels == '08').sum())
-                sampler = WeightedRandomSampler(weights, int(3*n))
+                n = max(
+                    (labels == "04").sum(),
+                    (labels == "05").sum(),
+                    (labels == "08").sum(),
+                )
+                sampler = WeightedRandomSampler(weights, int(3 * n))
             else:
-                n = min((labels == '04').sum(), (labels == '05').sum(), (labels == '08').sum())
+                n = min(
+                    (labels == "04").sum(),
+                    (labels == "05").sum(),
+                    (labels == "08").sum(),
+                )
                 print(n, len(labels), type(n))
-                sampler = WeightedRandomSampler(weights, int(3*n), replacement=False)
+                sampler = WeightedRandomSampler(weights, int(3 * n), replacement=False)
         else:
             sampler = RandomSampler(self.data.train)
-        return DataLoader(self.data.train, batch_size=self.bs, sampler=sampler, drop_last=True)
+        return DataLoader(
+            self.data.train, batch_size=self.bs, sampler=sampler, drop_last=True
+        )
 
     def training_step(self, batch, batch_nb, optimizer_idx):
         x, y = batch
@@ -555,7 +675,7 @@ class NormalizerAN(BaseModule):
 
         mse = self.geometric_loss(normalized_imgs, x)
         d_loss = self.loss(self.discriminator(normalized_imgs), y)
-        g_loss = mse - 0.5*d_loss
+        g_loss = mse - 0.5 * d_loss
         # train generator
         if optimizer_idx == 0:
             loss = g_loss
@@ -564,9 +684,9 @@ class NormalizerAN(BaseModule):
         if optimizer_idx == 1:
             loss = self.loss(self.discriminator(normalized_imgs.detach()), y)
 
-        lr = self.sched.optimizer.param_groups[-1]['lr']
-        log = {'d_loss': d_loss, 'mse': mse, 'g_loss': g_loss, 'learning_rate': lr}
-        return {'loss': loss, 'log': log}
+        lr = self.sched.optimizer.param_groups[-1]["lr"]
+        log = {"d_loss": d_loss, "mse": mse, "g_loss": g_loss, "learning_rate": lr}
+        return {"loss": loss, "log": log}
 
     def validation_step(self, batch, batch_nb):
         # OPTIONAL
@@ -575,20 +695,30 @@ class NormalizerAN(BaseModule):
         normalized_imgs = self(x)
         mse = self.geometric_loss(normalized_imgs, x)
         d_loss = self.loss(self.discriminator(normalized_imgs), y)
-        g_loss = mse - 0.5*d_loss
-        return {'val_loss': g_loss, 'val_d_loss': d_loss, 'val_mse': mse, 'val_g_loss': g_loss}
+        g_loss = mse - 0.5 * d_loss
+        return {
+            "val_loss": g_loss,
+            "val_d_loss": d_loss,
+            "val_mse": mse,
+            "val_g_loss": g_loss,
+        }
 
     def validation_end(self, outputs):
         # OPTIONAL
-        d_loss = torch.stack([x['val_d_loss'] for x in outputs]).mean()
-        g_loss = torch.stack([x['val_g_loss'] for x in outputs]).mean()
-        mse = torch.stack([x['val_mse'] for x in outputs]).mean()
-        log = {'val_d_loss': d_loss, 'val_mse': mse, 'val_g_loss': g_loss}
-        return {'val_loss': g_loss, 'log': log}
+        d_loss = torch.stack([x["val_d_loss"] for x in outputs]).mean()
+        g_loss = torch.stack([x["val_g_loss"] for x in outputs]).mean()
+        mse = torch.stack([x["val_mse"] for x in outputs]).mean()
+        log = {"val_d_loss": d_loss, "val_mse": mse, "val_g_loss": g_loss}
+        return {"val_loss": g_loss, "log": log}
 
     def configure_optimizers(self):
         self.opt = torch.optim.Adam(self.unet.parameters(), lr=self.lr)
-        self.sched = _get_scheduler(self.opt, self.hparams.sched, self.hparams.epochs*len(self.train_dataloader()), self.lr)
+        self.sched = _get_scheduler(
+            self.opt,
+            self.hparams.sched,
+            self.hparams.epochs * len(self.train_dataloader()),
+            self.lr,
+        )
 
         opt_d = torch.optim.Adam(self.discriminator.parameters(), lr=self.lr)
         return [self.opt, opt_d], [self.sched]
@@ -599,7 +729,7 @@ class NormalizerAN(BaseModule):
         images (in that order).
         """
         n = min(n, self.bs)
-        fig, axs = plt.subplots(n, 2, figsize=(imgsize*2, imgsize*n))
+        fig, axs = plt.subplots(n, 2, figsize=(imgsize * 2, imgsize * n))
         idxs = np.random.choice(np.arange(len(self.data.valid)), size=n, replace=False)
         inputs = []
         targs = []
@@ -617,121 +747,140 @@ class NormalizerAN(BaseModule):
             z = z.detach().cpu().numpy().transpose(1, 2, 0)
             show_img(x, ax=ax_r[0], title=self.data.train._ds.label_loader.classes[y])
             show_img(z, ax=ax_r[1], title=self.data.train._ds.label_loader.classes[p])
-        title = ifnone(title, 'input/target/prediction')
+        title = ifnone(title, "input/target/prediction")
         fig.suptitle(title)
         plt.show()
 
 #Cell
 class DiscrimDataModule(BaseDataModule):
-    def setup(self, stage=None):
+    def __init__(self, sample_mode: int = 0, **kwargs):
+        super().__init__(**kwargs)
+        self.sample_mode = sample_mode
+
+    def setup(self, stage: Optional[str] = None):
         def label_func(x):
-            if 'PACS04' in x.name:
-                return '04'
-            elif 'PACS05' in x.name:
-                return '05'
+            if "PACS04" in x.name:
+                return "04"
+            elif "PACS05" in x.name:
+                return "05"
             else:
-                return '08'
+                return "08"
+
         self.filt = self.get_filt()
-        data = (ImageClassifDataset.
-                     from_folder(self.hparams.data, label_func,
-                                 classes=['04', '05', '08'],
-                                 extensions=['.png'], include=['1', '3'],
-                                 filterfunc=self.filt).
-                     split_by_csv(self.hparams.data_csv))
+        data = ImageClassifDataset.from_folder(
+            self.datafolder,
+            label_func,
+            classes=["04", "05", "08"],
+            extensions=[".png"],
+            include=["1", "3"],
+            filterfunc=self.filt,
+        ).split_by_csv(self.data_csv)
         n = len(data.train)
-        weights = [np.float32(n/(data.train.labels == '04').sum()),
-                   np.float32(n/(data.train.labels == '05').sum()),
-                   np.float32(n/(data.train.labels == '08').sum())]
-        self.hparams.weights = weights
+        weights = [
+            np.float32(n / (data.train.labels == "04").sum()),
+            np.float32(n / (data.train.labels == "05").sum()),
+            np.float32(n / (data.train.labels == "08").sum()),
+        ]
+        self.weights = weights
         self.data = data.to_tensor(tfms=self.tfms, tfm_y=False)
 
-    def train_dataloader(self):
-        sm = self.hparams.sample_mode
-        w = self.hparams.weights
+    def train_dataloader(self) -> DataLoader:
+        sm = self.sample_mode
+        w = self.weights
         labels = self.data.train.labels
         if sm > 0:
-            weights = np.where(labels == '04', w[0], 1.)
-            weights[labels == '05'] = w[1]
-            weights[labels == '08'] = w[2]
+            weights = np.where(labels == "04", w[0], 1.0)
+            weights[labels == "05"] = w[1]
+            weights[labels == "08"] = w[2]
             if sm == 1:
-                n = max((labels == '04').sum(),
-                        (labels == '05').sum(),
-                        (labels == '08').sum())
-                sampler = WeightedRandomSampler(weights, int(3*n))
+                n = max(
+                    (labels == "04").sum(),
+                    (labels == "05").sum(),
+                    (labels == "08").sum(),
+                )
+                sampler = WeightedRandomSampler(weights, int(3 * n))
             else:
-                n = min((labels == '04').sum(),
-                        (labels == '05').sum(),
-                        (labels == '08').sum())
+                n = min(
+                    (labels == "04").sum(),
+                    (labels == "05").sum(),
+                    (labels == "08").sum(),
+                )
                 print(n, len(labels), type(n))
-                sampler = WeightedRandomSampler(weights, int(3*n),
-                                                replacement=False)
+                sampler = WeightedRandomSampler(weights, int(3 * n), replacement=False)
         else:
             sampler = RandomSampler(self.data.train)
-        return DataLoader(self.data.train, batch_size=self.bs,
-                          sampler=sampler, drop_last=True,
-                          num_workers=4, pin_memory=True)
+        return DataLoader(
+            self.data.train,
+            batch_size=self.bs,
+            sampler=sampler,
+            drop_last=True,
+            num_workers=4,
+            pin_memory=True,
+        )
 
 #Cell
 class PACSDiscriminator(BaseModule):
-    """
-    """
-    def __init__(self, hparams, **kwargs):
-        super().__init__(hparams, **kwargs)
+    """"""
 
-        self.loss = _get_loss(hparams.loss, 1., hparams.reduction,
-                              device=self.main_device, nc=3)
-        if 'cbr' in hparams.model:
-            args = map(int, hparams.model.split('_')[1:])
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        hparams = self.hparams
+        self.loss = _get_loss(
+            hparams.loss, 1.0, hparams.reduction, device=self.main_device, nc=3
+        )
+        if "cbr" in hparams.model:
+            args = map(int, hparams.model.split("_")[1:])
             base_model = CBR(*args)
             cut = -3
-        elif 'sasa' in hparams.model:
-            args = map(int, hparams.model.split('_')[1:])
+        elif "sasa" in hparams.model:
+            args = map(int, hparams.model.split("_")[1:])
             base_model = SASA(*args)
             cut = -3
-        elif 'sanet' in hparams.model:
-            splits = hparams.model.split('_')
+        elif "sanet" in hparams.model:
+            splits = hparams.model.split("_")
             kernel_size = int(splits[-1])
             base_model = globals()[splits[0]](kernel_size)
             cut = -2
         else:
-            base_model = timm.create_model(hparams.model,
-                                           pretrained=not hparams.rand_weights)
+            base_model = timm.create_model(
+                hparams.model, pretrained=not hparams.rand_weights
+            )
             cut = -2
         self.base_model = nn.Sequential(*list(base_model.children())[:cut])
         head = [nn.AdaptiveAvgPool2d(1), nn.Flatten()]
         nf = get_num_features(self.base_model)
         p = hparams.dropout
-        head += bn_drop_lin(nf, nf, p=p/2) + bn_drop_lin(nf, 3, p=p)
+        head += bn_drop_lin(nf, nf, p=p / 2) + bn_drop_lin(nf, 3, p=p)
         self.head = nn.Sequential(*head)
         self.post_init()
         self._create_normalizer()
 
-    def validation_step(self, batch, batch_nb):
+    def validation_step(
+        self, batch: Tuple[torch.Tensor, torch.Tensor], batch_nb: int
+    ) -> Dict[str, torch.Tensor]:
         # OPTIONAL
         x, y = batch
         y_hat = self(x)
         loss = self.loss(y_hat, y)
-        ret ={'loss': loss}
+        ret = {"loss": loss}
         n = y.shape[0]
         y_hat = torch.softmax(y_hat, dim=1)
-        y_hat = y_hat.argmax(dim=-1).view(n,-1)
-        y = y.view(n,-1)
-        ret['t0'] = ((y_hat==0)&(y==0)).float().sum()
-        ret['t1'] = ((y_hat==1)&(y==1)).float().sum()
-        ret['t2'] = ((y_hat==2)&(y==2)).float().sum()
-        ret['f0'] = ((y_hat==0)&(y!=0)).float().sum()
-        ret['f1'] = ((y_hat==1)&(y!=1)).float().sum()
-        ret['f2'] = ((y_hat==2)&(y!=2)).float().sum()
+        y_hat = y_hat.argmax(dim=-1).view(n, -1)
+        y = y.view(n, -1)
+        ret["t0"] = ((y_hat == 0) & (y == 0)).float().sum()
+        ret["t1"] = ((y_hat == 1) & (y == 1)).float().sum()
+        ret["t2"] = ((y_hat == 2) & (y == 2)).float().sum()
+        ret["f0"] = ((y_hat == 0) & (y != 0)).float().sum()
+        ret["f1"] = ((y_hat == 1) & (y != 1)).float().sum()
+        ret["f2"] = ((y_hat == 2) & (y != 2)).float().sum()
         return ret
 
-    def validation_epoch_end(self, outputs):
+    def validation_epoch_end(self, outputs: List[Dict[str, torch.Tensor]]):
         # OPTIONAL
         log = {}
-        t0, f0, t1, f1, t2, f2 = _get_keys_in_list_and_apply(outputs,
-                                                             't0', 'f0',
-                                                             't1', 'f1',
-                                                             't2', 'f2',
-                                                             apply_func=torch.sum)
+        t0, f0, t1, f1, t2, f2 = _get_keys_in_list_and_apply(
+            outputs, "t0", "f0", "t1", "f1", "t2", "f2", apply_func=torch.sum
+        )
         t = torch.stack((t0, t1, t2))
         f = torch.stack((f0, f1, f2))
         for metric in self.metrics:
@@ -741,45 +890,54 @@ class PACSDiscriminator(BaseModule):
                 name = metric.func.__name__
                 kws = metric.keywords
                 for k in kws:
-                    name += f'_{k}_{kws[k]}'
+                    name += f"_{k}_{kws[k]}"
             for c in range(3):
-                c_name = name + f'_{c}'
-                log[c_name] = metric(t[c], f[c], t[:c].sum()+t[c+1:].sum(),
-                                     f[:c].sum()+f[c+1:].sum())
-        log['val_loss'] = torch.mean([output['loss'] for output in outputs])
+                c_name = name + f"_{c}"
+                log[c_name] = metric(
+                    t[c],
+                    f[c],
+                    t[:c].sum() + t[c + 1 :].sum(),
+                    f[:c].sum() + f[c + 1 :].sum(),
+                )
+        log["val_loss"] = torch.mean([output["loss"] for output in outputs])
         outputs.log_dict(log)
 
     def _create_normalizer(self):
         hparams = self.hparams
         if hparams.normalizer is not None:
-            norm = DynamicUnet(hparams.normalizer, n_classes=3,
-                               input_shape=(3, hparams.size, hparams.size),
-                               pretrained=True)
+            norm = DynamicUnet(
+                hparams.normalizer,
+                n_classes=3,
+                input_shape=(3, hparams.size, hparams.size),
+                pretrained=True,
+            )
             if hparams.norm_version is not None:
-                save_dir = (self.save_path.parents[1]/'normalizer'/
-                            f'{hparams.normalizer}/lightning_logs'/
-                            'version_{hparams.norm_version}/checkpoints')
+                save_dir = (
+                    self.save_path.parents[1]
+                    / "normalizer"
+                    / f"{hparams.normalizer}/lightning_logs"
+                    / "version_{hparams.norm_version}/checkpoints"
+                )
                 path = next(save_dir.iterdir())
-                ckpt = torch.load(path,
-                                        map_location=lambda stor, loc: stor)
+                ckpt = torch.load(path, map_location=lambda stor, loc: stor)
                 state_dict = {}
-                for k in ckpt['state_dict']:
-                    state_dict[k.replace('unet.', '')] = ckpt['state_dict'][k]
+                for k in ckpt["state_dict"]:
+                    state_dict[k.replace("unet.", "")] = ckpt["state_dict"][k]
                 norm.load_state_dict(state_dict)
                 for p in norm.parameters():
                     p.requires_grad = False
             norm = norm.to(self.main_device)
             self.norm = norm.__call__
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = _open_functions[self.hparams.open_mode](x).detach()
-        if hasattr(self, 'norm'):
+        if hasattr(self, "norm"):
             x = self.norm(x)
         x = self.base_model(x)
         x = self.head(x)
         return x
 
-    def predict(self, x):
+    def predict(self, x: torch.Tensor) -> torch.Tensor:
         pred = super().predict(x)
         pred = torch.softmax(pred, dim=1)
         return pred
@@ -789,107 +947,127 @@ class PACSDiscriminator(BaseModule):
         Freeze the base model.
         """
         for m in self.leaf_modules:
-            if 'base_model' in m.name and not isinstance(m, nn.BatchNorm2d):
+            if "base_model" in m.name and not isinstance(m, nn.BatchNorm2d):
                 for param in m.parameters():
                     param.requires_grad = False
 
 #Cell
 class GradeClassifDataModule(BaseDataModule):
-    def setup(self, stage=None):
-        self.filt = self.get_filt()
-        self.data = (ImageClassifDataset.
-                     from_folder(hparams.data, lambda x: x.parts[-3],
-                                 classes=['1', '3'], extensions=['.png'],
-                                 include=['1', '3'], filterfunc=self.filt).
-                     split_by_csv(hparams.data_csv).
-                     to_tensor(tfms=self.tfms, tfm_y=False))
-        weight = (np.float32((self.data.train.labels == '3').sum()/
-                             (self.data.train.labels == '1').sum()))
-        self.hparams.weight = weight
+    def __init__(self, sample_mode: int = 0, **kwargs):
+        super().__init__(**kwargs)
+        self.sample_mode = sample_mode
 
-    def train_dataloader(self):
-        sm = self.hparams.sample_mode
-        w = self.hparams.weight
+    def setup(self, stage: Optional[str] = None):
+        self.filt = self.get_filt()
+        self.data = (
+            ImageClassifDataset.from_folder(
+                self.datafolder,
+                lambda x: x.parts[-3],
+                classes=["1", "3"],
+                extensions=[".png"],
+                include=["1", "3"],
+                filterfunc=self.filt,
+            )
+            .split_by_csv(self.data_csv)
+            .to_tensor(tfms=self.tfms, tfm_y=False)
+        )
+        weights = np.float32(
+            (self.data.train.labels == "3").sum()
+            / (self.data.train.labels == "1").sum()
+        )
+        self.weights = weights
+
+    def train_dataloader(self) -> DataLoader:
+        sm = self.sample_mode
+        w = self.weights
         if sm > 0:
-            labels = self.data.train.labels == '1'
-            weights = np.where(labels, w, 1.)
+            labels = self.data.train.labels == "1"
+            weights = np.where(labels, w, 1.0)
             if sm == 1:
-                sampler = WeightedRandomSampler(weights,
-                                                2*len(np.argwhere(~labels)))
+                sampler = WeightedRandomSampler(weights, 2 * len(np.argwhere(~labels)))
             else:
                 # sampler = WeightedRandomSampler(weights,
                 #                                 2*len(np.argwhere(labels)),
                 #                                 replacement=False)
-                sampler = WeightedRandomSampler(weights, 40000,
-                                                replacement=False,
-                                                num_workers=4)
+                sampler = WeightedRandomSampler(
+                    weights, 40000, replacement=False, num_workers=4
+                )
         else:
             sampler = RandomSampler(self.data.train)
-        return DataLoader(self.data.train, batch_size=self.bs,
-                          sampler=sampler, drop_last=True,
-                          num_workers=4, pin_memory=True)
+        return DataLoader(
+            self.data.train,
+            batch_size=self.bs,
+            sampler=sampler,
+            drop_last=True,
+            num_workers=4,
+            pin_memory=True,
+        )
 
 #Cell
 class GradesClassifModel(BaseModule):
-    """
-    """
-    def __init__(self, hparams, **kwargs):
-        super().__init__(hparams, **kwargs)
-        self.loss = _get_loss(hparams.loss, 1., hparams.reduction,
-                              device=self.main_device, nc=2)
-        if 'cbr' in hparams.model:
-            args = map(int, hparams.model.split('_')[1:])
+    """"""
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        hparams = self.hparams
+        self.loss = _get_loss(
+            hparams.loss, 1.0, hparams.reduction, device=self.main_device, nc=2
+        )
+        if "cbr" in hparams.model:
+            args = map(int, hparams.model.split("_")[1:])
             base_model = CBR(*args)
             cut = -3
-        elif 'sasa' in hparams.model:
-            args = map(int, hparams.model.split('_')[1:])
+        elif "sasa" in hparams.model:
+            args = map(int, hparams.model.split("_")[1:])
             base_model = SASA(*args)
             cut = -3
-        elif 'sanet' in hparams.model:
-            splits = hparams.model.split('_')
+        elif "sanet" in hparams.model:
+            splits = hparams.model.split("_")
             kernel_size = int(splits[-1])
             base_model = globals()[splits[0]](kernel_size)
             cut = -2
         else:
-            base_model = timm.create_model(hparams.model,
-                                           pretrained=not hparams.rand_weights)
+            base_model = timm.create_model(
+                hparams.model, pretrained=not hparams.rand_weights
+            )
             cut = -2
         self.base_model = nn.Sequential(*list(base_model.children())[:cut])
         head = [nn.AdaptiveAvgPool2d(1), nn.Flatten()]
         nf = get_num_features(self.base_model)
         p = hparams.dropout
-        nc = 2 if hparams.loss == 'cross-entropy' else 1
-        head += bn_drop_lin(nf, nf, p=p/2) + bn_drop_lin(nf, nc, p=p)
+        nc = 2 if hparams.loss == "cross-entropy" else 1
+        head += bn_drop_lin(nf, nf, p=p / 2) + bn_drop_lin(nf, nc, p=p)
         self.head = nn.Sequential(*head)
         self.post_init()
         self._create_normalizer()
 
-    def validation_step(self, batch, batch_nb):
+    def validation_step(
+        self, batch: Tuple[torch.Tensor, torch.Tensor], batch_nb: int
+    ) -> Dict[str, torch.Tensor]:
         # OPTIONAL
         x, y = batch
         y_hat = self(x)
         loss = self.loss(y_hat, y)
-        ret = {'loss': loss}
+        ret = {"loss": loss}
         n = y.shape[0]
-        if self.hparams.loss == 'cross-entropy':
+        if self.hparams.loss == "cross-entropy":
             y_hat = torch.softmax(y_hat, dim=1)
-            y_hat = y_hat.argmax(dim=-1).view(n,-1)
+            y_hat = y_hat.argmax(dim=-1).view(n, -1)
         else:
             y_hat = torch.sigmoid(y_hat)
             y_hat = (y_hat > 0.5).view(n, -1)
-        y = y.view(n,-1)
-        ret['tp'] = ((y_hat)&(y==1)).float().sum()
-        ret['tn'] = ((~y_hat)&(y==0)).float().sum()
-        ret['fp'] = ((y_hat)&(y==0)).float().sum()
-        ret['fn'] = ((~y_hat)&(y==1)).float().sum()
+        y = y.view(n, -1)
+        ret["tp"] = ((y_hat) & (y == 1)).float().sum()
+        ret["tn"] = ((~y_hat) & (y == 0)).float().sum()
+        ret["fp"] = ((y_hat) & (y == 0)).float().sum()
+        ret["fn"] = ((~y_hat) & (y == 1)).float().sum()
         return ret
 
-    def validation_epoch_end(self, outputs):
+    def validation_epoch_end(self, outputs: List[Dict[str, torch.Tensor]]):
         # OPTIONAL
-        tp, fp, tn, fn = _get_keys_in_list_and_apply(outputs,
-                                                     'tp', 'fp',
-                                                     'tn', 'fn',
-                                                     apply_func=torch.sum)
+        tp, fp, tn, fn = _get_keys_in_list_and_apply(
+            outputs, "tp", "fp", "tn", "fn", apply_func=torch.sum
+        )
         log = {}
         for metric in self.metrics:
             try:
@@ -898,44 +1076,49 @@ class GradesClassifModel(BaseModule):
                 name = metric.func.__name__
                 kws = metric.keywords
                 for k in kws:
-                    name += f'_{k}_{kws[k]}'
+                    name += f"_{k}_{kws[k]}"
             log[name] = metric(tp, fp, tn, fn)
-        log['val_loss'] = torch.mean([output['loss'] for output in outputs])
+        log["val_loss"] = torch.mean([output["loss"] for output in outputs])
         self.log_dict(log)
 
     def _create_normalizer(self):
         hparams = self.hparams
         if hparams.normalizer is not None:
-            norm = DynamicUnet(hparams.normalizer, n_classes=3,
-                               input_shape=(3, hparams.size, hparams.size),
-                               pretrained=True)
+            norm = DynamicUnet(
+                hparams.normalizer,
+                n_classes=3,
+                input_shape=(3, hparams.size, hparams.size),
+                pretrained=True,
+            )
             if hparams.norm_version is not None:
-                save_dir = (self.save_path.parents[1]/'normalizer'/
-                            f'{hparams.normalizer}/lightning_logs'/
-                            'version_{hparams.norm_version}/checkpoints')
+                save_dir = (
+                    self.save_path.parents[1]
+                    / "normalizer"
+                    / f"{hparams.normalizer}/lightning_logs"
+                    / "version_{hparams.norm_version}/checkpoints"
+                )
                 path = next(save_dir.iterdir())
-                ckpt = torch.load(path,
-                                        map_location=lambda stor, loc: stor)
+                ckpt = torch.load(path, map_location=lambda stor, loc: stor)
                 state_dict = {}
-                for k in ckpt['state_dict']:
-                    state_dict[k.replace('unet.', '')] = ckpt['state_dict'][k]
+                for k in ckpt["state_dict"]:
+                    state_dict[k.replace("unet.", "")] = ckpt["state_dict"][k]
                 norm.load_state_dict(state_dict)
                 for p in norm.parameters():
                     p.requires_grad = False
             norm = norm.to(self.main_device)
             self.norm = norm.__call__
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = _open_functions[self.hparams.open_mode](x).detach()
-        if hasattr(self, 'norm'):
+        if hasattr(self, "norm"):
             x = self.norm(x)
         x = self.base_model(x)
         x = self.head(x)
         return x
 
-    def predict(self, x):
+    def predict(self, x: torch.Tensor) -> torch.Tensor:
         pred = super().predict(x)
-        if self.hparams.loss == 'cross-entropy':
+        if self.hparams.loss == "cross-entropy":
             pred = torch.softmax(pred, dim=1)
         else:
             pred = torch.sigmoid(pred)
@@ -946,45 +1129,53 @@ class GradesClassifModel(BaseModule):
         Freeze the base model.
         """
         for m in self.leaf_modules:
-            if 'base_model' in m.name and not isinstance(m, nn.BatchNorm2d):
+            if "base_model" in m.name and not isinstance(m, nn.BatchNorm2d):
                 for param in m.parameters():
                     param.requires_grad = False
 
 #Cell
 class RNNAttention(BaseModule):
-    """
-    """
-    def __init__(self, hparams, **kwargs):
-        self.loss = _get_loss(hparams.loss, 1., hparams.reduction,
-                              device=self.main_device)
-        nc = 2 if hparams.loss == 'cross-entropy' else 1
+    """"""
+
+    def __init__(
+        self, n_glimpses: int = 3, glimpse_size: int = 256, gamma: float = 1, **kwargs
+    ):
+        super().__init__(**kwargs)
+        hparams = self.hparams
+        self.loss = _get_loss(
+            hparams.loss, 1.0, hparams.reduction, device=self.main_device
+        )
+        nc = 2 if hparams.loss == "cross-entropy" else 1
         self.t_x = nn.Sequential(*list(CBR(3, 64, 2).children())[:-1])
         nf = get_num_features(self.t_x)
         self.fc = nn.Linear(nx, nc)
-        self.t_l = nn.Sequential(nn.Linear(6, nf),
-                                 nn.ReLU(),
-                                 nn.Linear(nf, 2*nf),
-                                 nn.ReLU(),
-                                 nn.Linear(2*nf, nf))
-        self.t_a = nn.Sequential(nn.Linear(nf, 2*nf),
-                                 nn.ReLU(),
-                                 nn.Linear(2*nf, nf),
-                                 nn.ReLU(),
-                                 nn.Linear(nf, 6))
-        self.final_head = nn.Sequential(nn.Linear(nx*self.hparams.n_glimpses,
-                                                  nx),
-                                        nn.ReLU(),
-                                        nn.Linear(nf, nc))
+        self.t_l = nn.Sequential(
+            nn.Linear(6, nf),
+            nn.ReLU(),
+            nn.Linear(nf, 2 * nf),
+            nn.ReLU(),
+            nn.Linear(2 * nf, nf),
+        )
+        self.t_a = nn.Sequential(
+            nn.Linear(nf, 2 * nf),
+            nn.ReLU(),
+            nn.Linear(2 * nf, nf),
+            nn.ReLU(),
+            nn.Linear(nf, 6),
+        )
+        self.final_head = nn.Sequential(
+            nn.Linear(nx * n_glimpses, nx), nn.ReLU(), nn.Linear(nf, nc)
+        )
+        self.save_hyperparameters()
 
-
-    def forward(self, X, l):
+    def forward(
+        self, X: torch.Tensor, l: torch.Tensor
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         X = _open_functions[self.hparams.open_mode](X).detach()
-        Ai = gaussian_mask(*l[:3], self.hparams.glimpse_size,
-                           self.hparams.size)
-        Aj = gaussian_mask(*l[3:], self.hparams.glimpse_size,
-                           self.hparams.size)
+        Ai = gaussian_mask(*l[:3], self.hparams.glimpse_size, self.hparams.size)
+        Aj = gaussian_mask(*l[3:], self.hparams.glimpse_size, self.hparams.size)
         x = Ai[None, None] @ X @ Aj.T[None, None]
-        if hasattr(self, 'norm'):
+        if hasattr(self, "norm"):
             x = self.norm(x)
         fx = self.t_x(x)
         y = self.fc(fx)
@@ -993,14 +1184,17 @@ class RNNAttention(BaseModule):
         l = self.t_a(l)
         return fx, y, l
 
-    def compute_loss(self, X, Y):
+    def compute_loss(
+        self, X: torch.Tensor, Y: torch.Tensor
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Compute the loss defined in the paper. Return the final slide-level
         prediction as well.
         """
-        l0 = torch.tensor([0, .5,
-                           self.hparams.size//self.hparams.glimpse_size]*2,
-                          device=self.main_device)
+        l0 = torch.tensor(
+            [0, 0.5, self.hparams.size // self.hparams.glimpse_size] * 2,
+            device=self.main_device,
+        )
         loss = 0
         loss_prev = 0
         preds = []
@@ -1008,11 +1202,11 @@ class RNNAttention(BaseModule):
             fx, y_hat, l = self(X, l0)
             fts.append(fx)
             loss += self.loss(y_hat, Y)
-            loss_a = (y_hat**2).sum()
+            loss_a = (y_hat ** 2).sum()
             if t > 0:
                 loss -= loss_a - loss_prev / t
             loss_prev += loss_a
-            loss += self.hparams.gamma * torch.exp(-torch.abs(l-l0))
+            loss += self.hparams.gamma * torch.exp(-torch.abs(l - l0))
             l0 = l.detach()
         # n_glimpses x bs x C
         fts = torch.cat(fts)
@@ -1021,41 +1215,44 @@ class RNNAttention(BaseModule):
         loss += self.loss(Y_hat, Y)
         return loss, Y_hat
 
-    def training_step(self, batch, batch_nb):
+    def training_step(
+        self, batch: Tuple[torch.Tensor, torch.Tensor], batch_nb: int
+    ) -> Dict[str, torch.Tensor]:
         # REQUIRED
         X, Y = batch
         loss, _ = self.compute_loss(X, Y)
-        lr = self.sched.optimizer.param_groups[-1]['lr']
-        log = {'train_loss': loss, 'learning_rate': lr}
+        lr = self.sched.optimizer.param_groups[-1]["lr"]
+        log = {"train_loss": loss, "learning_rate": lr}
         self.log_dict(log)
-        return {'loss': loss}
+        return {"loss": loss}
 
-    def validation_step(self, batch, batch_nb):
+    def validation_step(
+        self, batch: Tuple[torch.Tensor, torch.Tensor], batch_nb: int
+    ) -> Dict[str, torch.Tensor]:
         # OPTIONAL
         x, y = batch
         y_hat = self(x)
         loss = self.loss(y_hat, y)
-        ret = {'loss': loss}
+        ret = {"loss": loss}
         n = y.shape[0]
-        if self.hparams.loss == 'cross-entropy':
+        if self.hparams.loss == "cross-entropy":
             y_hat = torch.softmax(y_hat, dim=1)
-            y_hat = y_hat.argmax(dim=-1).view(n,-1)
+            y_hat = y_hat.argmax(dim=-1).view(n, -1)
         else:
             y_hat = torch.sigmoid(y_hat)
             y_hat = (y_hat > 0.5).view(n, -1)
-        y = y.view(n,-1)
-        ret['tp'] = ((y_hat)&(y==1)).float().sum()
-        ret['tn'] = ((~y_hat)&(y==0)).float().sum()
-        ret['fp'] = ((y_hat)&(y==0)).float().sum()
-        ret['fn'] = ((~y_hat)&(y==1)).float().sum()
+        y = y.view(n, -1)
+        ret["tp"] = ((y_hat) & (y == 1)).float().sum()
+        ret["tn"] = ((~y_hat) & (y == 0)).float().sum()
+        ret["fp"] = ((y_hat) & (y == 0)).float().sum()
+        ret["fn"] = ((~y_hat) & (y == 1)).float().sum()
         return ret
 
-    def validation_epoch_end(self, outputs):
+    def validation_epoch_end(self, outputs: List[Dict[str, torch.Tensor]]):
         # OPTIONAL
-        tp, fp, tn, fn = _get_keys_in_list_and_apply(outputs,
-                                                     'tp', 'fp',
-                                                     'tn', 'fn',
-                                                     apply_func=torch.sum)
+        tp, fp, tn, fn = _get_keys_in_list_and_apply(
+            outputs, "tp", "fp", "tn", "fn", apply_func=torch.sum
+        )
         log = {}
         for metric in self.metrics:
             try:
@@ -1064,7 +1261,7 @@ class RNNAttention(BaseModule):
                 name = metric.func.__name__
                 kws = metric.keywords
                 for k in kws:
-                    name += f'_{k}_{kws[k]}'
+                    name += f"_{k}_{kws[k]}"
             log[name] = metric(tp, fp, tn, fn)
-        log['val_loss'] = torch.mean([output['loss'] for output in outputs])
+        log["val_loss"] = torch.mean([output["loss"] for output in outputs])
         self.log_dict(log)

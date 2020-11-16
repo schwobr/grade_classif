@@ -15,14 +15,20 @@ from albumentations import (RandomRotate90,
                             HueSaturationValue,
                             RGBShift,
                             CenterCrop,
-                            ImageOnlyTransform)
+                            ImageOnlyTransform,
+                            BasicTransform)
 import albumentations.augmentations.functional as F
 from ..imports import *
 from math import floor
 from skimage.color import rgb2hed
 
 #Cell
-def _shift_hsv_non_uint8(img, hue_shift, sat_shift, val_shift):
+def _shift_hsv_non_uint8(
+    img: NDArray[(Any, Any, 3), Number],
+    hue_shift: int,
+    sat_shift: float,
+    val_shift: float,
+) -> NDArray[(Any, Any, 3), Number]:
     dtype = img.dtype
     img = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
     hue, sat, val = cv2.split(img)
@@ -30,20 +36,26 @@ def _shift_hsv_non_uint8(img, hue_shift, sat_shift, val_shift):
     hue = np.where(hue < 0, hue + 360, hue)
     hue = np.where(hue > 360, hue - 360, hue)
     hue = hue.astype(dtype)
-    sat = F.clip(sat + sat_shift * (sat > 0.1), dtype, 255 if dtype == np.uint8 else 1.0)
-    val = F.clip(val + val_shift * (sat > 0.1), dtype, 255 if dtype == np.uint8 else 1.0)
+    sat = F.clip(
+        sat + sat_shift * (sat > 0.1), dtype, 255 if dtype == np.uint8 else 1.0
+    )
+    val = F.clip(
+        val + val_shift * (sat > 0.1), dtype, 255 if dtype == np.uint8 else 1.0
+    )
     img = cv2.merge((hue, sat, val)).astype(dtype)
     img = cv2.cvtColor(img, cv2.COLOR_HSV2RGB)
     return img
+
+
 F._shift_hsv_non_uint8 = _shift_hsv_non_uint8
 
 #Cell
-def _mod(x, y):
+def _mod(x: Number, y: Number) -> Number:
     x -= floor(x / y) * y
     return x
 
 #Cell
-def _get_params(tfm):
+def _get_params(tfm: BasicTransform) -> Dict[str, Number]:
     params = {}
     for k, v in tfm.base_values.items():
         v_min, v_max = tfm.max_values[k]
@@ -58,151 +70,192 @@ def _get_params(tfm):
     return params
 
 #Cell
-def _init_attrs(tfm, num_els=1):
+def _init_attrs(tfm: BasicTransform, num_els: int = 1):
     tfm.always_apply = True
     tfm.num_els = num_els
     tfm.p = 1
     tfm.n = 0
     tfm.mult = 83
-    tfm.base_values = {x: (x_lim[1]-x_lim[0])/7 for x, x_lim in tfm.max_values.items()}
+    tfm.base_values = {
+        x: (x_lim[1] - x_lim[0]) / 7 for x, x_lim in tfm.max_values.items()
+    }
 
 #Cell
 class DeterministicHSV(HueSaturationValue):
-    def __init__(self, num_els=1, **kwargs):
+    def __init__(self, num_els: int = 1, **kwargs):
         super().__init__(**kwargs)
-        self.max_values = {"hue_shift": self.hue_shift_limit,
-                           "sat_shift": self.sat_shift_limit,
-                           "val_shift": self.val_shift_limit}
+        self.max_values = {
+            "hue_shift": self.hue_shift_limit,
+            "sat_shift": self.sat_shift_limit,
+            "val_shift": self.val_shift_limit,
+        }
         _init_attrs(self, num_els)
 
-    def get_params(self):
+    def get_params(self) -> Dict[str, Number]:
         return _get_params(self)
 
 #Cell
 class DeterministicBrightnessContrast(RandomBrightnessContrast):
-    def __init__(self, num_els=1, **kwargs):
+    def __init__(self, num_els: int = 1, **kwargs):
         super().__init__(**kwargs)
-        self.max_values = {"alpha": tuple(x + 1 for x in self.contrast_limit),
-                           "beta": self.brightness_limit}
-        _init_attrs(self,  num_els)
+        self.max_values = {
+            "alpha": tuple(x + 1 for x in self.contrast_limit),
+            "beta": self.brightness_limit,
+        }
+        _init_attrs(self, num_els)
 
-    def get_params(self):
+    def get_params(self) -> Dict[str, Number]:
         return _get_params(self)
 
 #Cell
 class DeterministicGamma(RandomGamma):
-    def __init__(self, num_els=1, **kwargs):
+    def __init__(self, num_els: int = 1, **kwargs):
         super().__init__(**kwargs)
-        self.max_values = {"gamma": tuple(x/100 for x in self.gamma_limit)}
+        self.max_values = {"gamma": tuple(x / 100 for x in self.gamma_limit)}
         _init_attrs(self, num_els)
 
-    def get_params(self):
+    def get_params(self) -> Dict[str, Number]:
         return _get_params(self)
 
 #Cell
 class DeterministicRGBShift(RGBShift):
-    def __init__(self, num_els=1, **kwargs):
+    def __init__(self, num_els: int = 1, **kwargs):
         super().__init__(**kwargs)
-        self.max_values = {"r_shift": self.r_shift_limit,
-                           "g_shift": self.g_shift_limit,
-                           "b_shift": self.b_shift_limit}
+        self.max_values = {
+            "r_shift": self.r_shift_limit,
+            "g_shift": self.g_shift_limit,
+            "b_shift": self.b_shift_limit,
+        }
         _init_attrs(self, num_els)
 
-    def get_params(self):
+    def get_params(self) -> Dict[str, Number]:
         return _get_params(self)
 
 #Cell
 class RGB2H(ImageOnlyTransform):
-    def __init__(self, always_apply=True, p=1):
+    def __init__(self, always_apply: bool = True, p: float = 1):
         super(RGB2H, self).__init__(always_apply, p)
 
-    def apply(self, image, **params):
+    def apply(
+        self, image: NDArray[(Any, Any, 3), Number], **params
+    ) -> NDArray[(Any, Any, 3), Number]:
         img = rgb2hed(image)[..., 0].astype(np.float32)
         img = (img + 0.7) / 0.46
         return np.stack((img, img, img), axis=-1)
 
-    def get_transform_init_args_names(self):
+    def get_transform_init_args_names(self) -> List:
         return []
 
 #Cell
 class RGB2E(ImageOnlyTransform):
-    def __init__(self, always_apply=True, p=1):
+    def __init__(self, always_apply: bool = True, p: float = 1):
         super(RGB2E, self).__init__(always_apply, p)
 
-    def apply(self, image, **params):
+    def apply(
+        self, image: NDArray[(Any, Any, 3), Number], **params
+    ) -> NDArray[(Any, Any, 3), Number]:
         img = rgb2hed(image)[..., 1].astype(np.float32)
         img = (img + 0.1) / 0.47
         return np.stack((img, img, img), axis=-1)
 
-    def get_transform_init_args_names(self):
+    def get_transform_init_args_names(self) -> List:
         return []
 
 #Cell
 class RGB2HEG(ImageOnlyTransform):
-    def __init__(self, always_apply=True, p=1):
+    def __init__(self, always_apply: bool = True, p: float = 1):
         super(RGB2HEG, self).__init__(always_apply, p)
 
-    def apply(self, image, **params):
+    def apply(
+        self, image: NDArray[(Any, Any, 3), Number], **params
+    ) -> NDArray[(Any, Any, 3), Number]:
         tfmed = rgb2hed(image).astype(np.float32)
         gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
         return np.concatenate((tfmed[..., :2], gray[..., None]), axis=-1)
 
-    def get_transform_init_args_names(self):
+    def get_transform_init_args_names(self) -> List:
         return []
 
 #Cell
-def get_transforms1(size, num_els=1):
-    tfms = [RandomCrop(size, size),
-            RandomRotate90(),
-            Flip(),
-            Transpose(),
-            GridDistortion(distort_limit=0.05, p=0.2),
-            RandomGamma(p=0.2),
-            GaussianBlur(blur_limit=3, p=0.2)]
+def get_transforms1(
+    size: int, num_els: int = 1
+) -> Tuple[List[BasicTransform], List[BasicTransform]]:
+    tfms = [
+        RandomCrop(size, size),
+        RandomRotate90(),
+        Flip(),
+        Transpose(),
+        GridDistortion(distort_limit=0.05, p=0.2),
+        RandomGamma(p=0.2),
+        GaussianBlur(blur_limit=3, p=0.2),
+    ]
     val_tfms = [CenterCrop(size, size)]
     return tfms, val_tfms
 
 #Cell
-def get_transforms2(size, num_els=1):
-    tfms = [RandomCrop(size, size),
-            RandomRotate90(),
-            Flip(),
-            Transpose(),
-            GridDistortion(distort_limit=0.05, p=0.2),
-            RandomGamma(p=0.2),
-            GaussianBlur(blur_limit=3, p=0.2),
-            RGBShift(0.15, 0.15, 0.15)]
+def get_transforms2(
+    size: int, num_els: int = 1
+) -> Tuple[List[BasicTransform], List[BasicTransform]]:
+    tfms = [
+        RandomCrop(size, size),
+        RandomRotate90(),
+        Flip(),
+        Transpose(),
+        GridDistortion(distort_limit=0.05, p=0.2),
+        RandomGamma(p=0.2),
+        GaussianBlur(blur_limit=3, p=0.2),
+        RGBShift(0.15, 0.15, 0.15),
+    ]
     val_tfms = [CenterCrop(size, size)]
     return tfms, val_tfms
 
 #Cell
-def get_transforms3(size, num_els=1):
-    tfms = [RandomCrop(size, size),
-            RandomRotate90(),
-            Flip(),
-            Transpose(),
-            GridDistortion(distort_limit=0.05, p=0.2),
-            RandomBrightnessContrast(p=0.7),
-            GaussianBlur(blur_limit=3, p=0.2),
-            RGBShift(0.2, 0.2, 0.2, p=0.8)]
-    val_tfms = [CenterCrop(size, size),
-                DeterministicBrightnessContrast(num_els=num_els),
-                DeterministicRGBShift(num_els=num_els, r_shift_limit=0.2, g_shift_limit=0.2, b_shift_limit=0.2)]
+def get_transforms3(
+    size: int, num_els: int = 1
+) -> Tuple[List[BasicTransform], List[BasicTransform]]:
+    tfms = [
+        RandomCrop(size, size),
+        RandomRotate90(),
+        Flip(),
+        Transpose(),
+        GridDistortion(distort_limit=0.05, p=0.2),
+        RandomBrightnessContrast(p=0.7),
+        GaussianBlur(blur_limit=3, p=0.2),
+        RGBShift(0.2, 0.2, 0.2, p=0.8),
+    ]
+    val_tfms = [
+        CenterCrop(size, size),
+        DeterministicBrightnessContrast(num_els=num_els),
+        DeterministicRGBShift(
+            num_els=num_els, r_shift_limit=0.2, g_shift_limit=0.2, b_shift_limit=0.2
+        ),
+    ]
     return tfms, val_tfms
 
 #Cell
-def get_transforms4(size, num_els=1):
-    tfms = [RandomCrop(size, size),
-            RandomRotate90(),
-            Flip(),
-            Transpose(),
-            GridDistortion(distort_limit=0.05, p=0.2),
-            #RandomBrightnessContrast(0.2, 0., p=0.2),
-            GaussianBlur(blur_limit=3, p=0.2),
-            RandomGamma(gamma_limit=(40, 160), p=1),
-            HueSaturationValue(40, .2, .2, p=1)]
-    val_tfms = [CenterCrop(size, size),
-                DeterministicGamma(num_els=num_els, gamma_limit=(40, 160)),
-                #DeterministicBrightnessContrast(num_els=num_els, brightness_limit=0.2, contrast_limit=0.),
-                DeterministicHSV(num_els=num_els, hue_shift_limit=40, sat_shift_limit=.1, val_shift_limit=.15)]
+def get_transforms4(
+    size: int, num_els: int = 1
+) -> Tuple[List[BasicTransform], List[BasicTransform]]:
+    tfms = [
+        RandomCrop(size, size),
+        RandomRotate90(),
+        Flip(),
+        Transpose(),
+        GridDistortion(distort_limit=0.05, p=0.2),
+        # RandomBrightnessContrast(0.2, 0., p=0.2),
+        GaussianBlur(blur_limit=3, p=0.2),
+        RandomGamma(gamma_limit=(40, 160), p=1),
+        HueSaturationValue(40, 0.2, 0.2, p=1),
+    ]
+    val_tfms = [
+        CenterCrop(size, size),
+        DeterministicGamma(num_els=num_els, gamma_limit=(40, 160)),
+        # DeterministicBrightnessContrast(num_els=num_els, brightness_limit=0.2, contrast_limit=0.),
+        DeterministicHSV(
+            num_els=num_els,
+            hue_shift_limit=40,
+            sat_shift_limit=0.1,
+            val_shift_limit=0.15,
+        ),
+    ]
     return tfms, val_tfms

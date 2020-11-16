@@ -8,27 +8,22 @@ from skimage.color import rgb2hed
 
 #Cell
 class ItemLoader:
-    def __call__(self, item):
+    def __call__(self, item: Any):
         raise NotImplementedError
 
 #Cell
 class ImageLoader(ItemLoader):
-    def __init__(self, div=True):
+    def __init__(self, div: bool = True):
         # self.open_mode = open_mode
         self.div = div
         # self.add_tfms = ['RGB2'+self.open_mode] if self.open_mode in ['HEG', 'H', 'E'] else []
 
-    def __call__(self, item):
-        # mode = cv2.IMREAD_GRAYSCALE if self.open_mode in ['G', '3G'] else cv2.IMREAD_COLOR
-        # img = cv2.imread(str(item), mode)
+    def __call__(self, item: Path) -> NDArray[(Any, Any, 3), Number]:
         img = cv2.imread(str(item), cv2.IMREAD_UNCHANGED)
-        # if self.open_mode is not 'G':
-        #    cvt_mode = cv2.COLOR_GRAY2RGB if self.open_mode == '3G' else cv2.COLOR_BGR2RGB
-        #    img = cv2.cvtColor(img, cvt_mode)
         if img.shape[-1] == 3:
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         if self.div:
-            img = img.astype(np.float32)/255
+            img = img.astype(np.float32) / 255
         return img
 
 #Cell
@@ -38,7 +33,9 @@ class MaskLoader(ImageLoader):
 
 #Cell
 class CategoryLoader(ItemLoader):
-    def __init__(self, n_classes=None, classes=None):
+    def __init__(
+        self, n_classes: Optional[int] = None, classes: Optional[List[Any]] = None
+    ):
         if n_classes is not None:
             self.n_classes = n_classes
             if classes is None:
@@ -46,9 +43,11 @@ class CategoryLoader(ItemLoader):
             else:
                 self.classes = classes
         else:
-            assert classes is not None, "you must either specify a list of classes or a number of classes"
+            assert (
+                classes is not None
+            ), "you must either specify a list of classes or a number of classes"
             self.classes = classes
             self.n_classes = len(classes)
 
-    def __call__(self, item):
+    def __call__(self, item: Any) -> int:
         return self.classes.index(item)

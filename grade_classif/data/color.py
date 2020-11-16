@@ -11,7 +11,7 @@ from kornia.color import rgb_to_xyz, rgb_to_grayscale
 _xyz_ref_white = (.950456, 1., 1.088754)
 
 #Cell
-def rgb_to_lab(image, eps = 1e-12):
+def rgb_to_lab(image: torch.Tensor, eps: float = 1e-12) -> torch.Tensor:
     r"""Converts a RGB image to Luv.
 
     See :class:`~kornia.color.RgbToLuv` for details.
@@ -25,12 +25,12 @@ def rgb_to_lab(image, eps = 1e-12):
     """
 
     if not torch.is_tensor(image):
-        raise TypeError("Input type is not a torch.Tensor. Got {}".format(
-            type(image)))
+        raise TypeError("Input type is not a torch.Tensor. Got {}".format(type(image)))
 
     if len(image.shape) < 3 or image.shape[-3] != 3:
-        raise ValueError("Input size must have a shape of (*, 3, H, W). Got {}"
-                         .format(image.shape))
+        raise ValueError(
+            "Input size must have a shape of (*, 3, H, W). Got {}".format(image.shape)
+        )
 
     # Convert from Linear RGB to sRGB
     r = image[..., 0, :, :]
@@ -52,14 +52,15 @@ def rgb_to_lab(image, eps = 1e-12):
     x = x / _xyz_ref_white[0]
     z = z / _xyz_ref_white[2]
 
-    L = torch.where(torch.gt(y, 0.008856),
-                                  116. * torch.pow(y, 1. / 3.) - 16.,
-                                  903.3 * y)
+    L = torch.where(
+        torch.gt(y, 0.008856), 116.0 * torch.pow(y, 1.0 / 3.0) - 16.0, 903.3 * y
+    )
 
     def _f(t):
-        return torch.where(torch.gt(t, 0.008856),
-                           torch.pow(t, 1/3),
-                           7.787*t + 4/29)
+        return torch.where(
+            torch.gt(t, 0.008856), torch.pow(t, 1 / 3), 7.787 * t + 4 / 29
+        )
+
     # Compute reference white point
     a = 500 * (_f(x) - _f(y))
     b = 200 * (_f(y) - _f(z))
@@ -74,7 +75,7 @@ _rgb_from_hed = torch.tensor([[0.65, 0.70, 0.29],
 _hed_from_rgb = torch.inverse(_rgb_from_hed)
 
 #Cell
-def rgb_to_hed(image):
+def rgb_to_hed(image: torch.Tensor) -> torch.Tensor:
     if len(image.shape) == 4:
         perm1 = (0, 2, 3, 1)
         perm2 = (0, 3, 1, 2)
@@ -82,11 +83,13 @@ def rgb_to_hed(image):
         perm1 = (1, 2, 0)
         perm2 = (2, 0, 1)
     image += 2
-    stains = -torch.log10(image).permute(*perm1) @ _hed_from_rgb.to(device=image.device, dtype=image.dtype)
+    stains = -(torch.log(image)/np.log(10)).permute(*perm1) @ _hed_from_rgb.to(
+        device=image.device, dtype=image.dtype
+    )
     return stains.permute(*perm2)
 
 #Cell
-def rgb_to_h(image):
+def rgb_to_h(image: torch.Tensor) -> torch.Tensor:
     if len(image.shape) == 4:
         h = rgb_to_hed(image)[:, 0]
         h = (h + 0.7) / 0.46
@@ -97,7 +100,7 @@ def rgb_to_h(image):
         return torch.stack((h, h, h), axis=0)
 
 #Cell
-def rgb_to_e(image):
+def rgb_to_e(image: torch.Tensor) -> torch.Tensor:
     if len(image.shape) == 4:
         e = rgb_to_hed(image)[:, 1]
         e = (e + 0.1) / 0.47
@@ -108,7 +111,7 @@ def rgb_to_e(image):
         return torch.stack((e, e, e), axis=0)
 
 #Cell
-def rgb_to_heg(image):
+def rgb_to_heg(image: torch.Tensor) -> torch.Tensor:
     gray = rgb_to_grayscale(image)
     hed = rgb_to_hed(image)
     if len(image.shape) == 4:
