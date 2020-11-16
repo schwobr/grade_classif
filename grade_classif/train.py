@@ -3,34 +3,56 @@
 __all__ = ['train_normalizer', 'train_classifier', 'train_discriminator']
 
 #Cell
-from .models.plmodules import (Normalizer, GradesClassifModel,
-                                            NormalizerAN, PACSDiscriminator,
-                                            NormDataModule, DiscrimDataModule,
-                                            GradeClassifDataModule)
-from .models.metrics import accuracy, precision, recall, f_1
 from .imports import *
+from .models.metrics import accuracy, f_1, precision, recall
+from .models.plmodules import (
+    DiscrimDataModule,
+    GradeClassifDataModule,
+    GradesClassifModel,
+    Normalizer,
+    NormalizerAN,
+    NormDataModule,
+    PACSDiscriminator,
+)
 
 #Cell
-def train_normalizer(hparams):
-    dm = NormDataModule(hparams)
+def train_normalizer(hparams: Namespace) -> Union[Normalizer, NormalizerAN]:
+    hparams = vars(hparams)
+    dm = NormDataModule(**hparams)
     if hparams.adversarial:
-        model = NormalizerAN(hparams)
+        model = NormalizerAN(**hparams)
     else:
-        model = Normalizer(hparams)
-    #model.freeze_encoder()
+        model = Normalizer(**hparams)
+    # model.freeze_encoder()
     model.fit(dm)
     return model
 
 #Cell
-def train_classifier(hparams):
-    dm = GradeClassifDataModule(hparams)
-    model = GradesClassifModel(hparams, metrics=[accuracy] + [met for i in range(2) for met in (partial(precision, cat=i), partial(recall, cat=i), partial(f_1, cat=i))])
+def train_classifier(hparams: Namespace) -> GradeClassifModel:
+    hparams = vars(hparams)
+    dm = GradeClassifDataModule(**hparams)
+    model = GradesClassifModel(
+        **hparams,
+        metrics=[accuracy]
+        + [
+            met
+            for i in range(2)
+            for met in (
+                partial(precision, cat=i),
+                partial(recall, cat=i),
+                partial(f_1, cat=i),
+            )
+        ]
+    )
     model.fit(dm)
     return model
 
 #Cell
-def train_discriminator(hparams):
-    dm = DiscrimDataModule(hparams)
-    model = PACSDiscriminator(hparams, metrics=[accuracy] + [met for met in (precision, recall, f_1)])
+def train_discriminator(hparams: Namespace) -> PACSDiscriminator:
+    hparams = vars(hparams)
+    dm = DiscrimDataModule(**hparams)
+    model = PACSDiscriminator(
+        **hparams, metrics=[accuracy] + [met for met in (precision, recall, f_1)]
+    )
     model.fit(dm)
     return model

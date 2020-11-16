@@ -7,23 +7,40 @@ from .loaders import ImageLoader
 from ..imports import *
 
 #Cell
-def np_to_tensor(x, tensor_type):
-    if tensor_type == 'image':
+def np_to_tensor(x: NDArray[(Any, ...), Number], tensor_type: str) -> torch.Tensor:
+    if tensor_type == "image":
         x = x.transpose(2, 0, 1)
     x = torch.tensor(x)
     return x
 
 #Cell
-def show_img(x, ax=None, figsize=(3,3), title=None, hide_axis=True, cmap='viridis', alpha=None, **kwargs):
-    if ax is None: fig,ax = plt.subplots(figsize=figsize)
+def show_img(
+    x: NDArray[(Any, Any, 3), Number],
+    ax: Optional[Axes] = None,
+    figsize: Tuple[int, int] = (3, 3),
+    title: Optional[str] = None,
+    hide_axis: bool = True,
+    cmap: str = "viridis",
+    alpha: Optional[float]=None,
+    **kwargs
+) -> Axes:
+    if ax is None:
+        fig, ax = plt.subplots(figsize=figsize)
     xtr = dict(cmap=cmap, alpha=alpha, **kwargs)
     ax.imshow(x, **xtr)
-    if hide_axis: ax.axis('off')
-    if title: ax.set_title(title)
+    if hide_axis:
+        ax.axis("off")
+    if title:
+        ax.set_title(title)
     return ax
 
 #Cell
-def load_batches(folder, bs=16, device='cpu', filt=None):
+def load_batches(
+    folder: Path,
+    bs: int = 16,
+    device: str = "cpu",
+    filt: Optional[Callable[[Path], bool]] = None,
+) -> Iterable[torch.Tensor]:
     x = []
     image_loader = ImageLoader()
     for fn in folder.iterdir():
@@ -31,7 +48,7 @@ def load_batches(folder, bs=16, device='cpu', filt=None):
             continue
         if len(x) < bs:
             img = image_loader(fn)
-            img = np_to_tensor(img, 'image').to(device)
+            img = np_to_tensor(img, "image").to(device)
             x.append(img)
         else:
             yield torch.stack(x)

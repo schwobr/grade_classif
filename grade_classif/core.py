@@ -6,10 +6,10 @@ __all__ = ['ifnone', 'is_listy']
 from .imports import *
 
 #Cell
-def ifnone(a, b):
+def ifnone(a: Any, b: Any) -> Any:
     "`b` if `a` is None else `a`"
     return b if a is None else a
 
 #Cell
-def is_listy(x):
+def is_listy(x: Any) -> bool:
     return isinstance(x, (tuple,list))

@@ -5,30 +5,48 @@ __all__ = ['bn_drop_lin', 'ConvBnRelu', 'ConvBn', 'ConvRelu', 'icnr', 'PixelShuf
            'sanet26d', 'sanet50', 'sanet50d', 'DynamicUnet']
 
 #Cell
-from .utils import get_sizes
-from .hooks import Hooks
-from ..imports import *
-from torch.nn.functional import interpolate, pad
 from timm.models.layers.adaptive_avgmax_pool import SelectAdaptivePool2d
+from torch.nn.functional import interpolate, pad
+
+from ..imports import *
+from .hooks import Hooks
+from .utils import get_sizes
 
 #Cell
-def bn_drop_lin(n_in, n_out, bn=True, p=0., actn=None):
+def bn_drop_lin(n_in, n_out, bn=True, p=0.0, actn=None):
     layers = [nn.BatchNorm1d(n_in)] if bn else []
-    if p != 0: layers.append(nn.Dropout(p))
+    if p != 0:
+        layers.append(nn.Dropout(p))
     layers.append(nn.Linear(n_in, n_out))
-    if actn is not None: layers.append(actn)
+    if actn is not None:
+        layers.append(actn)
     return layers
 
 #Cell
 class ConvBnRelu(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size, stride=1,
-                 padding=0, bias=True, eps=1e-5, momentum=0.01, **kwargs):
+    def __init__(
+        self,
+        in_channels,
+        out_channels,
+        kernel_size,
+        stride=1,
+        padding=0,
+        bias=True,
+        eps=1e-5,
+        momentum=0.01,
+        **kwargs
+    ):
         super().__init__()
         self.conv = nn.Conv2d(
-            in_channels, out_channels, kernel_size, stride=stride,
-            padding=padding, bias=bias, **kwargs)
-        self.bn = nn.BatchNorm2d(
-            out_channels, eps=eps, momentum=momentum)
+            in_channels,
+            out_channels,
+            kernel_size,
+            stride=stride,
+            padding=padding,
+            bias=bias,
+            **kwargs
+        )
+        self.bn = nn.BatchNorm2d(out_channels, eps=eps, momentum=momentum)
         self.relu = nn.ReLU()
 
     def forward(self, x):
@@ -37,29 +55,59 @@ class ConvBnRelu(nn.Module):
         x = self.relu(x)
         return x
 
+
 class ConvBn(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size, stride=1,
-                 padding=0, bias=True, eps=1e-5, momentum=0.01, **kwargs):
+    def __init__(
+        self,
+        in_channels,
+        out_channels,
+        kernel_size,
+        stride=1,
+        padding=0,
+        bias=True,
+        eps=1e-5,
+        momentum=0.01,
+        **kwargs
+    ):
         super().__init__()
         self.conv = nn.Conv2d(
-            in_channels, out_channels, kernel_size, stride=stride,
-            padding=padding, bias=bias, **kwargs)
-        self.bn = nn.BatchNorm2d(
-            out_channels, eps=eps, momentum=momentum)
+            in_channels,
+            out_channels,
+            kernel_size,
+            stride=stride,
+            padding=padding,
+            bias=bias,
+            **kwargs
+        )
+        self.bn = nn.BatchNorm2d(out_channels, eps=eps, momentum=momentum)
 
     def forward(self, x):
         x = self.conv(x)
         x = self.bn(x)
         return x
 
+
 class ConvRelu(nn.Module):
     def __init__(
-            self, in_channels, out_channels, kernel_size, stride=1, padding=0,
-            bias=True, **kwargs):
+        self,
+        in_channels,
+        out_channels,
+        kernel_size,
+        stride=1,
+        padding=0,
+        bias=True,
+        **kwargs
+    ):
         super().__init__()
         self.conv = nn.Conv2d(
-            in_channels, out_channels, kernel_size, stride=stride,
-            padding=padding, bias=bias, **kwargs)
+            in_channels,
+            out_channels,
+            kernel_size,
+            stride=stride,
+            padding=padding,
+            bias=bias,
+            **kwargs
+        )
         self.relu = nn.ReLU()
 
     def forward(self, x):
@@ -70,20 +118,20 @@ class ConvRelu(nn.Module):
 #Cell
 def icnr(x, scale=2, init=nn.init.kaiming_normal_):
     ni, nf, h, w = x.shape
-    ni2 = int(ni/(scale**2))
+    ni2 = int(ni / (scale ** 2))
     k = init(torch.zeros([ni2, nf, h, w])).transpose(0, 1)
     k = k.contiguous().view(ni2, nf, -1)
-    k = k.repeat(1, 1, scale**2)
+    k = k.repeat(1, 1, scale ** 2)
     k = k.contiguous().view([nf, ni, h, w]).transpose(0, 1)
     x.data.copy_(k)
 
 #Cell
 class PixelShuffleICNR(nn.Module):
-    def __init__(
-            self, in_channels, out_channels, bias=True, scale_factor=2, **kwargs):
+    def __init__(self, in_channels, out_channels, bias=True, scale_factor=2, **kwargs):
         super().__init__()
         self.conv = nn.Conv2d(
-            in_channels, out_channels*scale_factor**2, 1, bias=bias, **kwargs)
+            in_channels, out_channels * scale_factor ** 2, 1, bias=bias, **kwargs
+        )
         icnr(self.conv.weight)
         self.shuf = nn.PixelShuffle(scale_factor)
         # self.pad = nn.ReflectionPad2d((1, 0, 1, 0))
@@ -103,9 +151,9 @@ class DecoderBlock(nn.Module):
     def __init__(self, in_chans, skip_chans, hook, final_div=True, **kwargs):
         super().__init__()
         self.hook = hook
-        self.shuf = PixelShuffleICNR(in_chans, in_chans//2, **kwargs)
+        self.shuf = PixelShuffleICNR(in_chans, in_chans // 2, **kwargs)
         self.bn = nn.BatchNorm2d(skip_chans)
-        ni = in_chans//2 + skip_chans
+        ni = in_chans // 2 + skip_chans
         nf = ni if not final_div else skip_chans
         self.relu = nn.ReLU()
         self.conv1 = ConvBnRelu(ni, nf, 3, padding=1, **kwargs)
@@ -116,32 +164,43 @@ class DecoderBlock(nn.Module):
         x = self.shuf(x)
         ssh = skipco.shape[-2:]
         if ssh != x.shape[-2:]:
-            x = interpolate(x, ssh, mode='nearest')
+            x = interpolate(x, ssh, mode="nearest")
         x = self.relu(torch.cat([x, self.bn(skipco)], dim=1))
         return self.conv2(self.conv1(x))
+
 
 class LastCross(nn.Module):
     def __init__(self, n_chans, bottle=False):
         super(LastCross, self).__init__()
-        n_mid = n_chans//2 if bottle else n_chans
+        n_mid = n_chans // 2 if bottle else n_chans
         self.conv1 = ConvBnRelu(n_chans, n_mid, 3, padding=1)
         self.conv2 = ConvBnRelu(n_mid, n_chans, 3, padding=1)
 
     def forward(self, x):
         y = self.conv1(x)
         y = self.conv2(y)
-        return x+y
+        return x + y
 
 #Cell
 class CBR(nn.Module):
-    """
-    """
+    """"""
+
     def __init__(self, kernel_size, n_kernels, n_layers, n_classes=2):
         super().__init__()
         in_c = 3
         out_c = n_kernels
         for k in range(n_layers):
-            self.add_module(f'cbr{k}', ConvBnRelu(in_c, out_c, kernel_size, stride=2, padding=kernel_size//2, padding_mode='reflect'))
+            self.add_module(
+                f"cbr{k}",
+                ConvBnRelu(
+                    in_c,
+                    out_c,
+                    kernel_size,
+                    stride=2,
+                    padding=kernel_size // 2,
+                    padding_mode="reflect",
+                ),
+            )
             # self.add_module(f'maxpool{k}', nn.MaxPool2d(3, stride=2, padding=1))
             in_c = out_c
             out_c *= 2
@@ -156,11 +215,13 @@ class CBR(nn.Module):
 
 #Cell
 class SelfAttentionBlock(nn.Module):
-    """
-    """
+    """"""
+
     def __init__(self, c_in, c_out, k, stride=1, groups=8, bias=False):
         super().__init__()
-        assert c_in % groups == c_out % groups == 0, "c_in and c_out must be divided by groups"
+        assert (
+            c_in % groups == c_out % groups == 0
+        ), "c_in and c_out must be divided by groups"
         assert k % 2 == 1, "k must be odd"
         assert c_out % 2 == 0, "c_out must be even"
 
@@ -171,25 +232,60 @@ class SelfAttentionBlock(nn.Module):
         self.stride = stride
         self.groups = groups
 
-        self.key_conv = nn.Conv2d(c_in, c_out, 1, padding=padding, groups=groups, bias=bias, padding_mode='reflect')
+        self.key_conv = nn.Conv2d(
+            c_in,
+            c_out,
+            1,
+            padding=padding,
+            groups=groups,
+            bias=bias,
+            padding_mode="reflect",
+        )
         self.query_conv = nn.Conv2d(c_in, c_out, 1, groups=groups, bias=bias)
-        self.value_conv = nn.Conv2d(c_in, c_out, 1, padding=padding, groups=groups, bias=bias, padding_mode='reflect')
+        self.value_conv = nn.Conv2d(
+            c_in,
+            c_out,
+            1,
+            padding=padding,
+            groups=groups,
+            bias=bias,
+            padding_mode="reflect",
+        )
 
-        self.r_ai = nn.Parameter(torch.randn(1, c_out//2, k, 1))
-        self.r_aj = nn.Parameter(torch.randn(1, c_out//2, 1, k))
+        self.r_ai = nn.Parameter(torch.randn(1, c_out // 2, k, 1))
+        self.r_aj = nn.Parameter(torch.randn(1, c_out // 2, 1, k))
 
     def forward(self, x):
         b, c, h, w = x.shape
         n = self.c_out // self.groups
 
         q = self.query_conv(x).view(b, self.groups, n, h, w, 1)
-        k = self.key_conv(x).unfold(2, self.k, self.stride).unfold(3, self.k, self.stride).contiguous().view(b, self.groups, n, h, w, -1)
-        v = self.value_conv(x).unfold(2, self.k, self.stride).unfold(3, self.k, self.stride).contiguous().view(b, self.groups, n, h, w, -1)
+        k = (
+            self.key_conv(x)
+            .unfold(2, self.k, self.stride)
+            .unfold(3, self.k, self.stride)
+            .contiguous()
+            .view(b, self.groups, n, h, w, -1)
+        )
+        v = (
+            self.value_conv(x)
+            .unfold(2, self.k, self.stride)
+            .unfold(3, self.k, self.stride)
+            .contiguous()
+            .view(b, self.groups, n, h, w, -1)
+        )
 
-        r = torch.cat((self.r_ai.expand(b, -1, -1, self.k), self.r_aj.expand(b, -1, self.k, -1)), dim=1).view(b, self.groups, n, -1)
+        r = torch.cat(
+            (self.r_ai.expand(b, -1, -1, self.k), self.r_aj.expand(b, -1, self.k, -1)),
+            dim=1,
+        ).view(b, self.groups, n, -1)
         r = r[..., None, None, :].expand(-1, -1, -1, h, w, -1)
 
-        y = (torch.softmax((q*(k+r)).sum(2, keepdims=True), dim=-1) * v).sum(-1).view(b, self.c_out, h, w)
+        y = (
+            (torch.softmax((q * (k + r)).sum(2, keepdims=True), dim=-1) * v)
+            .sum(-1)
+            .view(b, self.c_out, h, w)
+        )
 
         return y
 
@@ -198,12 +294,19 @@ class SASA(nn.Module):
     def __init__(self, kernel_size, n_kernels, n_layers, n_groups, n_classes=2):
         super().__init__()
 
-        self.stem = ConvBnRelu(3, n_kernels, 7, stride=2, padding=3, padding_mode='reflect')
+        self.stem = ConvBnRelu(
+            3, n_kernels, 7, stride=2, padding=3, padding_mode="reflect"
+        )
         in_c = n_kernels
-        out_c = 2*n_kernels
+        out_c = 2 * n_kernels
         for k in range(n_layers):
-            self.add_module(f'sasa_block_{k}', SelfAttentionBlock(in_c, out_c, kernel_size, groups=n_groups, padding_mode='reflect'))
-            self.add_module(f'pool_{k}', nn.AvgPool2d(2, stride=2))
+            self.add_module(
+                f"sasa_block_{k}",
+                SelfAttentionBlock(
+                    in_c, out_c, kernel_size, groups=n_groups, padding_mode="reflect"
+                ),
+            )
+            self.add_module(f"pool_{k}", nn.AvgPool2d(2, stride=2))
             in_c = out_c
             out_c *= 2
         self.gap = nn.AdaptiveAvgPool2d(1)
@@ -226,10 +329,12 @@ class SEModule(nn.Module):
         super(SEModule, self).__init__()
         self.avg_pool = nn.AdaptiveAvgPool2d(1)
         self.fc1 = nn.Conv2d(
-            channels, reduction_channels, kernel_size=1, padding=0, bias=True)
+            channels, reduction_channels, kernel_size=1, padding=0, bias=True
+        )
         self.relu = nn.ReLU(inplace=True)
         self.fc2 = nn.Conv2d(
-            reduction_channels, channels, kernel_size=1, padding=0, bias=True)
+            reduction_channels, channels, kernel_size=1, padding=0, bias=True
+        )
 
     def forward(self, x):
         x_se = self.avg_pool(x)
@@ -240,23 +345,35 @@ class SEModule(nn.Module):
 
 #Cell
 class BasicBlock(nn.Module):
-    __constants__ = ['se', 'downsample']  # for pre 1.4 torchscript compat
+    __constants__ = ["se", "downsample"]  # for pre 1.4 torchscript compat
     expansion = 1
 
-    def __init__(self, inplanes, planes, kernel_size, downsample=None,
-                 groups=8, base_width=64, use_se=False,
-                 reduce_first=1, act_layer=nn.ReLU, norm_layer=nn.BatchNorm2d):
+    def __init__(
+        self,
+        inplanes,
+        planes,
+        kernel_size,
+        downsample=None,
+        groups=8,
+        base_width=64,
+        use_se=False,
+        reduce_first=1,
+        act_layer=nn.ReLU,
+        norm_layer=nn.BatchNorm2d,
+    ):
         super(BasicBlock, self).__init__()
-        assert base_width == 64, 'BasicBlock doest not support changing base width'
+        assert base_width == 64, "BasicBlock doest not support changing base width"
         first_planes = planes // reduce_first
         outplanes = planes * self.expansion
 
         self.sa1 = SelfAttentionBlock(
-            inplanes, first_planes, kernel_size, groups=groups)
+            inplanes, first_planes, kernel_size, groups=groups
+        )
         self.bn1 = norm_layer(first_planes)
         self.act1 = act_layer(inplace=True)
         self.sa2 = SelfAttentionBlock(
-            first_planes, outplanes, kernel_size, groups=groups)
+            first_planes, outplanes, kernel_size, groups=groups
+        )
         self.bn2 = norm_layer(outplanes)
         self.se = SEModule(outplanes, planes // 4) if use_se else None
         self.act2 = act_layer(inplace=True)
@@ -284,16 +401,32 @@ class BasicBlock(nn.Module):
 
 #Cell
 class SANet(nn.Module):
-    """
-    """
-    def __init__(self, block, layers, kernel_size, num_classes=1000, in_chans=3, use_se=False,
-                 groups=8, base_width=64, stem_width=64, stem_type='',
-                 block_reduce_first=1, avg_down=False,
-                 act_layer=nn.ReLU, norm_layer=nn.BatchNorm2d, drop_rate=0.0, global_pool='avg',
-                 zero_init_last_bn=True, block_args=None):
+    """"""
+
+    def __init__(
+        self,
+        block,
+        layers,
+        kernel_size,
+        num_classes=1000,
+        in_chans=3,
+        use_se=False,
+        groups=8,
+        base_width=64,
+        stem_width=64,
+        stem_type="",
+        block_reduce_first=1,
+        avg_down=False,
+        act_layer=nn.ReLU,
+        norm_layer=nn.BatchNorm2d,
+        drop_rate=0.0,
+        global_pool="avg",
+        zero_init_last_bn=True,
+        block_args=None,
+    ):
         block_args = block_args or dict()
         self.num_classes = num_classes
-        deep_stem = 'deep' in stem_type
+        deep_stem = "deep" in stem_type
         self.inplanes = stem_width * 2 if deep_stem else 64
         self.groups = groups
         self.base_width = base_width
@@ -305,19 +438,30 @@ class SANet(nn.Module):
         # Stem
         if deep_stem:
             stem_chs_1 = stem_chs_2 = stem_width
-            if 'tiered' in stem_type:
+            if "tiered" in stem_type:
                 stem_chs_1 = 3 * (stem_width // 4)
-                stem_chs_2 = stem_width if 'narrow' in stem_type else 6 * (stem_width // 4)
-            self.conv1 = nn.Sequential(*[
-                nn.Conv2d(in_chans, stem_chs_1, 3, stride=2, padding=1, bias=False),
-                norm_layer(stem_chs_1),
-                act_layer(inplace=True),
-                nn.Conv2d(stem_chs_1, stem_chs_2, 3, stride=1, padding=1, bias=False),
-                norm_layer(stem_chs_2),
-                act_layer(inplace=True),
-                nn.Conv2d(stem_chs_2, self.inplanes, 3, stride=1, padding=1, bias=False)])
+                stem_chs_2 = (
+                    stem_width if "narrow" in stem_type else 6 * (stem_width // 4)
+                )
+            self.conv1 = nn.Sequential(
+                *[
+                    nn.Conv2d(in_chans, stem_chs_1, 3, stride=2, padding=1, bias=False),
+                    norm_layer(stem_chs_1),
+                    act_layer(inplace=True),
+                    nn.Conv2d(
+                        stem_chs_1, stem_chs_2, 3, stride=1, padding=1, bias=False
+                    ),
+                    norm_layer(stem_chs_2),
+                    act_layer(inplace=True),
+                    nn.Conv2d(
+                        stem_chs_2, self.inplanes, 3, stride=1, padding=1, bias=False
+                    ),
+                ]
+            )
         else:
-            self.conv1 = nn.Conv2d(in_chans, self.inplanes, kernel_size=7, stride=2, padding=3, bias=False)
+            self.conv1 = nn.Conv2d(
+                in_chans, self.inplanes, kernel_size=7, stride=2, padding=3, bias=False
+            )
         self.bn1 = norm_layer(self.inplanes)
         self.act1 = act_layer(inplace=True)
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
@@ -326,8 +470,13 @@ class SANet(nn.Module):
         channels = [64, 128, 256, 512]
         llargs = list(zip(channels, layers))
         lkwargs = dict(
-            use_se=use_se, reduce_first=block_reduce_first, act_layer=act_layer, norm_layer=norm_layer,
-            avg_down=avg_down, **block_args)
+            use_se=use_se,
+            reduce_first=block_reduce_first,
+            act_layer=act_layer,
+            norm_layer=norm_layer,
+            avg_down=avg_down,
+            **block_args
+        )
         self.layer1 = self._make_layer(block, *llargs[0], **lkwargs)
         self.layer2 = self._make_layer(block, *llargs[1], **lkwargs)
         self.layer3 = self._make_layer(block, *llargs[2], **lkwargs)
@@ -336,23 +485,33 @@ class SANet(nn.Module):
         # Head (Pooling and Classifier)
         self.global_pool = SelectAdaptivePool2d(pool_type=global_pool)
         self.num_features = 512 * block.expansion
-        self.fc = nn.Linear(self.num_features * self.global_pool.feat_mult(), num_classes)
+        self.fc = nn.Linear(
+            self.num_features * self.global_pool.feat_mult(), num_classes
+        )
 
-        last_bn_name = 'bn3' if 'Bottle' in block.__name__ else 'bn2'
+        last_bn_name = "bn3" if "Bottle" in block.__name__ else "bn2"
         for n, m in self.named_modules():
             if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+                nn.init.kaiming_normal_(m.weight, mode="fan_out", nonlinearity="relu")
             elif isinstance(m, nn.BatchNorm2d):
-                if zero_init_last_bn and 'layer' in n and last_bn_name in n:
+                if zero_init_last_bn and "layer" in n and last_bn_name in n:
                     # Initialize weight/gamma of last BN in each residual block to zero
-                    nn.init.constant_(m.weight, 0.)
+                    nn.init.constant_(m.weight, 0.0)
                 else:
-                    nn.init.constant_(m.weight, 1.)
-                nn.init.constant_(m.bias, 0.)
+                    nn.init.constant_(m.weight, 1.0)
+                nn.init.constant_(m.bias, 0.0)
 
-    def _make_layer(self, block, planes, blocks, reduce_first=1,
-                    use_se=False, avg_down=False, **kwargs):
-        norm_layer = kwargs.get('norm_layer')
+    def _make_layer(
+        self,
+        block,
+        planes,
+        blocks,
+        reduce_first=1,
+        use_se=False,
+        avg_down=False,
+        **kwargs
+    ):
+        norm_layer = kwargs.get("norm_layer")
         downsample = None
         down_kernel_size = 1
         if self.inplanes != planes * block.expansion:
@@ -360,32 +519,49 @@ class SANet(nn.Module):
             downsample_layers = []
             if avg_down:
                 avg_stride = stride if dilation == 1 else 1
-                downsample_layers = [nn.AvgPool2d(avg_stride, avg_stride, ceil_mode=True, count_include_pad=False)]
+                downsample_layers = [
+                    nn.AvgPool2d(
+                        avg_stride, avg_stride, ceil_mode=True, count_include_pad=False
+                    )
+                ]
             downsample_layers += [
-                nn.Conv2d(self.inplanes, planes * block.expansion, 1, padding=downsample_padding, bias=False),
-                norm_layer(planes * block.expansion)]
+                nn.Conv2d(
+                    self.inplanes,
+                    planes * block.expansion,
+                    1,
+                    padding=downsample_padding,
+                    bias=False,
+                ),
+                norm_layer(planes * block.expansion),
+            ]
             downsample = nn.Sequential(*downsample_layers)
 
         bkwargs = dict(
-            groups=self.groups, base_width=self.base_width, reduce_first=reduce_first,
-            use_se=use_se, **kwargs)
-        layers = [block(
-            self.inplanes, planes, self.kernel_size, downsample, **bkwargs)]
+            groups=self.groups,
+            base_width=self.base_width,
+            reduce_first=reduce_first,
+            use_se=use_se,
+            **kwargs
+        )
+        layers = [block(self.inplanes, planes, self.kernel_size, downsample, **bkwargs)]
         self.inplanes = planes * block.expansion
         for i in range(1, blocks):
-            layers.append(block(
-                self.inplanes, planes, self.kernel_size, **bkwargs))
+            layers.append(block(self.inplanes, planes, self.kernel_size, **bkwargs))
 
         return nn.Sequential(*layers)
 
     def get_classifier(self):
         return self.fc
 
-    def reset_classifier(self, num_classes, global_pool='avg'):
+    def reset_classifier(self, num_classes, global_pool="avg"):
         self.global_pool = SelectAdaptivePool2d(pool_type=global_pool)
         self.num_classes = num_classes
         del self.fc
-        self.fc = nn.Linear(self.num_features * self.global_pool.feat_mult(), num_classes) if num_classes else None
+        self.fc = (
+            nn.Linear(self.num_features * self.global_pool.feat_mult(), num_classes)
+            if num_classes
+            else None
+        )
 
     def forward_features(self, x):
         x = self.conv1(x)
@@ -402,57 +578,108 @@ class SANet(nn.Module):
     def forward(self, x):
         x = self.forward_features(x)
         x = self.global_pool(x).flatten(1)
-        if self.drop_rate > 0.:
+        if self.drop_rate > 0.0:
             x = F.dropout(x, p=self.drop_rate, training=self.training)
         x = self.fc(x)
         return x
 
 #Cell
 def sanet18(kernel_size, num_classes=2, in_chans=3, **kwargs):
-    model = SANet(BasicBlock, [2, 2, 2, 2], kernel_size, num_classes=num_classes, in_chans=in_chans, **kwargs)
+    model = SANet(
+        BasicBlock,
+        [2, 2, 2, 2],
+        kernel_size,
+        num_classes=num_classes,
+        in_chans=in_chans,
+        **kwargs
+    )
     return model
+
 
 def sanet34(kernel_size, num_classes=2, in_chans=3, **kwargs):
-    model = SANet(BasicBlock, [3, 4, 6, 3], kernel_size, num_classes=num_classes, in_chans=in_chans, **kwargs)
+    model = SANet(
+        BasicBlock,
+        [3, 4, 6, 3],
+        kernel_size,
+        num_classes=num_classes,
+        in_chans=in_chans,
+        **kwargs
+    )
     return model
 
+
 def sanet26(kernel_size, num_classes=2, in_chans=3, **kwargs):
-    model = SANet(Bottleneck, [2, 2, 2, 2], kernel_size, num_classes=num_classes, in_chans=in_chans, **kwargs)
+    model = SANet(
+        Bottleneck,
+        [2, 2, 2, 2],
+        kernel_size,
+        num_classes=num_classes,
+        in_chans=in_chans,
+        **kwargs
+    )
     return model
+
 
 def sanet26d(kernel_size, num_classes=2, in_chans=3, **kwargs):
     model = SANet(
-        Bottleneck, [2, 2, 2, 2], kernel_size, stem_width=32, stem_type='deep', avg_down=True,
-        num_classes=num_classes, in_chans=in_chans, **kwargs)
+        Bottleneck,
+        [2, 2, 2, 2],
+        kernel_size,
+        stem_width=32,
+        stem_type="deep",
+        avg_down=True,
+        num_classes=num_classes,
+        in_chans=in_chans,
+        **kwargs
+    )
     return model
 
+
 def sanet50(kernel_size, num_classes=2, in_chans=3, **kwargs):
-    model = SANet(Bottleneck, [3, 4, 6, 3], kernel_size, num_classes=num_classes, in_chans=in_chans, **kwargs)
+    model = SANet(
+        Bottleneck,
+        [3, 4, 6, 3],
+        kernel_size,
+        num_classes=num_classes,
+        in_chans=in_chans,
+        **kwargs
+    )
     return model
+
 
 def sanet50d(kernel_size, num_classes=2, in_chans=3, **kwargs):
     model = SANet(
-        Bottleneck, [3, 4, 6, 3], kernel_size, stem_width=32, stem_type='deep', avg_down=True,
-        num_classes=num_classes, in_chans=in_chans, **kwargs)
+        Bottleneck,
+        [3, 4, 6, 3],
+        kernel_size,
+        stem_width=32,
+        stem_type="deep",
+        avg_down=True,
+        num_classes=num_classes,
+        in_chans=in_chans,
+        **kwargs
+    )
     return model
 
 #Cell
 class DynamicUnet(nn.Module):
-    """
-    """
-    def __init__(self, encoder_name, n_classes=2, input_shape=(3, 224, 224), pretrained=True):
+    """"""
+
+    def __init__(
+        self, encoder_name, n_classes=2, input_shape=(3, 224, 224), pretrained=True
+    ):
         super().__init__()
 
-        if 'cbr' in encoder_name:
-            args = map(int, encoder_name.split('_')[1:])
+        if "cbr" in encoder_name:
+            args = map(int, encoder_name.split("_")[1:])
             encoder = CBR(*args)
             cut = -3
-        elif 'sasa' in encoder_name:
-            args = map(int, encoder_name.split('_')[1:])
+        elif "sasa" in encoder_name:
+            args = map(int, encoder_name.split("_")[1:])
             encoder = SASA(*args)
             cut = -3
-        elif 'sanet' in encoder_name:
-            splits = encoder_name.split('_')
+        elif "sanet" in encoder_name:
+            splits = encoder_name.split("_")
             kernel_size = int(splits[-1])
             encoder = globals()[splits[0]](kernel_size)
             cut = -2
@@ -460,48 +687,49 @@ class DynamicUnet(nn.Module):
             encoder = timm.create_model(encoder_name, pretrained=pretrained)
             cut = -2
 
-        self.encoder = nn.Sequential(*(list(encoder.children())[:cut]+[nn.ReLU()]))
+        self.encoder = nn.Sequential(*(list(encoder.children())[:cut] + [nn.ReLU()]))
         encoder_sizes, idxs = self._register_output_hooks(input_shape=input_shape)
         n_chans = encoder_sizes[-1][1]
-        middle_conv = nn.Sequential(ConvBnRelu(n_chans, n_chans//2, 3),
-                                    ConvBnRelu(n_chans//2, n_chans, 3))
+        middle_conv = nn.Sequential(
+            ConvBnRelu(n_chans, n_chans // 2, 3), ConvBnRelu(n_chans // 2, n_chans, 3)
+        )
         decoder = [middle_conv]
         for k, (idx, hook) in enumerate(zip(idxs[::-1], self.hooks)):
             skip_chans = encoder_sizes[idx][1]
-            final_div = (k != len(idxs)-1)
+            final_div = k != len(idxs) - 1
             decoder.append(DecoderBlock(n_chans, skip_chans, hook, final_div=final_div))
-            n_chans = n_chans//2 + skip_chans
+            n_chans = n_chans // 2 + skip_chans
             n_chans = n_chans if not final_div else skip_chans
         self.decoder = nn.Sequential(*decoder, PixelShuffleICNR(n_chans, n_chans))
         n_chans += input_shape[0]
         self.head = nn.Sequential(LastCross(n_chans), nn.Conv2d(n_chans, n_classes, 1))
 
-
     def forward(self, x):
         y = self.encoder(x)
         y = self.decoder(y)
         if y.shape[-2:] != x.shape[-2:]:
-            y = interpolate(y, x.shape[-2:], mode='nearest')
+            y = interpolate(y, x.shape[-2:], mode="nearest")
         y = torch.cat([x, y], dim=1)
         y = self.head(y)
         return y
-
 
     def _register_output_hooks(self, input_shape=(3, 224, 224)):
         sizes, modules = get_sizes(self.encoder, input_shape=input_shape)
         mods = []
         idxs = np.where(sizes[:-1, -1] != sizes[1:, -1])[0]
+
         def _hook(model, input, output):
             return output
 
         for k in idxs[::-1]:
             out_shape = sizes[k]
             m = modules[k]
-            if 'downsample' not in m.name:
+            if "downsample" not in m.name:
                 mods.append(m)
         self.hooks = Hooks(mods, _hook)
 
         return sizes, idxs
 
     def __del__(self):
-        if hasattr(self, "hooks"): self.hooks.remove()
+        if hasattr(self, "hooks"):
+            self.hooks.remove()

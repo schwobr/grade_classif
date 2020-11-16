@@ -4,76 +4,103 @@ __all__ = ['predict_one_scan_one_level', 'predict_one_scan', 'predict_all', 'pre
 
 #Cell
 from .core import ifnone
-from .data.utils import load_batches
-from .models.plmodules import GradesClassifModel
 from .data.read import get_scan
+from .data.utils import load_batches
 from .imports import *
+from .models.plmodules import GradesClassifModel
 
 #Cell
-def predict_one_scan_one_level(model, fn, thrs=None):
+def predict_one_scan_one_level(
+    model: GradeClassifModel, fn: Path, thrs: Optional[float] = None
+) -> Union[float, NDArray[(Any,), float]]:
     preds = []
     for x in load_batches(fn, bs=model.bs, device=model.main_device, filt=model.filt):
         preds.append(model.predict(x).detach().cpu()[:, -1])
     try:
         preds = torch.cat(preds)
     except:
-        preds = torch.tensor([1.])
+        preds = torch.tensor([1.0])
     if thrs is None:
-        return preds.sum().item()/len(preds)
+        return preds.sum().item() / len(preds)
     else:
-        return (preds[None] > thrs[:, None]).sum(-1).numpy()/len(preds)
+        return (preds[None] > thrs[:, None]).sum(-1).numpy() / len(preds)
 
 #Cell
-def predict_one_scan(hparams):
+def predict_one_scan(hparams: Namespace) -> float:
+    hparams = vars(hparams)
     preds = []
-    for level, version, norm_version in zip(hparams.levels, hparams.versions, hparams.norm_versions):
+    for level, version, norm_version in zip(
+        hparams.levels, hparams.versions, hparams.norm_versions
+    ):
         hparams.level = level
         hparams.norm_version = norm_version
-        model = GradesClassifModel(hparams)
+        model = GradesClassifModel(**hparams)
         model.load(version)
-        path = get_scan(hparams.full_data/f'{hparams.full_data.name}_{level}', hparams.scan, include=['1', '3'])
+        path = get_scan(
+            hparams.full_data / f"{hparams.full_data.name}_{level}",
+            hparams.scan,
+            include=["1", "3"],
+        )
         preds.append(predict_one_scan_one_level(model, path))
     preds = torch.cat(preds)
-    return preds.sum().item()/len(preds)
+    return preds.sum().item() / len(preds)
 
 #Cell
-def predict_all(hparams):
-    df = pd.read_csv(hparams.data_csv, header='infer')
+def predict_all(hparams: Namespace) -> pd.DataFrame:
+    hparams = vars(hparams)
+    df = pd.read_csv(hparams.data_csv, header="infer")
     preds = []
     scans = []
     levels = []
-    for level, version, ckpt, norm_version in zip(hparams.levels, hparams.versions, hparams.checkpoints, hparams.norm_versions):
+    for level, version, ckpt, norm_version in zip(
+        hparams.levels, hparams.versions, hparams.checkpoints, hparams.norm_versions
+    ):
         hparams.level = level
         hparams.norm_version = norm_version
-        model = GradesClassifModel(hparams)
+        model = GradesClassifModel(**hparams)
         model.load(version, ckpt)
-        for row in tqdm(df.loc[df['split']=='valid'].values):
+        for row in tqdm(df.loc[df["split"] == "valid"].values):
             scan, grade = row[:-1]
-            fn = hparams.full_data/f'{hparams.full_data.name}_{level}'/str(grade)/scan
+            fn = (
+                hparams.full_data
+                / f"{hparams.full_data.name}_{level}"
+                / str(grade)
+                / scan
+            )
             try:
                 preds.append(predict_one_scan_one_level(model, fn))
             except FileNotFoundError:
                 continue
             scans.append(scan)
             levels.append(level)
-    res = pd.DataFrame({'level': levels, 'scan': scans, 'pred': preds})
+    res = pd.DataFrame({"level": levels, "scan": scans, "pred": preds})
     return res
 
 #Cell
-def predict_all_majority_vote(hparams):
-    df = pd.read_csv(hparams.data_csv, header='infer')
+def predict_all_majority_vote(
+    hparams: Namespace,
+) -> Tuple[List[str], List[int], NDArray[(Any, Any), float]]:
+    hparams = vars(hparams)
+    df = pd.read_csv(hparams.data_csv, header="infer")
     preds = []
     scans = []
     levels = []
-    thrs = torch.tensor([0.001*k for k in range(1000)])
-    for level, version, ckpt, norm_version in zip(hparams.levels, hparams.versions, hparams.checkpoints, hparams.norm_versions):
+    thrs = torch.tensor([0.001 * k for k in range(1000)])
+    for level, version, ckpt, norm_version in zip(
+        hparams.levels, hparams.versions, hparams.checkpoints, hparams.norm_versions
+    ):
         hparams.level = level
         hparams.norm_version = norm_version
-        model = GradesClassifModel(hparams)
+        model = GradesClassifModel(**hparams)
         model.load(version, ckpt)
-        for row in tqdm(df.loc[df['split']=='valid'].values):
+        for row in tqdm(df.loc[df["split"] == "valid"].values):
             scan, grade = row[:-1]
-            fn = hparams.full_data/f'{hparams.full_data.name}_{level}'/str(grade)/scan
+            fn = (
+                hparams.full_data
+                / f"{hparams.full_data.name}_{level}"
+                / str(grade)
+                / scan
+            )
             try:
                 pred = predict_one_scan_one_level(model, fn, thrs=thrs)
             except FileNotFoundError:
