@@ -1,17 +1,17 @@
 {
   "grade_classif": {
     "Overview": "/",
-    "Core functions": "/core",
-    "Training": "/train",
-    "Prediction": "/predict",
-    "Reading data ": "/data.read",
-    "Loading data": "/data.loaders",
-    "Datasets": "/data.dataset",
-    "Data utils": "/data.utils",
-    "Transforms": "/data.transforms",
-    "PytorchLightning Modules": "/models.plmodules",
-    "Pytorch Modules": "/models.modules",
-    "Module utilities": "/models.utils",
-    "Title": "/params.parser"
+    "Core functions": "core.html",
+    "Training": "train.html",
+    "Prediction": "predict.html",
+    "Reading data ": "data.read.html",
+    "Loading data": "data.loaders.html",
+    "Datasets": "data.dataset.html",
+    "Data utils": "data.utils.html",
+    "Transforms": "data.color.html",
+    "PytorchLightning Modules": "models.plmodules.html",
+    "Pytorch Modules": "models.modules.html",
+    "Module utilities": "models.utils.html",
+    "Title": "params.parser.html"
   }
 }

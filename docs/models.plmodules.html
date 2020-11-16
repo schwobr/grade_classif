@@ -1,10 +1,14 @@
 ---
 
 title: PytorchLightning Modules
+
+
 keywords: fastai
 sidebar: home_sidebar
 
 summary: "Modules implementing <a href=\"https://pytorch-lightning.readthedocs.io/en/0.6.0/lightning-module.html\">LightningModule</a> interface."
+description: "Modules implementing <a href=\"https://pytorch-lightning.readthedocs.io/en/0.6.0/lightning-module.html\">LightningModule</a> interface."
+nb_path: "nbs/20_models.plmodules.ipynb"
 ---
 <!--
 
@@ -17,22 +21,78 @@ summary: "Modules implementing <a href=\"https://pytorch-lightning.readthedocs.i
 -->
 
 <div class="container" id="notebook-container">
+        
+    {% raw %}
     
 <div class="cell border-box-sizing code_cell rendered">
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># os.environ[&#39;CUDA_VISIBLE_DEVICES&#39;] = &#39;1&#39;</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">_open_functions</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;LAB&quot;</span><span class="p">:</span> <span class="n">rgb_to_lab</span><span class="p">,</span>
+    <span class="s2">&quot;HSV&quot;</span><span class="p">:</span> <span class="n">rgb_to_hsv</span><span class="p">,</span>
+    <span class="s2">&quot;3G&quot;</span><span class="p">:</span> <span class="n">rgb_to_grayscale</span><span class="p">,</span>
+    <span class="s2">&quot;H&quot;</span><span class="p">:</span> <span class="n">rgb_to_h</span><span class="p">,</span>
+    <span class="s2">&quot;E&quot;</span><span class="p">:</span> <span class="n">rgb_to_e</span><span class="p">,</span>
+    <span class="s2">&quot;HEG&quot;</span><span class="p">:</span> <span class="n">rgb_to_heg</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 </div>
-<div class="cell border-box-sizing code_cell rendered">
+    {% endraw %}
 
-</div>
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -42,7 +102,72 @@ summary: "Modules implementing <a href=\"https://pytorch-lightning.readthedocs.i
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h2 id="BaseModule" class="doc_header"><code>class</code> <code>BaseModule</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/plmodules.py#L48" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>BaseModule</code>(<strong><code>hparams</code></strong>, <strong><code>metrics</code></strong>=<em><code>None</code></em>) :: <code>LightningModule</code></p>
+<h2 id="BaseDataModule" class="doc_header"><code>class</code> <code>BaseDataModule</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/plmodules.py#L77" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>BaseDataModule</code>(<strong>*<code>args</code></strong>, <strong>**<code>kwargs</code></strong>) :: <code>LightningDataModule</code></p>
+</blockquote>
+<p>A DataModule standardizes the training, val, test splits, data preparation and transforms.
+The main advantage is consistent data splits, data preparation and transforms across models.</p>
+<p>Example::</p>
+
+<pre><code>class MyDataModule(LightningDataModule):
+    def __init__(self):
+        super().__init__()
+    def prepare_data(self):
+        # download, split, etc...
+        # only called on 1 GPU/TPU in distributed
+    def setup(self):
+        # make assignments here (val/train/test split)
+        # called on every process in DDP
+    def train_dataloader(self):
+        train_split = Dataset(...)
+        return DataLoader(train_split)
+    def val_dataloader(self):
+        val_split = Dataset(...)
+        return DataLoader(val_split)
+    def test_dataloader(self):
+        test_split = Dataset(...)
+        return DataLoader(test_split)
+
+</code></pre>
+<p>A DataModule implements 5 key methods:</p>
+<ul>
+<li><strong>prepare_data</strong> (things to do on 1 GPU/TPU not on every GPU/TPU in distributed mode).</li>
+<li><strong>setup</strong>  (things to do on every accelerator in distributed mode).</li>
+<li><strong>train_dataloader</strong> the training dataloader.</li>
+<li><strong>val_dataloader</strong> the val dataloader(s).</li>
+<li><strong>test_dataloader</strong> the test dataloader(s).</li>
+</ul>
+<p>This allows you to share a full dataset without explaining how to download,
+split transform and process the data</p>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h2 id="BaseModule" class="doc_header"><code>class</code> <code>BaseModule</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/plmodules.py#L174" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>BaseModule</code>(<strong><code>size</code></strong>:<code>int</code>=<em><code>299</code></em>, <strong><code>gpus</code></strong>:<code>Optional</code>[<code>List</code>[<code>int</code>]]=<em><code>None</code></em>, <strong><code>model</code></strong>:<code>Optional</code>[<code>str</code>]=<em><code>None</code></em>, <strong><code>normalizer</code></strong>:<code>Optional</code>[<code>str</code>]=<em><code>None</code></em>, <strong><code>metrics</code></strong>:<code>Optional</code>[<code>List</code>[<code>Callable</code>[<code>Ellipsis</code>, <code>Number</code>]]]=<em><code>None</code></em>, <strong><code>savedir</code></strong>:<code>Union</code>[<code>Path</code>, <code>str</code>, <code>NoneType</code>]=<em><code>None</code></em>, <strong><code>level</code></strong>:<code>Optional</code>[<code>int</code>]=<em><code>None</code></em>, <strong><code>resume</code></strong>:<code>Optional</code>[<code>str</code>]=<em><code>None</code></em>, <strong><code>sample_mode</code></strong>:<code>int</code>=<em><code>0</code></em>, <strong><code>weight</code></strong>:<code>float</code>=<em><code>1</code></em>, <strong><code>epochs</code></strong>:<code>int</code>=<em><code>5</code></em>, <strong><code>loss</code></strong>:<code>str</code>=<em><code>'mse'</code></em>, <strong><code>reduction</code></strong>:<code>str</code>=<em><code>'mean'</code></em>, <strong><code>lr</code></strong>:<code>float</code>=<em><code>0.001</code></em>, <strong><code>wd</code></strong>:<code>float</code>=<em><code>0.01</code></em>, <strong><code>train_percent</code></strong>:<code>float</code>=<em><code>1.0</code></em>, <strong><code>sched</code></strong>:<code>Optional</code>[<code>str</code>]=<em><code>None</code></em>, <strong><code>rand_weights</code></strong>:<code>bool</code>=<em><code>False</code></em>, <strong><code>dropout</code></strong>:<code>float</code>=<em><code>0.5</code></em>, <strong><code>version</code></strong>:<code>Optional</code>[<code>str</code>]=<em><code>None</code></em>, <strong><code>norm_version</code></strong>:<code>Optional</code>[<code>str</code>]=<em><code>None</code></em>, <strong><code>open_mode</code></strong>:<code>str</code>=<em><code>'RGB'</code></em>, <strong>**<code>kwargs</code></strong>) :: <code>LightningModule</code></p>
 </blockquote>
 
 </div>
@@ -53,6 +178,15 @@ summary: "Modules implementing <a href=\"https://pytorch-lightning.readthedocs.i
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+    {% endraw %}
+
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>Base class for all classes implementing <code>LightningModule</code> interface. Defines a lot of convenience function to be used by children classes.</p>
@@ -60,6 +194,8 @@ summary: "Modules implementing <a href=\"https://pytorch-lightning.readthedocs.i
 </div>
 </div>
 </div>
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -69,11 +205,12 @@ summary: "Modules implementing <a href=\"https://pytorch-lightning.readthedocs.i
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="BaseModule.load" class="doc_header"><code>BaseModule.load</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/plmodules.py#L158" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>BaseModule.load</code>(<strong><code>version</code></strong>, <strong><code>ckpt_epoch</code></strong>=<em><code>None</code></em>)</p>
+<h4 id="BaseModule.load" class="doc_header"><code>BaseModule.load</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/plmodules.py#L291" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>BaseModule.load</code>(<strong><code>version</code></strong>:<code>str</code>, <strong><code>ckpt_epoch</code></strong>:<code>int</code>=<em><code>None</code></em>)</p>
 </blockquote>
-<p>Load a specific <code>version</code> of current model, stored in <code>self.save_path/lightning_logs</code>. If multiple
-checkpoints have been stored, <code>ckpt_epoch</code> can be specified to load a specific epoch. Else the latest
-epoch is loaded.</p>
+<p>Load a specific <code>version</code> of current model, stored in
+<code>self.save_path/lightning_logs</code>. If multiple checkpoints have been
+stored, <code>ckpt_epoch</code> can be specified to load a specific epoch. Else
+the latest epoch is loaded.</p>
 
 </div>
 
@@ -83,6 +220,10 @@ epoch is loaded.</p>
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -92,10 +233,10 @@ epoch is loaded.</p>
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="BaseModule.my_summarize" class="doc_header"><code>BaseModule.my_summarize</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/plmodules.py#L169" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>BaseModule.my_summarize</code>()</p>
+<h4 id="BaseModule.my_summarize" class="doc_header"><code>BaseModule.my_summarize</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/plmodules.py#L307" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>BaseModule.my_summarize</code>()</p>
 </blockquote>
-<p>Get a DataFrame containing the list of all leaf modules of current model, with their corresponding output
-shape.</p>
+<p>Get a DataFrame containing the list of all leaf modules of current
+model, with their corresponding output shape.</p>
 
 </div>
 
@@ -105,6 +246,10 @@ shape.</p>
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -114,9 +259,9 @@ shape.</p>
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="BaseModule.fit" class="doc_header"><code>BaseModule.fit</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/plmodules.py#L177" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>BaseModule.fit</code>()</p>
+<h4 id="BaseModule.fit" class="doc_header"><code>BaseModule.fit</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/plmodules.py#L316" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>BaseModule.fit</code>(<strong><code>dm</code></strong>:<code>LightningDataModule</code>, <strong>**<code>kwargs</code></strong>)</p>
 </blockquote>
-<p>Fit the model using parameters stored in <a href="/params.parser.html#hparams"><code>hparams</code></a>.</p>
+<p>Fit the model using parameters stored in <a href="/grade_classif/params.parser.html#hparams"><code>hparams</code></a>.</p>
 
 </div>
 
@@ -126,6 +271,10 @@ shape.</p>
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -135,7 +284,7 @@ shape.</p>
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="BaseModule.predict" class="doc_header"><code>BaseModule.predict</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/plmodules.py#L189" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>BaseModule.predict</code>(<strong><code>x</code></strong>)</p>
+<h4 id="BaseModule.predict" class="doc_header"><code>BaseModule.predict</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/plmodules.py#L347" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>BaseModule.predict</code>(<strong><code>x</code></strong>:<code>Tensor</code>)</p>
 </blockquote>
 <p>Make a prediction on batch <code>x</code>.</p>
 
@@ -147,9 +296,10 @@ shape.</p>
 </div>
 
 </div>
-<div class="cell border-box-sizing code_cell rendered">
+    {% endraw %}
 
-</div>
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -159,7 +309,79 @@ shape.</p>
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h2 id="Normalizer" class="doc_header"><code>class</code> <code>Normalizer</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/plmodules.py#L208" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>Normalizer</code>(<strong><code>hparams</code></strong>, <strong>**<code>kwargs</code></strong>) :: <a href="/models.plmodules.html#BaseModule"><code>BaseModule</code></a></p>
+<h2 id="NormDataModule" class="doc_header"><code>class</code> <code>NormDataModule</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/plmodules.py#L354" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>NormDataModule</code>(<strong>*<code>args</code></strong>, <strong>**<code>kwargs</code></strong>) :: <a href="/grade_classif/models.plmodules.html#BaseDataModule"><code>BaseDataModule</code></a></p>
+</blockquote>
+<p>A DataModule standardizes the training, val, test splits, data preparation and transforms.
+The main advantage is consistent data splits, data preparation and transforms across models.</p>
+<p>Example::</p>
+
+<pre><code>class MyDataModule(LightningDataModule):
+    def __init__(self):
+        super().__init__()
+    def prepare_data(self):
+        # download, split, etc...
+        # only called on 1 GPU/TPU in distributed
+    def setup(self):
+        # make assignments here (val/train/test split)
+        # called on every process in DDP
+    def train_dataloader(self):
+        train_split = Dataset(...)
+        return DataLoader(train_split)
+    def val_dataloader(self):
+        val_split = Dataset(...)
+        return DataLoader(val_split)
+    def test_dataloader(self):
+        test_split = Dataset(...)
+        return DataLoader(test_split)
+
+</code></pre>
+<p>A DataModule implements 5 key methods:</p>
+<ul>
+<li><strong>prepare_data</strong> (things to do on 1 GPU/TPU not on every GPU/TPU in distributed mode).</li>
+<li><strong>setup</strong>  (things to do on every accelerator in distributed mode).</li>
+<li><strong>train_dataloader</strong> the training dataloader.</li>
+<li><strong>val_dataloader</strong> the val dataloader(s).</li>
+<li><strong>test_dataloader</strong> the test dataloader(s).</li>
+</ul>
+<p>This allows you to share a full dataset without explaining how to download,
+split transform and process the data</p>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h2 id="Normalizer" class="doc_header"><code>class</code> <code>Normalizer</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/plmodules.py#L383" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>Normalizer</code>(<strong>**<code>kwargs</code></strong>) :: <a href="/grade_classif/models.plmodules.html#BaseModule"><code>BaseModule</code></a></p>
 </blockquote>
 
 </div>
@@ -170,6 +392,15 @@ shape.</p>
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+    {% endraw %}
+
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>Module containing a UNet normalizer. Takes grayscale images as inputs and their corresponding colored version as outputs.</p>
@@ -177,6 +408,8 @@ shape.</p>
 </div>
 </div>
 </div>
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -186,10 +419,8 @@ shape.</p>
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="Normalizer.show_results" class="doc_header"><code>Normalizer.show_results</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/plmodules.py#L233" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>Normalizer.show_results</code>(<strong><code>n</code></strong>=<em><code>16</code></em>, <strong><code>imgsize</code></strong>=<em><code>4</code></em>, <strong><code>title</code></strong>=<em><code>None</code></em>)</p>
+<h2 id="NormalizerAN" class="doc_header"><code>class</code> <code>NormalizerAN</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/plmodules.py#L498" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>NormalizerAN</code>(<strong><code>hparams</code></strong>, <strong>**<code>kwargs</code></strong>) :: <a href="/grade_classif/models.plmodules.html#BaseModule"><code>BaseModule</code></a></p>
 </blockquote>
-<p>Plot <code>n</code> predictions from the normalizer. Each line will contain input, target and prediction
-images (in that order).</p>
 
 </div>
 
@@ -199,6 +430,17 @@ images (in that order).</p>
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -208,7 +450,34 @@ images (in that order).</p>
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="Normalizer.freeze_encoder" class="doc_header"><code>Normalizer.freeze_encoder</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/plmodules.py#L260" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>Normalizer.freeze_encoder</code>()</p>
+<h4 id="Normalizer.show_results" class="doc_header"><code>Normalizer.show_results</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/plmodules.py#L406" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>Normalizer.show_results</code>(<strong><code>ds</code></strong>:<code>Dataset</code>, <strong><code>n</code></strong>:<code>int</code>=<em><code>16</code></em>, <strong><code>imgsize</code></strong>:<code>int</code>=<em><code>4</code></em>, <strong><code>title</code></strong>:<code>Optional</code>[<code>str</code>]=<em><code>None</code></em>)</p>
+</blockquote>
+<p>Plot <code>n</code> predictions from the normalizer using samples from dataset
+<code>ds</code>. Each line will contain input, target and prediction images (in
+that order).</p>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h4 id="Normalizer.freeze_encoder" class="doc_header"><code>Normalizer.freeze_encoder</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/plmodules.py#L436" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>Normalizer.freeze_encoder</code>()</p>
 </blockquote>
 <p>Freeze the encoder part of the normalizer.</p>
 
@@ -220,6 +489,10 @@ images (in that order).</p>
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -229,7 +502,7 @@ images (in that order).</p>
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="Normalizer.init_bn" class="doc_header"><code>Normalizer.init_bn</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/plmodules.py#L269" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>Normalizer.init_bn</code>()</p>
+<h4 id="Normalizer.init_bn" class="doc_header"><code>Normalizer.init_bn</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/plmodules.py#L445" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>Normalizer.init_bn</code>()</p>
 </blockquote>
 <p>Initialize BatchNorm layers with bias <code>1e-3</code> and weights <code>1</code>.</p>
 
@@ -241,9 +514,10 @@ images (in that order).</p>
 </div>
 
 </div>
-<div class="cell border-box-sizing code_cell rendered">
+    {% endraw %}
 
-</div>
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -253,7 +527,72 @@ images (in that order).</p>
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h2 id="GradesClassifModel" class="doc_header"><code>class</code> <code>GradesClassifModel</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/plmodules.py#L280" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>GradesClassifModel</code>(<strong><code>hparams</code></strong>, <strong>**<code>kwargs</code></strong>) :: <a href="/models.plmodules.html#BaseModule"><code>BaseModule</code></a></p>
+<h2 id="DiscrimDataModule" class="doc_header"><code>class</code> <code>DiscrimDataModule</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/plmodules.py#L755" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>DiscrimDataModule</code>(<strong>*<code>args</code></strong>, <strong>**<code>kwargs</code></strong>) :: <a href="/grade_classif/models.plmodules.html#BaseDataModule"><code>BaseDataModule</code></a></p>
+</blockquote>
+<p>A DataModule standardizes the training, val, test splits, data preparation and transforms.
+The main advantage is consistent data splits, data preparation and transforms across models.</p>
+<p>Example::</p>
+
+<pre><code>class MyDataModule(LightningDataModule):
+    def __init__(self):
+        super().__init__()
+    def prepare_data(self):
+        # download, split, etc...
+        # only called on 1 GPU/TPU in distributed
+    def setup(self):
+        # make assignments here (val/train/test split)
+        # called on every process in DDP
+    def train_dataloader(self):
+        train_split = Dataset(...)
+        return DataLoader(train_split)
+    def val_dataloader(self):
+        val_split = Dataset(...)
+        return DataLoader(val_split)
+    def test_dataloader(self):
+        test_split = Dataset(...)
+        return DataLoader(test_split)
+
+</code></pre>
+<p>A DataModule implements 5 key methods:</p>
+<ul>
+<li><strong>prepare_data</strong> (things to do on 1 GPU/TPU not on every GPU/TPU in distributed mode).</li>
+<li><strong>setup</strong>  (things to do on every accelerator in distributed mode).</li>
+<li><strong>train_dataloader</strong> the training dataloader.</li>
+<li><strong>val_dataloader</strong> the val dataloader(s).</li>
+<li><strong>test_dataloader</strong> the test dataloader(s).</li>
+</ul>
+<p>This allows you to share a full dataset without explaining how to download,
+split transform and process the data</p>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h2 id="PACSDiscriminator" class="doc_header"><code>class</code> <code>PACSDiscriminator</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/plmodules.py#L822" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>PACSDiscriminator</code>(<strong>**<code>kwargs</code></strong>) :: <a href="/grade_classif/models.plmodules.html#BaseModule"><code>BaseModule</code></a></p>
 </blockquote>
 
 </div>
@@ -264,17 +603,121 @@ images (in that order).</p>
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h2 id="GradeClassifDataModule" class="doc_header"><code>class</code> <code>GradeClassifDataModule</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/plmodules.py#L955" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>GradeClassifDataModule</code>(<strong>*<code>args</code></strong>, <strong>**<code>kwargs</code></strong>) :: <a href="/grade_classif/models.plmodules.html#BaseDataModule"><code>BaseDataModule</code></a></p>
+</blockquote>
+<p>A DataModule standardizes the training, val, test splits, data preparation and transforms.
+The main advantage is consistent data splits, data preparation and transforms across models.</p>
+<p>Example::</p>
+
+<pre><code>class MyDataModule(LightningDataModule):
+    def __init__(self):
+        super().__init__()
+    def prepare_data(self):
+        # download, split, etc...
+        # only called on 1 GPU/TPU in distributed
+    def setup(self):
+        # make assignments here (val/train/test split)
+        # called on every process in DDP
+    def train_dataloader(self):
+        train_split = Dataset(...)
+        return DataLoader(train_split)
+    def val_dataloader(self):
+        val_split = Dataset(...)
+        return DataLoader(val_split)
+    def test_dataloader(self):
+        test_split = Dataset(...)
+        return DataLoader(test_split)
+
+</code></pre>
+<p>A DataModule implements 5 key methods:</p>
+<ul>
+<li><strong>prepare_data</strong> (things to do on 1 GPU/TPU not on every GPU/TPU in distributed mode).</li>
+<li><strong>setup</strong>  (things to do on every accelerator in distributed mode).</li>
+<li><strong>train_dataloader</strong> the training dataloader.</li>
+<li><strong>val_dataloader</strong> the val dataloader(s).</li>
+<li><strong>test_dataloader</strong> the test dataloader(s).</li>
+</ul>
+<p>This allows you to share a full dataset without explaining how to download,
+split transform and process the data</p>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h2 id="GradeClassifModel" class="doc_header"><code>class</code> <code>GradeClassifModel</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/plmodules.py#L1007" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>GradeClassifModel</code>(<strong>**<code>kwargs</code></strong>) :: <a href="/grade_classif/models.plmodules.html#BaseModule"><code>BaseModule</code></a></p>
+</blockquote>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+    {% endraw %}
+
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>Module containing a model used to make cancer grade classification. Model can either be a usual model defined in <code>timm</code>, a <a href="/models.modules.html#CBR"><code>CBR</code></a> (for Conv-BatchNorm-ReLU), a <a href="/models.modules.html#SASA"><code>SASA</code></a> (for Stand Alone Self-Attention) or a <a href="/models.modules.html#SANet"><code>SANet</code></a> (that mixes SASA and ResNet). All models heads are replaced by a GlobalAveragePool followed by two sequences of BatchNorm-Dropout-Linear layers. Dropout rate defined in <a href="/params.parser.html#hparams"><code>hparams</code></a> is halfed for the first sequence.</p>
-<p>All important parameters are contained in <a href="/params.parser.html#hparams"><code>hparams</code></a>.</p>
+<p>Module containing a model used to make cancer grade classification. Model can either be a usual model defined in <code>timm</code>, a <a href="/grade_classif/models.modules.html#CBR"><code>CBR</code></a> (for Conv-BatchNorm-ReLU), a <a href="/grade_classif/models.modules.html#SASA"><code>SASA</code></a> (for Stand Alone Self-Attention) or a <a href="/grade_classif/models.modules.html#SANet"><code>SANet</code></a> (that mixes SASA and ResNet). All models heads are replaced by a GlobalAveragePool followed by two sequences of BatchNorm-Dropout-Linear layers. Dropout rate defined in <a href="/grade_classif/params.parser.html#hparams"><code>hparams</code></a> is halfed for the first sequence.</p>
+<p>All important parameters are contained in <a href="/grade_classif/params.parser.html#hparams"><code>hparams</code></a>.</p>
 
 </div>
 </div>
 </div>
-<div class="cell border-box-sizing code_cell rendered">
-
-</div>
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -284,7 +727,7 @@ images (in that order).</p>
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h2 id="RNNAttention" class="doc_header"><code>class</code> <code>RNNAttention</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/plmodules.py#L402" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>RNNAttention</code>(<strong><code>hparams</code></strong>, <strong>**<code>kwargs</code></strong>) :: <a href="/models.plmodules.html#BaseModule"><code>BaseModule</code></a></p>
+<h2 id="RNNAttention" class="doc_header"><code>class</code> <code>RNNAttention</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/plmodules.py#L1137" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>RNNAttention</code>(<strong><code>n_glimpses</code></strong>:<code>int</code>=<em><code>3</code></em>, <strong><code>glimpse_size</code></strong>:<code>int</code>=<em><code>256</code></em>, <strong><code>gamma</code></strong>:<code>float</code>=<em><code>1</code></em>, <strong>**<code>kwargs</code></strong>) :: <a href="/grade_classif/models.plmodules.html#BaseModule"><code>BaseModule</code></a></p>
 </blockquote>
 
 </div>
@@ -295,6 +738,15 @@ images (in that order).</p>
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+    {% endraw %}
+
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>RNN model with attention as defined in <a href="http://www.sfu.ca/~abentaie/papers/miccai18.pdf"><em>Predicting Cancer with a Recurrent Visual Attention Model for Histopathology Images</em></a>.</p>
@@ -302,6 +754,8 @@ images (in that order).</p>
 </div>
 </div>
 </div>
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -311,9 +765,10 @@ images (in that order).</p>
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="RNNAttention.compute_loss" class="doc_header"><code>RNNAttention.compute_loss</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/plmodules.py#L460" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>RNNAttention.compute_loss</code>(<strong><code>X</code></strong>, <strong><code>Y</code></strong>)</p>
+<h4 id="RNNAttention.compute_loss" class="doc_header"><code>RNNAttention.compute_loss</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/plmodules.py#L1187" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>RNNAttention.compute_loss</code>(<strong><code>X</code></strong>:<code>Tensor</code>, <strong><code>Y</code></strong>:<code>Tensor</code>)</p>
 </blockquote>
-<p>Compute the loss defined in the paper. Return the final slide-level prediction as well.</p>
+<p>Compute the loss defined in the paper. Return the final slide-level
+prediction as well.</p>
 
 </div>
 
@@ -323,6 +778,8 @@ images (in that order).</p>
 </div>
 
 </div>
+    {% endraw %}
+
 </div>
  
 

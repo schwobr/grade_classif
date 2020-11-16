@@ -1,10 +1,14 @@
 ---
 
 title: Title
+
+
 keywords: fastai
 sidebar: home_sidebar
 
-summary: "summary"
+
+
+nb_path: "nbs/25_models.losses.ipynb"
 ---
 <!--
 
@@ -17,16 +21,23 @@ summary: "summary"
 -->
 
 <div class="container" id="notebook-container">
+        
+    {% raw %}
     
 <div class="cell border-box-sizing code_cell rendered">
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 </div>
-<div class="cell border-box-sizing code_cell rendered">
+    {% endraw %}
 
-</div>
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -47,9 +58,17 @@ summary: "summary"
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -70,9 +89,17 @@ summary: "summary"
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -114,9 +141,17 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -126,7 +161,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h2 id="BCE" class="doc_header"><code>class</code> <code>BCE</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/losses.py#L39" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>BCE</code>(<strong><code>weight</code></strong>=<em><code>None</code></em>, <strong><code>size_average</code></strong>=<em><code>None</code></em>, <strong><code>reduce</code></strong>=<em><code>None</code></em>, <strong><code>reduction</code></strong>=<em><code>'mean'</code></em>, <strong><code>pos_weight</code></strong>=<em><code>None</code></em>) :: <code>BCEWithLogitsLoss</code></p>
+<h2 id="BCE" class="doc_header"><code>class</code> <code>BCE</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/models/losses.py#L39" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>BCE</code>(<strong><code>weight</code></strong>:<code>Optional</code>[<code>Tensor</code>]=<em><code>None</code></em>, <strong><code>size_average</code></strong>=<em><code>None</code></em>, <strong><code>reduce</code></strong>=<em><code>None</code></em>, <strong><code>reduction</code></strong>:<code>str</code>=<em><code>'mean'</code></em>, <strong><code>pos_weight</code></strong>:<code>Optional</code>[<code>Tensor</code>]=<em><code>None</code></em>) :: <code>BCEWithLogitsLoss</code></p>
 </blockquote>
 <p>This loss combines a <code>Sigmoid</code> layer and the <code>BCELoss</code> in one single
 class. This version is more numerically stable than using a plain <code>Sigmoid</code>
@@ -170,11 +205,11 @@ The loss would act as if the dataset contains :math:<code>3\times 100=300</code>
 <p>Examples::</p>
 
 <pre><code>&gt;&gt;&gt; target = torch.ones([10, 64], dtype=torch.float32)  # 64 classes, batch size = 10
-&gt;&gt;&gt; output = torch.full([10, 64], 0.999)  # A prediction (logit)
+&gt;&gt;&gt; output = torch.full([10, 64], 1.5)  # A prediction (logit)
 &gt;&gt;&gt; pos_weight = torch.ones([64])  # All weights are equal to 1
 &gt;&gt;&gt; criterion = torch.nn.BCEWithLogitsLoss(pos_weight=pos_weight)
-&gt;&gt;&gt; criterion(output, target)  # -log(sigmoid(0.999))
-tensor(0.3135)
+&gt;&gt;&gt; criterion(output, target)  # -log(sigmoid(1.5))
+tensor(0.2014)
 
 </code></pre>
 <p>Args:
@@ -187,13 +222,13 @@ tensor(0.3135)
         when reduce is <code>False</code>. Default: <code>True</code>
     reduce (bool, optional): Deprecated (see :attr:<code>reduction</code>). By default, the
         losses are averaged or summed over observations for each minibatch depending
-        on :attr:<code>size_average</code>. When :attr:<a href="/models.losses.html#reduce"><code>reduce</code></a> is <code>False</code>, returns a loss per
+        on :attr:<code>size_average</code>. When :attr:<code>reduce</code> is <code>False</code>, returns a loss per
         batch element instead and ignores :attr:<code>size_average</code>. Default: <code>True</code>
     reduction (string, optional): Specifies the reduction to apply to the output:
         <code>'none'</code> | <code>'mean'</code> | <code>'sum'</code>. <code>'none'</code>: no reduction will be applied,
         <code>'mean'</code>: the sum of the output will be divided by the number of
         elements in the output, <code>'sum'</code>: the output will be summed. Note: :attr:<code>size_average</code>
-        and :attr:<a href="/models.losses.html#reduce"><code>reduce</code></a> are in the process of being deprecated, and in the meantime,
+        and :attr:<code>reduce</code> are in the process of being deprecated, and in the meantime,
         specifying either of those two args will override :attr:<code>reduction</code>. Default: <code>'mean'</code>
     pos_weight (Tensor, optional): a weight of positive examples.
             Must be a vector with length equal to the number of classes.</p>
@@ -221,6 +256,15 @@ tensor(0.3135)
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+    {% endraw %}
+
 </div>
  
 

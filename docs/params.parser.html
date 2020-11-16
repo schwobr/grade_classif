@@ -1,10 +1,14 @@
 ---
 
 title: Title
+
+
 keywords: fastai
 sidebar: home_sidebar
 
-summary: "summary"
+
+
+nb_path: "nbs/81_params.parser.ipynb"
 ---
 <!--
 
@@ -17,13 +21,23 @@ summary: "summary"
 -->
 
 <div class="container" id="notebook-container">
+        
+    {% raw %}
     
 <div class="cell border-box-sizing code_cell rendered">
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -43,6 +57,10 @@ summary: "summary"
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -56,6 +74,26 @@ summary: "summary"
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1">#os.environ[&quot;CUDA_DEVICE_ORDER&quot;]=&quot;PCI_BUS_ID&quot; </span>
+<span class="c1">#os.environ[&#39;CUDA_VISIBLE_DEVICES&#39;] = &#39;,&#39;.join(map(str, hparams.gpus))</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    {% endraw %}
+
 </div>
  
 

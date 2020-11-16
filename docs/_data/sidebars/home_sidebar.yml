@@ -11,40 +11,40 @@ entries:
       url: /
     - output: web,pdf
       title: Core functions
-      url: /core
+      url: core.html
     - output: web,pdf
       title: Training
-      url: /train
+      url: train.html
     - output: web,pdf
       title: Prediction
-      url: /predict
+      url: predict.html
     - output: web,pdf
       title: 'Reading data '
-      url: /data.read
+      url: data.read.html
     - output: web,pdf
       title: Loading data
-      url: /data.loaders
+      url: data.loaders.html
     - output: web,pdf
       title: Datasets
-      url: /data.dataset
+      url: data.dataset.html
     - output: web,pdf
       title: Data utils
-      url: /data.utils
+      url: data.utils.html
     - output: web,pdf
       title: Transforms
-      url: /data.transforms
+      url: data.color.html
     - output: web,pdf
       title: PytorchLightning Modules
-      url: /models.plmodules
+      url: models.plmodules.html
     - output: web,pdf
       title: Pytorch Modules
-      url: /models.modules
+      url: models.modules.html
     - output: web,pdf
       title: Module utilities
-      url: /models.utils
+      url: models.utils.html
     - output: web,pdf
       title: Title
-      url: /params.parser
+      url: params.parser.html
     output: web
     title: grade_classif
   output: web

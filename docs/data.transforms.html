@@ -1,10 +1,14 @@
 ---
 
 title: Transforms
+
+
 keywords: fastai
 sidebar: home_sidebar
 
 summary: "Utilities for image transforms."
+description: "Utilities for image transforms."
+nb_path: "nbs/14_data.transforms.ipynb"
 ---
 <!--
 
@@ -17,16 +21,51 @@ summary: "Utilities for image transforms."
 -->
 
 <div class="container" id="notebook-container">
+        
+    {% raw %}
     
 <div class="cell border-box-sizing code_cell rendered">
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -36,7 +75,274 @@ summary: "Utilities for image transforms."
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="get_transforms" class="doc_header"><code>get_transforms</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/transforms.py#L15" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>get_transforms</code>(<strong><code>size</code></strong>)</p>
+<h2 id="DeterministicHSV" class="doc_header"><code>class</code> <code>DeterministicHSV</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/transforms.py#L84" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>DeterministicHSV</code>(<strong><code>num_els</code></strong>:<code>int</code>=<em><code>1</code></em>, <strong>**<code>kwargs</code></strong>) :: <code>HueSaturationValue</code></p>
+</blockquote>
+<p>Randomly change hue, saturation and value of the input image.</p>
+<p>Args:
+    hue_shift_limit ((int, int) or int): range for changing hue. If hue_shift_limit is a single int, the range
+        will be (-hue_shift_limit, hue_shift_limit). Default: (-20, 20).
+    sat_shift_limit ((int, int) or int): range for changing saturation. If sat_shift_limit is a single int,
+        the range will be (-sat_shift_limit, sat_shift_limit). Default: (-30, 30).
+    val_shift_limit ((int, int) or int): range for changing value. If val_shift_limit is a single int, the range
+        will be (-val_shift_limit, val_shift_limit). Default: (-20, 20).
+    p (float): probability of applying the transform. Default: 0.5.</p>
+<p>Targets:
+    image</p>
+<p>Image types:
+    uint8, float32</p>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h2 id="DeterministicBrightnessContrast" class="doc_header"><code>class</code> <code>DeterministicBrightnessContrast</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/transforms.py#L98" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>DeterministicBrightnessContrast</code>(<strong><code>num_els</code></strong>:<code>int</code>=<em><code>1</code></em>, <strong>**<code>kwargs</code></strong>) :: <code>RandomBrightnessContrast</code></p>
+</blockquote>
+<p>Randomly change brightness and contrast of the input image.</p>
+<p>Args:
+    brightness_limit ((float, float) or float): factor range for changing brightness.
+        If limit is a single float, the range will be (-limit, limit). Default: (-0.2, 0.2).
+    contrast_limit ((float, float) or float): factor range for changing contrast.
+        If limit is a single float, the range will be (-limit, limit). Default: (-0.2, 0.2).
+    brightness_by_max (Boolean): If True adjust contrast by image dtype maximum,
+        else adjust contrast by image mean.
+    p (float): probability of applying the transform. Default: 0.5.</p>
+<p>Targets:
+    image</p>
+<p>Image types:
+    uint8, float32</p>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h2 id="DeterministicGamma" class="doc_header"><code>class</code> <code>DeterministicGamma</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/transforms.py#L111" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>DeterministicGamma</code>(<strong><code>num_els</code></strong>:<code>int</code>=<em><code>1</code></em>, <strong>**<code>kwargs</code></strong>) :: <code>RandomGamma</code></p>
+</blockquote>
+<p>Args:
+    gamma_limit (float or (float, float)): If gamma_limit is a single float value,
+        the range will be (-gamma_limit, gamma_limit). Default: (80, 120).
+    eps: Deprecated.</p>
+<p>Targets:
+    image</p>
+<p>Image types:
+    uint8, float32</p>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h2 id="DeterministicRGBShift" class="doc_header"><code>class</code> <code>DeterministicRGBShift</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/transforms.py#L121" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>DeterministicRGBShift</code>(<strong><code>num_els</code></strong>:<code>int</code>=<em><code>1</code></em>, <strong>**<code>kwargs</code></strong>) :: <code>RGBShift</code></p>
+</blockquote>
+<p>Randomly shift values for each channel of the input RGB image.</p>
+<p>Args:
+    r_shift_limit ((int, int) or int): range for changing values for the red channel. If r_shift_limit is a single
+        int, the range will be (-r_shift_limit, r_shift_limit). Default: (-20, 20).
+    g_shift_limit ((int, int) or int): range for changing values for the green channel. If g_shift_limit is a
+        single int, the range  will be (-g_shift_limit, g_shift_limit). Default: (-20, 20).
+    b_shift_limit ((int, int) or int): range for changing values for the blue channel. If b_shift_limit is a single
+        int, the range will be (-b_shift_limit, b_shift_limit). Default: (-20, 20).
+    p (float): probability of applying the transform. Default: 0.5.</p>
+<p>Targets:
+    image</p>
+<p>Image types:
+    uint8, float32</p>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h2 id="RGB2H" class="doc_header"><code>class</code> <code>RGB2H</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/transforms.py#L135" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>RGB2H</code>(<strong><code>always_apply</code></strong>:<code>bool</code>=<em><code>True</code></em>, <strong><code>p</code></strong>:<code>float</code>=<em><code>1</code></em>) :: <code>ImageOnlyTransform</code></p>
+</blockquote>
+<p>Transform applied to image only.</p>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h2 id="RGB2E" class="doc_header"><code>class</code> <code>RGB2E</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/transforms.py#L150" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>RGB2E</code>(<strong><code>always_apply</code></strong>:<code>bool</code>=<em><code>True</code></em>, <strong><code>p</code></strong>:<code>float</code>=<em><code>1</code></em>) :: <code>ImageOnlyTransform</code></p>
+</blockquote>
+<p>Transform applied to image only.</p>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h2 id="RGB2HEG" class="doc_header"><code>class</code> <code>RGB2HEG</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/transforms.py#L165" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>RGB2HEG</code>(<strong><code>always_apply</code></strong>:<code>bool</code>=<em><code>True</code></em>, <strong><code>p</code></strong>:<code>float</code>=<em><code>1</code></em>) :: <code>ImageOnlyTransform</code></p>
+</blockquote>
+<p>Transform applied to image only.</p>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h4 id="get_transforms1" class="doc_header"><code>get_transforms1</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/transforms.py#L180" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>get_transforms1</code>(<strong><code>size</code></strong>:<code>int</code>, <strong><code>num_els</code></strong>:<code>int</code>=<em><code>1</code></em>)</p>
 </blockquote>
 
 </div>
@@ -47,6 +353,15 @@ summary: "Utilities for image transforms."
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+    {% endraw %}
+
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>Return a tuple <code>(train_tfms, val_tfms)</code> containing transforms defined in <code>albumentations</code> for training and validation.</p>
@@ -64,6 +379,99 @@ summary: "Utilities for image transforms."
 </div>
 </div>
 </div>
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h4 id="get_transforms2" class="doc_header"><code>get_transforms2</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/transforms.py#L196" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>get_transforms2</code>(<strong><code>size</code></strong>:<code>int</code>, <strong><code>num_els</code></strong>:<code>int</code>=<em><code>1</code></em>)</p>
+</blockquote>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h4 id="get_transforms3" class="doc_header"><code>get_transforms3</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/transforms.py#L213" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>get_transforms3</code>(<strong><code>size</code></strong>:<code>int</code>, <strong><code>num_els</code></strong>:<code>int</code>=<em><code>1</code></em>)</p>
+</blockquote>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h4 id="get_transforms4" class="doc_header"><code>get_transforms4</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/transforms.py#L236" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>get_transforms4</code>(<strong><code>size</code></strong>:<code>int</code>, <strong><code>num_els</code></strong>:<code>int</code>=<em><code>1</code></em>)</p>
+</blockquote>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+    {% endraw %}
+
 </div>
  
 

@@ -1,10 +1,14 @@
 ---
 
 title: Reading data 
+
+
 keywords: fastai
 sidebar: home_sidebar
 
 summary: "Defines utilities function for reading and manipulating data."
+description: "Defines utilities function for reading and manipulating data."
+nb_path: "nbs/10_data.read.ipynb"
 ---
 <!--
 
@@ -17,28 +21,50 @@ summary: "Defines utilities function for reading and manipulating data."
 -->
 
 <div class="container" id="notebook-container">
+        
+    {% raw %}
     
 <div class="cell border-box-sizing code_cell rendered">
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span><span class="o">/</span><span class="s1">&#39;sample_data/Patches_MGI_256_7&#39;</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span> <span class="o">/</span> <span class="s2">&quot;sample_data/Patches_MGI_256_7&quot;</span>
 </pre></div>
 
     </div>
@@ -46,9 +72,10 @@ summary: "Defines utilities function for reading and manipulating data."
 </div>
 
 </div>
-<div class="cell border-box-sizing code_cell rendered">
+    {% endraw %}
 
-</div>
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -58,7 +85,7 @@ summary: "Defines utilities function for reading and manipulating data."
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="get_items" class="doc_header"><code>get_items</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/read.py#L22" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>get_items</code>(<strong><code>folder</code></strong>, <strong><code>label_func</code></strong>, <strong><code>recurse</code></strong>=<em><code>True</code></em>, <strong><code>extensions</code></strong>=<em><code>None</code></em>, <strong><code>include</code></strong>=<em><code>None</code></em>, <strong><code>exclude</code></strong>=<em><code>None</code></em>, <strong><code>filterfunc</code></strong>=<em><code>None</code></em>)</p>
+<h4 id="get_items" class="doc_header"><code>get_items</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/read.py#L26" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>get_items</code>(<strong><code>folder</code></strong>:<code>Union</code>[<code>Path</code>, <code>str</code>], <strong><code>label_func</code></strong>:<code>Callable</code>[<code>Path</code>, <code>bool</code>], <strong><code>recurse</code></strong>:<code>bool</code>=<em><code>True</code></em>, <strong><code>extensions</code></strong>:<code>Optional</code>[<code>Sequence</code>[<code>str</code>]]=<em><code>None</code></em>, <strong><code>include</code></strong>:<code>Optional</code>[<code>Sequence</code>[<code>str</code>]]=<em><code>None</code></em>, <strong><code>exclude</code></strong>:<code>Optional</code>[<code>Sequence</code>[<code>str</code>]]=<em><code>None</code></em>, <strong><code>filterfunc</code></strong>:<code>Optional</code>[<code>Callable</code>[<code>Path</code>, <code>bool</code>]]=<em><code>None</code></em>)</p>
 </blockquote>
 
 </div>
@@ -69,6 +96,15 @@ summary: "Defines utilities function for reading and manipulating data."
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+    {% endraw %}
+
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>Loads all items and labels in <code>folder</code>. Items are stored as <code>Path</code> objects. Labels are computed for each item using <code>label_func</code>. By default, the search will happen recursively in all subfolders. To disable this behaviour, use <code>recurse=False</code>. You can also specify a list of <code>extensions</code> to restrict the accepted files, as well as <code>include</code> and <code>exclude</code> folders (as <code>str</code>, these are direct subfolders of <code>folder</code>). <code>filterfunc</code> can be used to only accept objects for which it returns <code>True</code>.</p>
@@ -76,6 +112,8 @@ summary: "Defines utilities function for reading and manipulating data."
 </div>
 </div>
 </div>
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -114,9 +152,10 @@ summary: "Defines utilities function for reading and manipulating data."
 </div>
 
 </div>
-<div class="cell border-box-sizing code_cell rendered">
+    {% endraw %}
 
-</div>
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -126,7 +165,7 @@ summary: "Defines utilities function for reading and manipulating data."
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="get_scan" class="doc_header"><code>get_scan</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/read.py#L38" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>get_scan</code>(<strong><code>folder</code></strong>, <strong><code>scan_name</code></strong>, <strong><code>include</code></strong>=<em><code>None</code></em>, <strong><code>exclude</code></strong>=<em><code>None</code></em>)</p>
+<h4 id="get_scan" class="doc_header"><code>get_scan</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/read.py#L53" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>get_scan</code>(<strong><code>folder</code></strong>:<code>Union</code>[<code>Path</code>, <code>str</code>], <strong><code>scan_name</code></strong>:<code>str</code>, <strong><code>include</code></strong>:<code>Optional</code>[<code>Sequence</code>[<code>str</code>]]=<em><code>None</code></em>, <strong><code>exclude</code></strong>:<code>Optional</code>[<code>Sequence</code>[<code>str</code>]]=<em><code>None</code></em>)</p>
 </blockquote>
 
 </div>
@@ -137,6 +176,15 @@ summary: "Defines utilities function for reading and manipulating data."
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+    {% endraw %}
+
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>Return a <code>Path</code> object to the folder corresponding to a <code>scan</code> name in a specific <code>folder</code>. Direct subfolders can be include or excluded using respectively <code>include</code> and <code>exclude</code>.</p>
@@ -144,12 +192,14 @@ summary: "Defines utilities function for reading and manipulating data."
 </div>
 </div>
 </div>
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">get_scan</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s1">&#39;CF_PACS05HE_08034-A03.11622B3&#39;</span><span class="p">)</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">get_scan</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s2">&quot;CF_PACS05HE_08034-A03.11622B3&quot;</span><span class="p">)</span>
 </pre></div>
 
     </div>
@@ -173,9 +223,10 @@ summary: "Defines utilities function for reading and manipulating data."
 </div>
 
 </div>
-<div class="cell border-box-sizing code_cell rendered">
+    {% endraw %}
 
-</div>
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -185,7 +236,7 @@ summary: "Defines utilities function for reading and manipulating data."
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="split" class="doc_header"><code>split</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/read.py#L51" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>split</code>(<strong><code>scans</code></strong>, <strong><code>grades</code></strong>, <strong><code>valid_pct</code></strong>=<em><code>0.2</code></em>)</p>
+<h4 id="split" class="doc_header"><code>split</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/read.py#L72" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>split</code>(<strong><code>scans</code></strong>:<code>Sequence</code>[<code>str</code>], <strong><code>grades</code></strong>:<code>Sequence</code>[<code>str</code>], <strong><code>valid_pct</code></strong>:<code>float</code>=<em><code>0.2</code></em>)</p>
 </blockquote>
 
 </div>
@@ -196,6 +247,15 @@ summary: "Defines utilities function for reading and manipulating data."
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+    {% endraw %}
+
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>Using a list of scan names <code>scans</code>, a list of grades <code>grades</code> (both as strings) and ratio for the validation set's size <code>valid_pct</code>, randomly splits the dataset between training and validation sets. Returns a list of <code>'train'</code> and <code>'valid'</code> strings so that each scan is associated to a set.</p>
@@ -203,13 +263,15 @@ summary: "Defines utilities function for reading and manipulating data."
 </div>
 </div>
 </div>
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">scans</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">)]</span>
-<span class="n">grades</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;1&#39;</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">30</span><span class="p">)]</span><span class="o">+</span><span class="p">[</span><span class="s1">&#39;3&#39;</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">70</span><span class="p">)]</span>
+<span class="n">grades</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;1&quot;</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">30</span><span class="p">)]</span> <span class="o">+</span> <span class="p">[</span><span class="s2">&quot;3&quot;</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">70</span><span class="p">)]</span>
 <span class="n">splits</span> <span class="o">=</span> <span class="n">split</span><span class="p">(</span><span class="n">scans</span><span class="p">,</span> <span class="n">grades</span><span class="p">)</span>
 </pre></div>
 
@@ -218,12 +280,16 @@ summary: "Defines utilities function for reading and manipulating data."
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;scan&#39;</span><span class="p">:</span> <span class="n">scans</span><span class="p">,</span> <span class="s1">&#39;grade&#39;</span><span class="p">:</span> <span class="n">grades</span><span class="p">,</span> <span class="s1">&#39;split&#39;</span><span class="p">:</span> <span class="n">splits</span><span class="p">})</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;scan&quot;</span><span class="p">:</span> <span class="n">scans</span><span class="p">,</span> <span class="s2">&quot;grade&quot;</span><span class="p">:</span> <span class="n">grades</span><span class="p">,</span> <span class="s2">&quot;split&quot;</span><span class="p">:</span> <span class="n">splits</span><span class="p">})</span>
 <span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
 </pre></div>
 
@@ -278,13 +344,13 @@ summary: "Defines utilities function for reading and manipulating data."
       <td>2</td>
       <td>2</td>
       <td>1</td>
-      <td>train</td>
+      <td>valid</td>
     </tr>
     <tr>
       <td>3</td>
       <td>3</td>
       <td>1</td>
-      <td>valid</td>
+      <td>train</td>
     </tr>
     <tr>
       <td>4</td>
@@ -314,7 +380,7 @@ summary: "Defines utilities function for reading and manipulating data."
       <td>8</td>
       <td>8</td>
       <td>1</td>
-      <td>valid</td>
+      <td>train</td>
     </tr>
     <tr>
       <td>9</td>
@@ -333,12 +399,16 @@ summary: "Defines utilities function for reading and manipulating data."
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;split&#39;</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;valid&#39;</span><span class="p">])</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;split&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;valid&quot;</span><span class="p">])</span>
 </pre></div>
 
     </div>
@@ -362,6 +432,8 @@ summary: "Defines utilities function for reading and manipulating data."
 </div>
 
 </div>
+    {% endraw %}
+
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>Proportions of grades 1 and 3 are preserved in each subset as you can see below.</p>
@@ -369,12 +441,16 @@ summary: "Defines utilities function for reading and manipulating data."
 </div>
 </div>
 </div>
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;split&#39;</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;valid&#39;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;grade&#39;</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;3&#39;</span><span class="p">)])</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;split&#39;</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;valid&#39;</span><span class="p">])</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;split&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;valid&quot;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;grade&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;3&quot;</span><span class="p">)])</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;split&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;valid&quot;</span><span class="p">]</span>
+<span class="p">)</span>
 </pre></div>
 
     </div>
@@ -398,12 +474,17 @@ summary: "Defines utilities function for reading and manipulating data."
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 </div>
-<div class="cell border-box-sizing code_cell rendered">
+    {% endraw %}
 
-</div>
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -413,7 +494,7 @@ summary: "Defines utilities function for reading and manipulating data."
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="create_csv" class="doc_header"><code>create_csv</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/read.py#L78" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>create_csv</code>(<strong><code>csv_path</code></strong>, <strong><code>data_path</code></strong>, <strong><code>label_func</code></strong>=<em><code>None</code></em>)</p>
+<h4 id="create_csv" class="doc_header"><code>create_csv</code><a href="https://github.com/schwobr/grade_classif/tree/master/grade_classif/data/read.py#L103" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>create_csv</code>(<strong><code>csv_path</code></strong>:<code>Path</code>, <strong><code>data_path</code></strong>:<code>Path</code>, <strong><code>label_func</code></strong>:<code>Optional</code>[<code>Callable</code>[<code>Path</code>, <code>bool</code>]]=<em><code>None</code></em>)</p>
 </blockquote>
 
 </div>
@@ -424,6 +505,15 @@ summary: "Defines utilities function for reading and manipulating data."
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+    {% endraw %}
+
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>Creates a csv that contains all scan names, with the associated grade and subset they are in. Scans are found in the folder contained in <code>data_path</code> (<code>Path</code> object). Doubles are deleted. The file is then stored in <code>csv_path</code>. You can specify a <code>label_func</code> to compute how the grade is to be extracted from the path to a patch. Returns the corresponding dataframe.</p>
@@ -431,12 +521,14 @@ summary: "Defines utilities function for reading and manipulating data."
 </div>
 </div>
 </div>
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">df</span> <span class="o">=</span> <span class="n">create_csv</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">parent</span><span class="o">/</span><span class="s1">&#39;sample.csv&#39;</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">df</span> <span class="o">=</span> <span class="n">create_csv</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">&quot;sample.csv&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
 <span class="n">df</span>
 </pre></div>
 
@@ -534,6 +626,8 @@ summary: "Defines utilities function for reading and manipulating data."
 </div>
 
 </div>
+    {% endraw %}
+
 </div>
  
 

@@ -1,10 +1,14 @@
 ---
 
 title: Module utilities
+
+
 keywords: fastai
 sidebar: home_sidebar
 
 summary: "Utility function for modules."
+description: "Utility function for modules."
+nb_path: "nbs/22_models.utils.ipynb"
 ---
 <!--
 
@@ -17,16 +21,23 @@ summary: "Utility function for modules."
 -->
 
 <div class="container" id="notebook-container">
+        
+    {% raw %}
     
 <div class="cell border-box-sizing code_cell rendered">
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 </div>
-<div class="cell border-box-sizing code_cell rendered">
+    {% endraw %}
 
-</div>
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -47,6 +58,15 @@ summary: "Utility function for modules."
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+    {% endraw %}
+
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>Recursive function that gets all leaf modules of <code>model</code> with their name (as _parent_n.parent_n-1.(...).parent_0.module_name_) added as an attribute. <code>name</code> is a convenience argument for recursion and should always be an empty string when manually called.</p>
@@ -54,9 +74,8 @@ summary: "Utility function for modules."
 </div>
 </div>
 </div>
-<div class="cell border-box-sizing code_cell rendered">
-
-</div>
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -77,6 +96,15 @@ summary: "Utility function for modules."
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+    {% endraw %}
+
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>Get a tuple <code>(sizes, modules)</code> where <code>sizes</code> contains the output shapes of all <code>leaf_modules</code> from <code>model</code>. Both are ordered depending on the call order.</p>
@@ -84,9 +112,8 @@ summary: "Utility function for modules."
 </div>
 </div>
 </div>
-<div class="cell border-box-sizing code_cell rendered">
-
-</div>
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -107,6 +134,15 @@ summary: "Utility function for modules."
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+    {% endraw %}
+
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>Create a gaussian attention mask with mean <code>m</code>, standard deviation <code>s</code>, distance between centers <code>d</code>, <code>R</code> rows ans <code>C</code> colums. Explanations for gaussian attention can be found in <a href="http://akoriorek.github.io/ml/2017/10/14/visual-attention.html">this blog post</a>.</p>
@@ -114,9 +150,8 @@ summary: "Utility function for modules."
 </div>
 </div>
 </div>
-<div class="cell border-box-sizing code_cell rendered">
-
-</div>
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -137,6 +172,15 @@ summary: "Utility function for modules."
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+    {% endraw %}
+
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>Get the number of features from the last layer of <code>model</code>.</p>
