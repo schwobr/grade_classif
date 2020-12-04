@@ -689,13 +689,13 @@ class DynamicUnet(nn.Module):
 
         self.encoder = nn.Sequential(*(list(encoder.children())[:cut] + [nn.ReLU()]))
         encoder_sizes, idxs = self._register_output_hooks(input_shape=input_shape)
-        n_chans = encoder_sizes[-1][1]
+        n_chans = int(encoder_sizes[-1][1])
         middle_conv = nn.Sequential(
             ConvBnRelu(n_chans, n_chans // 2, 3), ConvBnRelu(n_chans // 2, n_chans, 3)
         )
         decoder = [middle_conv]
         for k, (idx, hook) in enumerate(zip(idxs[::-1], self.hooks)):
-            skip_chans = encoder_sizes[idx][1]
+            skip_chans = int(encoder_sizes[idx][1])
             final_div = k != len(idxs) - 1
             decoder.append(DecoderBlock(n_chans, skip_chans, hook, final_div=final_div))
             n_chans = n_chans // 2 + skip_chans

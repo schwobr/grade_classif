@@ -8,7 +8,7 @@ from ..imports import *
 
 # Cell
 def np_to_tensor(x: NDArray[(Any, ...), Number], tensor_type: str) -> torch.Tensor:
-    if tensor_type == "image":
+    if tensor_type == "image" or tensor_type == "slide":
         x = x.transpose(2, 0, 1)
     x = torch.tensor(x)
     return x
