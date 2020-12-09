@@ -126,5 +126,11 @@ def train_mil_reargmt(hparams: Namespace) -> MILModel:
             )
         ]
     )
-    model.fit(dm, num_sanity_val_steps=0, reload_dataloaders_every_epoch=True)
+    model.fit(
+        dm,
+        num_sanity_val_steps=0,
+        reload_dataloaders_every_epoch=True,
+        check_val_every_n_epochs=5,
+        monitor="f1_cancer"
+    )
     return model

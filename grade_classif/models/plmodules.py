@@ -2,27 +2,34 @@
 
 __all__ = ['get_base_model', 'get_head', 'BaseDataModule', 'BaseModule', 'NormDataModule', 'Normalizer',
            'ImageClassifDataModule', 'ClassifModel', 'RNNAttention', 'MILDataModule', 'get_topk_idxs', 'get_max_probs',
-           'MILModel']
+           'MILModel', 'RNNAggDataModule', 'RNNAggregator', 'CoTeachingModel']
 
 # Cell
+from copy import deepcopy
+
 import pytorch_lightning as pl
 from kornia.color import rgb_to_grayscale, rgb_to_hsv
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import CometLogger
-from pytorch_lightning.profiler import SimpleProfiler, AdvancedProfiler
-from torch.optim.lr_scheduler import CosineAnnealingLR, OneCycleLR, ReduceLROnPlateau
-from torch.utils.data import DataLoader, RandomSampler, WeightedRandomSampler, Dataset
+from pytorch_lightning.profiler import AdvancedProfiler, SimpleProfiler
 from torch.optim import Optimizer
+from torch.optim.lr_scheduler import CosineAnnealingLR, OneCycleLR, ReduceLROnPlateau
+from torch.utils.data import DataLoader, Dataset, RandomSampler, WeightedRandomSampler
+
 from ..core import ifnone
 from ..data.color import rgb_to_e, rgb_to_h, rgb_to_heg, rgb_to_lab
-from ..data.dataset import ImageClassifDataset, NormDataset, MILDataset
+from ..data.dataset import (
+    ImageClassifDataset,
+    MILDataset,
+    NormDataset,
+    RNNSlideDataset,
+)
 from ..data.transforms import *
 from ..data.utils import show_img
 from ..imports import *
 from .losses import BCE, FocalLoss
 from .metrics import pcc, ssim
 from .modules import *
-from copy import deepcopy
 from .utils import (
     gaussian_mask,
     get_num_features,
@@ -140,7 +147,7 @@ class BaseDataModule(pl.LightningDataModule):
             tfm_func = globals()[f"get_transforms{transforms}"]
             self.tfms = tfm_func(size)
         else:
-            self.tfms = []
+            self.tfms = None
 
     def train_dataloader(self) -> DataLoader:
         return DataLoader(
@@ -295,11 +302,7 @@ class BaseModule(pl.LightningModule):
         self, batch: Tuple[torch.Tensor, torch.Tensor], batch_nb: int
     ) -> torch.Tensor:
         # OPTIONAL
-        x, y = batch
-        y_hat = self(x)
-        loss = self.loss(y_hat, y).detach()
-        self.log("test_loss", loss)
-        return loss
+        return self.validation_step(batch, batch_nb)
 
     def on_fit_end(self):
         path = self.trainer.checkpoint_callbacks[0].best_model_path
@@ -363,7 +366,7 @@ class BaseModule(pl.LightningModule):
         summary = pd.DataFrame({"Name": named_modules, "Output Shape": self.sizes})
         return summary
 
-    def fit(self, dm: pl.LightningDataModule, **kwargs):
+    def fit(self, dm: pl.LightningDataModule, monitor="val_loss", **kwargs):
         """
         Fit the model using parameters stored in `hparams`.
         """
@@ -382,11 +385,9 @@ class BaseModule(pl.LightningModule):
         )
         if not ckpt_path.is_dir():
             ckpt_path.mkdir(parents=True)
+        mode = "min" if "loss" in monitor or "err" in monitor else "max"
         ckpt_callback = ModelCheckpoint(
-            dirpath=ckpt_path,
-            save_top_k=3,
-            monitor="val_loss",
-            save_last=True
+            dirpath=ckpt_path, save_top_k=3, monitor=monitor, save_last=True, mode=mode
         )
         profiler = None
         if self.hparams.profiler == "simple":
@@ -416,8 +417,8 @@ class BaseModule(pl.LightningModule):
     def export_to_torchscript(self):
         save_dir = self.save_path / f"lightning_logs/version_{self.version}"
         self.to_torchscript(
-            file_path=save_dir / "best_model.pt",
-            methode="trace",
+            file_path=str(save_dir / "best_model.pt"),
+            method="trace",
             example_inputs=torch.rand(
                 2,
                 3,
@@ -434,7 +435,7 @@ class BaseModule(pl.LightningModule):
             norm = torch.jit.load(hparams.normalizer, map_location=self.main_device)
             for p in norm.parameters():
                 p.requires_grad = False
-            norm = norm.to(self.main_device)
+            norm = norm.to(self.main_device).eval()
             self.norm = norm.__call__
 
 # Cell
@@ -594,7 +595,7 @@ class ImageClassifDataModule(BaseDataModule):
         sample_mode: int = 0,
         **kwargs
     ):
-        super().__init__(datafolder, datacsv, **kwargs)
+        super().__init__(datafolder, data_csv, **kwargs)
         self.classes = classes
         self.n_classes = len(classes)
         self.sample_mode = sample_mode
@@ -679,9 +680,9 @@ class ClassifModel(BaseModule):
         y_hat = torch.softmax(y_hat, dim=1)
         y_hat = y_hat.argmax(dim=-1).view(n, -1)
         y = y.view(n, -1)
-        for cl in self.hparams.classes:
-            ret[f"t_{cl}"] = ((y_hat == cl) & (y == cl)).float().sum()
-            ret[f"f_{cl}"] = ((y_hat == cl) & (y != cl)).float().sum()
+        for k, cl in enumerate(self.hparams.classes):
+            ret[f"t_{cl}"] = ((y_hat == k) & (y == k)).float().sum()
+            ret[f"f_{cl}"] = ((y_hat == k) & (y != k)).float().sum()
         return ret
 
     def validation_epoch_end(self, outputs: List[Dict[str, torch.Tensor]]):
@@ -879,6 +880,7 @@ class MILDataModule(BaseDataModule):
         classes: Sequence[str],
         label_func: Optional[Callable[[Path], str]] = None,
         extensions: Optional[Sequence[str]] = None,
+        level: int = 1,
         sample_mode: int = 0,
         **kwargs
     ):
@@ -889,6 +891,7 @@ class MILDataModule(BaseDataModule):
         self.classes = classes
         self.label_func = ifnone(label_func, lambda x: x.parent.name)
         self.extensions = ifnone(extensions, ['.mrxs'])
+        self.level = level
 
     def setup(self, stage: Optional[str] = None):
         self.data = (
@@ -900,6 +903,8 @@ class MILDataModule(BaseDataModule):
                 extensions=self.extensions,
                 include=self.classes,
                 train_percent=self.train_percent,
+                size=self.size,
+                level=self.level
             )
             .split_by_csv(self.data_csv)
             .to_tensor(tfms=self.tfms, tfm_y=False)
@@ -989,16 +994,16 @@ class MILModel(ClassifModel):
 
     def configure_optimizers(self):
         opt = super().configure_optimizers()
-        if isinstance(opt, dict) and "scheduler" in opt:
+        if isinstance(opt, dict) and "lr_scheduler" in opt:
             n_slides = len(self.trainer.datamodule.data.test.slides)
             n_steps = (n_slides * self.hparams.topk) // self.hparams.batch_size
-            opt["scheduler"] = _get_scheduler(
+            opt["lr_scheduler"] = _get_scheduler(
                 opt["optimizer"],
                 self.hparams.sched,
                 n_steps * self.hparams.epochs,
                 self.hparams.lr,
             )
-            self.sched = opt["scheduler"]["scheduler"]
+            self.sched = opt["lr_scheduler"]["scheduler"]
         return opt
 
     def on_train_epoch_start(self):
@@ -1062,3 +1067,288 @@ class MILModel(ClassifModel):
         self, batch: Tuple[torch.Tensor, torch.Tensor], batch_nb: int
     ) -> Dict[str, torch.Tensor]:
         return self.validation_step(batch, batch_nb)
+
+# Cell
+class RNNAggDataModule(MILDataModule):
+    def __init__(
+            self,
+            datafolder: Union[str, Path],
+            data_csv: Union[str, Path],
+            coord_csv: Union[str, Path],
+            classes: Sequence[str],
+            patches_per_slide=10,
+            **kwargs
+        ):
+        super().__init__(datafolder, data_csv, coord_csv, classes, **kwargs)
+        self.patches_per_slide = patches_per_slide
+
+
+    def setup(self, stage: Optional[str] = None):
+        self.data = (
+            RNNSlideDataset.from_folder(
+                self.datafolder,
+                self.label_func,
+                self.coord_csv,
+                classes=self.classes,
+                extensions=self.extensions,
+                include=self.classes,
+                train_percent=self.train_percent,
+                size=self.size,
+                level=self.level,
+                patches_per_slide=self.patches_per_slide
+            )
+            .split_by_csv(self.data_csv)
+            .to_tensor(tfms=self.tfms, tfm_y=False)
+        )
+        weights = np.float32(
+            (self.data.train.labels == self.classes[0]).sum()
+            / (self.data.train.labels == self.classes[1]).sum()
+        )
+        min_class = 1
+        if weights < 1:
+            weights = 1 / weights
+            min_class = 0
+        self.min_class = min_class
+        self.weights = weights
+
+# Cell
+class RNNAggregator(ClassifModel):
+    def __init__(self, rnn_hidden_dims: int = 128, **kwargs):
+        super().__init__(**kwargs)
+        self.freeze()
+        nf = get_num_features(self.base_model)
+        self.fc1 = nn.Linear(nf, rnn_hidden_dims)
+        self.fc2 = nn.Linear(rnn_hidden_dims, rnn_hidden_dims)
+        self.fc3 = nn.Linear(rnn_hidden_dims, self.hparams.n_classes)
+        self.act = nn.ReLU()
+        self.save_hyperparameters()
+
+    def forward(self, x, state):
+        x = _open_functions[self.hparams.open_mode](x).detach()
+        if hasattr(self, "norm"):
+            x = self.norm(x)
+        x = self.base_model(x)
+        x = self.fc1(x)
+        state = self.fc2(state)
+        state = self.act(state + x)
+        y = self.fc3(state)
+        return y, state
+
+    def on_train_epoch_start(self):
+        self.base_model.eval()
+
+    def training_step(
+        self, batch: Tuple[List[torch.Tensor], torch.Tensor], batch_nb: int
+    ):
+        xs, y = batch
+        state = torch.zeros(x.shape[0], self.hparams.rnn_hidden_dims)
+        for x in xs:
+            y_hat, state = self(x, state)
+        loss = self.loss(y_hat, y)
+        lr = self.sched.optimizer.param_groups[-1]["lr"]
+        log = {"train_loss": loss.detach(), "learning_rate": lr}
+        self.log_dict(log, on_step=True, on_epoch=False)
+        return loss
+
+    def validation_step(
+        self, batch: Tuple[List[torch.Tensor], torch.Tensor], batch_nb: int
+    ) -> Dict[str, torch.Tensor]:
+        # OPTIONAL
+        xs, y = batch
+        n = y.shape[0]
+        state = torch.zeros(n, self.hparams.rnn_hidden_dims)
+        for x in xs:
+            y_hat, state = self(x, state)
+        loss = self.loss(y_hat, y).detach()
+        ret = {"loss": loss}
+        y_hat = torch.softmax(y_hat, dim=1)
+        y_hat = y_hat.argmax(dim=-1).view(n, -1)
+        y = y.view(n, -1)
+        for cl in self.hparams.classes:
+            ret[f"t_{cl}"] = ((y_hat == cl) & (y == cl)).float().sum()
+            ret[f"f_{cl}"] = ((y_hat == cl) & (y != cl)).float().sum()
+        return ret
+
+    def predict(self, xs: List[torch.Tensor]) -> torch.Tensor:
+        state = torch.zeros(x.shape[0], self.hparams.rnn_hidden_dims)
+        for x in xs:
+            pred, state = super().predict(x, state)
+        pred = torch.softmax(pred, dim=1)
+        return pred
+
+# Cell
+class CoTeachingModel(BaseModule):
+    """"""
+    def __init__(
+        self, n_classes: int = 2, classes: Optional[Sequence[str]] = None, **kwargs
+    ):
+        super().__init__(**kwargs)
+        classes = ifnone(classes, list(range(n_classes)))
+        n_classes = len(classes)  # if classes is specified it superseeds n_classes
+        self.save_hyperparameters()
+        hparams = self.hparams
+        self.loss = _get_loss(
+            hparams.loss, 1.0, "none", device=self.main_device, nc=n_classes
+        )
+        base_model1 = get_base_model(hparams.model, pretrained=not hparams.rand_weights)
+        base_model2 = get_base_model(hparams.model, pretrained=not hparams.rand_weights)
+        nf = get_num_features(base_model1)
+        head1 = get_head(nf, n_classes, dropout=hparams.dropout)
+        head2 = get_head(nf, n_classes, dropout=hparams.dropout)
+        self.model1 = Classifier(base_model1, head1)
+        self.model2 = Classifier(base_model2, head2)
+        self.model2.apply(nn.init.kaiming_normal_)
+        self.post_init()
+        self._create_normalizer()
+
+    def configure_optimizers(self) -> Union[Optimizer, Dict[str, Any]]:
+        # REQUIRED
+        hparams = self.hparams
+        try:
+            weight = hparams.weight if hparams.sample_mode == 0 else 1.0
+        except AttributeError:
+            weight = 1.0
+        if not hasattr(self, "loss"):
+            self.loss = _get_loss(
+                hparams.loss, weight, hparams.reduction, device=self.main_device
+            )
+        self.lr = hparams.lr
+        self.wd = hparams.wd
+        self.opt1 = torch.optim.Adam(self.model1.parameters(), lr=self.lr)
+        self.opt1 = torch.optim.Adam(self.model2.parameters(), lr=self.lr)
+        n_train_dl = len(self.trainer.datamodule.train_dataloader())
+        n_iter = int(hparams.epochs * n_train_dl)
+        sched1 = _get_scheduler(self.opt1, hparams.sched, n_iter, self.lr)
+        sched2 = _get_scheduler(self.opt2, hparams.sched, n_iter, self.lr)
+        if sched1 is None:
+            return self.opt1, self.opt2
+        else:
+            self.sched1 = sched1["scheduler"]
+            self.sched2 = sched2["scheduler"]
+            return [self.opt1, self.opt2], [self.sched1, self.sched2]
+
+    def on_train_epoch_start(self):
+        epoch = self.trainer.current_epoch
+        epoch_max = self.trainer.max_epoch + 1
+        eps = self.hparams.forget_rate
+        n = self.hparams.forget_steps
+        self.remember_rate = 1 - eps * min(1 + (epoch - n) / (epoch_max - n), epoch / n)
+
+    def get_losses(self, batch: Tuple[torch.Tensor, torch.Tensor]):
+        x, y = batch
+        num_remember = int(self.remember_rate * len(y))
+        y1 = self(x, model_idx=1)
+        y2 = self(x, model_idx=2)
+        loss1 = self.loss(y1, y).detach()
+        loss2 = self.loss(y2, y).detach()
+
+        if self.hparams.disagree_only:
+            pred1 = torch.softmax(y1, dim=1).argmax(dim=1).detach()
+            pred2 = torch.softmax(y1, dim=1).argmax(dim=1).detach()
+            disagree_idxs = (pred1 != pred2).cpu().data
+            idx1_sorted = np.lexsort((loss1.cpu().data, ~disagree_idxs))
+            idx2_sorted = np.lexsort((loss2.cpu().data, ~disagree_idxs))
+        else:
+            idx1_sorted = torch.argsort(loss1)
+            idx2_sorted = torch.argsort(loss2)
+
+        y1 = y1[idx2_sorted[:num_remember]]
+        y2 = y2[idx1_sorted[:num_remember]]
+        loss1 = self.loss(y1, y[idx2_sorted[:num_remember]]).mean()
+        loss2 = self.loss(y2, y[idx2_sorted[:num_remember]]).mean()
+        return loss1, loss2, y1.detach(), y2.detach()
+
+    def training_step(
+        self,
+        batch: Tuple[torch.Tensor, torch.Tensor],
+        batch_nb: int,
+        optimizer_idx: int,
+    ) -> torch.Tensor:
+        # REQUIRED
+        loss1, loss2, _, _ = self.get_losses(batch)
+        opt1, opt2 = self.optimizers()
+        self.manual_backward(loss1, opt1)
+        self.manual_backward(loss2, opt2)
+        self.manual_optimizer_step(opt1)
+        self.manuam_optimizer_step(opt2)
+        lr = self.sched.optimizer.param_groups[-1]["lr"]
+        log = {
+            "train_loss1": loss1.detach(),
+            "train_loss2": loss2.detach(),
+            "learning_rate": lr,
+        }
+        self.log_dict(log, on_step=True, on_epoch=False)
+
+    def validation_step(
+        self, batch: Tuple[torch.Tensor, torch.Tensor], batch_nb: int
+    ) -> Dict[str, torch.Tensor]:
+        # OPTIONAL
+        loss1, loss2, y1, y2 = self.get_losses(batch)
+        ret = {"loss1": loss1, "loss2": loss2}
+        _, y = batch
+        n = y.shape[0]
+        y = y.view(n, -1)
+        y1 = torch.softmax(y1, dim=1)
+        y1 = y1.argmax(dim=-1).view(n, -1)
+        y2 = torch.softmax(y2, dim=1)
+        y2 = y2.argmax(dim=-1).view(n, -1)
+        for cl in self.hparams.classes:
+            for k, y_hat in zip((1, 2), (y1, y2)):
+                ret[f"t_{cl}_{k}"] = ((y_hat == cl) & (y == cl)).float().sum()
+                ret[f"f_{cl}_{k}"] = ((y_hat == cl) & (y != cl)).float().sum()
+        return ret
+
+    def validation_epoch_end(self, outputs: List[Dict[str, torch.Tensor]]):
+        # OPTIONAL
+        log = {}
+        for n in (1, 2):
+            t_keys = [f"t_{cl}_{n}" for cl in self.hparams.classes]
+            f_keys = [f"f_{cl}_{n}" for cl in self.hparams.classes]
+            t = _get_keys_in_list_and_apply(outputs, *t_keys, apply_func=sum)
+            f = _get_keys_in_list_and_apply(outputs, *f_keys, apply_func=sum)
+            t = torch.stack(t)
+            f = torch.stack(f)
+            for metric in self.metrics:
+                try:
+                    name = metric.__name__
+                except AttributeError:
+                    name = metric.func.__name__
+                    kws = metric.keywords
+                    for k in kws:
+                        name += f"_{k}_{kws[k]}"
+                for k, cl in enumerate(self.hparams.classes):
+                    c_name = name + f"_{cl}_{n}"
+                    log[c_name] = metric(
+                        t[k],
+                        f[k],
+                        t[:k].sum() + t[k + 1 :].sum(),
+                        f[:k].sum() + f[k + 1 :].sum(),
+                    )
+                log[f"val_loss{n}"] = torch.mean(
+                    torch.stack([output[f"loss{n}"] for output in outputs])
+                )
+        self.log_dict(log)
+
+    def forward(self, x: torch.Tensor, model_idx=1) -> torch.Tensor:
+        x = _open_functions[self.hparams.open_mode](x).detach()
+        if hasattr(self, "norm"):
+            x = self.norm(x)
+        x = getattr(self, f"model{model_idx}")(x)
+        return x
+
+    def predict(self, x: torch.Tensor) -> torch.Tensor:
+        pred = super().predict(x)
+        pred = torch.softmax(pred, dim=1)
+        return pred
+
+    def freeze_base(self):
+        """
+        Freeze the base model.
+        """
+        for m in self.leaf_modules:
+            if "base_model" in m.name and not isinstance(m, nn.BatchNorm2d):
+                for param in m.parameters():
+                    param.requires_grad = False
+
+    def fit(self, dm: pl.LightningDataModule, **kwargs):
+        super().fit(dm, automatic_optimization=False, **kwargs)

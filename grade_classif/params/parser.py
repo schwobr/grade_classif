@@ -38,8 +38,13 @@ _parser.add_argument('--open-mode', default=OPEN_MODE, choices=['3G', 'RGB', 'H'
 _parser.add_argument('--train-percent', default=TRAIN_PERCENT, type=float, help='Portion of the training set to run fit on.')
 _parser.add_argument('--topk', default=TOPK, type=int, help='Number of patches per slide to train on for MIL.')
 _parser.add_argument('--coord-csv', default=COORD_CSV, help='path to csv containing coordinates for each patch to extract from all slides.')
+_parser.add_argument('--patches-per-slide', type=int, default=10, help='number of patches to select for each slide when using RNN aggregator on MIL.')
+_parser.add_argument('--rnn-hidden-dims', type=int, default=128, help='size of hidden representation in RNN aggregator.')
 _parser.add_argument('--profiler', default=None, choices=['simple', 'advanced'], help='type of profiler to use from pytorch_lightning.profiler.')
 _parser.add_argument('--mixed-precision', action="store_true", help="specify to use mixed precision training.")
+_parser.add_argument('--forget-rate', type=float, default=0.5, help='maximum part of the training set to drop for co-teaching.')
+_parser.add_argument('--forget-steps', type=int, default=10, help='number of steps before getting to maximum forget rate.')
+_parser.add_argument('--disagree-only', action='store_true', help='specify to only train co-teaching models on data that is disagreed upon.')
 
 # Cell
 hparams = _parser.parse_args()

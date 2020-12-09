@@ -2,7 +2,7 @@
 
 __all__ = ['bn_drop_lin', 'ConvBnRelu', 'ConvBn', 'ConvRelu', 'icnr', 'PixelShuffleICNR', 'DecoderBlock', 'LastCross',
            'CBR', 'SelfAttentionBlock', 'SASA', 'SEModule', 'BasicBlock', 'SANet', 'sanet18', 'sanet34', 'sanet26',
-           'sanet26d', 'sanet50', 'sanet50d', 'DynamicUnet']
+           'sanet26d', 'sanet50', 'sanet50d', 'DynamicUnet', 'Classifier']
 
 # Cell
 from timm.models.layers.adaptive_avgmax_pool import SelectAdaptivePool2d
@@ -733,3 +733,13 @@ class DynamicUnet(nn.Module):
     def __del__(self):
         if hasattr(self, "hooks"):
             self.hooks.remove()
+
+# Cell
+class Classifier(nn.Module):
+    def __init__(self, base_model, head):
+        self.base_model = base_model
+        self.head = head
+
+    def forward(self, x):
+        x = self.base_model(x)
+        return self.head(x)
