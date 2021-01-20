@@ -689,7 +689,6 @@ class ImageClassifModel(ClassifModule):
         )
         nf = get_num_features(self.base_model)
         self.head = _get_head(nf, hparams.n_classes, dropout=hparams.dropout)
-        self.callbacks.append(SavePredsCallback(self.save_path))
         self.post_init()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
