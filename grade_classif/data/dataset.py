@@ -20,6 +20,7 @@ from albumentations import Compose, BasicTransform
 from torch.utils.data import Dataset
 from openslide import OpenSlide
 from fastcore.foundation import L
+from fastcore.xtras import is_listy
 
 # Cell
 class TensorDataset(Dataset):
@@ -41,17 +42,30 @@ class TensorDataset(Dataset):
     def __len__(self) -> int:
         return len(self._ds)
 
-    def __getitem__(self, i: int) -> Tuple[torch.Tensor, torch.Tensor]:
-        x, y = self._ds[i]
+    def transform(self, x, y):
         if self.tfms != []:
             aug = Compose(self.tfms)
             augmented = aug(image=x, mask=y if self.tfm_y else None)
             x = augmented["image"]
             if self.tfm_y:
                 y = augmented["mask"]
-        x = np_to_tensor(
-            x, type(self._ds.item_loader).__name__.lower().replace("loader", "")
-        )
+        return x, y
+
+    def __getitem__(self, i: int) -> Tuple[torch.Tensor, torch.Tensor]:
+        x, y = self._ds[i]
+        if is_listy(x):
+            x = list(x)
+            for k in range(len(x)):
+                x[k], y = self.transform(x[k], y)
+                x[k] = np_to_tensor(
+                    x[k],
+                    type(self._ds.item_loader).__name__.lower().replace("loader", ""),
+                )
+        else:
+            x, y = self.transform(x, y)
+            x = np_to_tensor(
+                x, type(self._ds.item_loader).__name__.lower().replace("loader", "")
+            )
         y = np_to_tensor(
             y, type(self._ds.label_loader).__name__.lower().replace("loader", "")
         )
@@ -462,18 +476,14 @@ class NormDataset(MyDataset):
         """
         Overwrites `MyDataset.from_folder` so that it doesn't need the loaders or a `label_func`.
         """
-
-        def _label_func(x):
-            return x
-
-        items = get_items(
+        items = get_files(
             folder,
             recurse=recurse,
             extensions=extensions,
             folders=include,
         )
         items = items.filter(filterfunc)
-        labels = items.map(_label_func)
+        labels = items.copy()
         return cls(items, labels, ImageLoader(**kwargs), ImageLoader(), train_percent=train_percent)
 
 # Cell
@@ -489,8 +499,8 @@ class MILDataset(ClassDataset):
         train_percent: float = 1,
         **kwargs,
     ):
-        assert len(classes) == 2, "Multiple Instance learning only works with 2 classes"
         self.classes = ifnone(classes, [0, 1])
+        assert len(self.classes) == 2, "Multiple Instance learning only works with 2 classes"
         self.slides = np.array(slides)
         self.slide_labels = np.array(slide_labels)
         self.slide_idxs = np.array(slide_idxs)
@@ -498,7 +508,7 @@ class MILDataset(ClassDataset):
             items,
             labels,
             SlideLoader(**kwargs),
-            CategoryLoader(classes=classes),
+            CategoryLoader(classes=self.classes),
             n_classes=2,
             train_percent=train_percent,
         )
@@ -509,7 +519,7 @@ class MILDataset(ClassDataset):
         idxs.sort()
         self.slides = self.slides[idxs]
         self.slide_labels = self.slide_labels[idxs]
-        idxs = self.slide_idxs.argwhere(lambda x: x in idxs)
+        idxs = np.argwhere(np.vectorize(lambda x: x in idxs)(self.slide_idxs)).squeeze(1)
         self.items = self.items[idxs]
         self.labels = self.labels[idxs]
         self.slide_idxs = self.slide_idxs[idxs]
@@ -684,7 +694,7 @@ class RNNSlideDataset(ClassDataset):
     ):
         self.classes = classes
         self.slides = np.array(slides)
-        self.patches_per_slides = patches_per_slide
+        self.patches_per_slide = patches_per_slide
         super().__init__(
             items,
             labels,

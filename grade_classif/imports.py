@@ -1,3 +1,4 @@
+import comet_ml
 import os
 import sys
 import cv2
@@ -17,6 +18,12 @@ from argparse import Namespace
 from numbers import Number
 from nptyping import NDArray
 from matplotlib.axes import Axes
+import warnings
+
+def warning_on_one_line(message, category, filename, lineno, file=None, line=None):
+    return '%s:%s: %s: %s\n' % (filename, lineno, category.__name__, message)
+
+warnings.formatwarning = warning_on_one_line
 
 def in_colab():
     "Check if the code is running in Google Colaboratory"
@@ -57,7 +64,7 @@ class Capturing(list):
         del self._stringio    # free up some memory
         sys.stdout = self._stdout
         
-def imread(*args, **kwargs):
-    img = cv2.imread(*args, **kwargs)
+def imread(fn, *args, **kwargs):
+    img = cv2.imread(str(fn), *args, **kwargs)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     return img

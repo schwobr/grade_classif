@@ -20,7 +20,7 @@ class ImageLoader(ItemLoader):
         # self.add_tfms = ['RGB2'+self.open_mode] if self.open_mode in ['HEG', 'H', 'E'] else []
 
     def __call__(self, item: Path) -> NDArray[(Any, Any, 3), Number]:
-        img = cv2.imread(str(item), cv2.IMREAD_UNCHANGED)
+        img = cv2.imread(str(item), cv2.IMREAD_COLOR)
         if img.shape[-1] == 3:
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         if self.div:

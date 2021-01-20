@@ -26,7 +26,7 @@ def bn_drop_lin(n_in, n_out, bn=True, p=0.0, actn=None):
 class ConvBnRelu(nn.Module):
     def __init__(
         self,
-        in_channels,
+        in_chans,
         out_channels,
         kernel_size,
         stride=1,
@@ -38,7 +38,7 @@ class ConvBnRelu(nn.Module):
     ):
         super().__init__()
         self.conv = nn.Conv2d(
-            in_channels,
+            in_chans,
             out_channels,
             kernel_size,
             stride=stride,
@@ -59,7 +59,7 @@ class ConvBnRelu(nn.Module):
 class ConvBn(nn.Module):
     def __init__(
         self,
-        in_channels,
+        in_chans,
         out_channels,
         kernel_size,
         stride=1,
@@ -71,7 +71,7 @@ class ConvBn(nn.Module):
     ):
         super().__init__()
         self.conv = nn.Conv2d(
-            in_channels,
+            in_chans,
             out_channels,
             kernel_size,
             stride=stride,
@@ -90,7 +90,7 @@ class ConvBn(nn.Module):
 class ConvRelu(nn.Module):
     def __init__(
         self,
-        in_channels,
+        in_chans,
         out_channels,
         kernel_size,
         stride=1,
@@ -100,7 +100,7 @@ class ConvRelu(nn.Module):
     ):
         super().__init__()
         self.conv = nn.Conv2d(
-            in_channels,
+            in_chans,
             out_channels,
             kernel_size,
             stride=stride,
@@ -127,10 +127,10 @@ def icnr(x, scale=2, init=nn.init.kaiming_normal_):
 
 # Cell
 class PixelShuffleICNR(nn.Module):
-    def __init__(self, in_channels, out_channels, bias=True, scale_factor=2, **kwargs):
+    def __init__(self, in_chans, out_channels, bias=True, scale_factor=2, **kwargs):
         super().__init__()
         self.conv = nn.Conv2d(
-            in_channels, out_channels * scale_factor ** 2, 1, bias=bias, **kwargs
+            in_chans, out_channels * scale_factor ** 2, 1, bias=bias, **kwargs
         )
         icnr(self.conv.weight)
         self.shuf = nn.PixelShuffle(scale_factor)
@@ -185,9 +185,9 @@ class LastCross(nn.Module):
 class CBR(nn.Module):
     """"""
 
-    def __init__(self, kernel_size, n_kernels, n_layers, n_classes=2):
+    def __init__(self, kernel_size, n_kernels, n_layers, n_classes=2, in_chans=3):
         super().__init__()
-        in_c = 3
+        in_c = in_chans
         out_c = n_kernels
         for k in range(n_layers):
             self.add_module(
@@ -205,7 +205,7 @@ class CBR(nn.Module):
             in_c = out_c
             out_c *= 2
         self.gap = nn.AdaptiveAvgPool2d(1)
-        self.flat = nn.Flatten(-2, -1)
+        self.flat = nn.Flatten()
         self.fc = nn.Linear(out_c, n_classes)
 
     def forward(self, x):
@@ -259,7 +259,6 @@ class SelfAttentionBlock(nn.Module):
         b, c, h, w = x.shape
         n = self.c_out // self.groups
 
-        q = self.query_conv(x).view(b, self.groups, n, h, w, 1)
         k = (
             self.key_conv(x)
             .unfold(2, self.k, self.stride)
@@ -267,6 +266,15 @@ class SelfAttentionBlock(nn.Module):
             .contiguous()
             .view(b, self.groups, n, h, w, -1)
         )
+        r = torch.cat(
+            (self.r_ai.expand(b, -1, -1, self.k), self.r_aj.expand(b, -1, self.k, -1)),
+            dim=1,
+        ).view(b, self.groups, n, -1)
+        r = r[..., None, None, :].expand(-1, -1, -1, h, w, -1)
+
+        out = k + r
+        q = self.query_conv(x).view(b, self.groups, n, h, w, 1)
+        out = q * out
         v = (
             self.value_conv(x)
             .unfold(2, self.k, self.stride)
@@ -275,14 +283,8 @@ class SelfAttentionBlock(nn.Module):
             .view(b, self.groups, n, h, w, -1)
         )
 
-        r = torch.cat(
-            (self.r_ai.expand(b, -1, -1, self.k), self.r_aj.expand(b, -1, self.k, -1)),
-            dim=1,
-        ).view(b, self.groups, n, -1)
-        r = r[..., None, None, :].expand(-1, -1, -1, h, w, -1)
-
         y = (
-            (torch.softmax((q * (k + r)).sum(2, keepdims=True), dim=-1) * v)
+            (torch.softmax(out.sum(2, keepdims=True), dim=-1) * v)
             .sum(-1)
             .view(b, self.c_out, h, w)
         )
@@ -291,11 +293,11 @@ class SelfAttentionBlock(nn.Module):
 
 # Cell
 class SASA(nn.Module):
-    def __init__(self, kernel_size, n_kernels, n_layers, n_groups, n_classes=2):
+    def __init__(self, kernel_size, n_kernels, n_layers, n_groups, n_classes=2, in_chans=3):
         super().__init__()
 
         self.stem = ConvBnRelu(
-            3, n_kernels, 7, stride=2, padding=3, padding_mode="reflect"
+            in_chans, n_kernels, 7, stride=2, padding=3, padding_mode="reflect"
         )
         in_c = n_kernels
         out_c = 2 * n_kernels
@@ -303,7 +305,7 @@ class SASA(nn.Module):
             self.add_module(
                 f"sasa_block_{k}",
                 SelfAttentionBlock(
-                    in_c, out_c, kernel_size, groups=n_groups, padding_mode="reflect"
+                    in_c, out_c, kernel_size, groups=n_groups
                 ),
             )
             self.add_module(f"pool_{k}", nn.AvgPool2d(2, stride=2))

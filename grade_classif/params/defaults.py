@@ -2,8 +2,7 @@
 
 __all__ = ['PROJECT', 'CSVS', 'LEVEL', 'DATA', 'DATA_CSV', 'MODELS', 'COORD_CSV', 'PATCH_CLASSES', 'OPEN_MODE',
            'SAMPLE_MODE', 'MODEL', 'GPUS', 'SIZE', 'BATCH_SIZE', 'LOSS', 'SCHED', 'REDUCTION', 'EPOCHS', 'DROPOUT',
-           'LR', 'WD', 'WEIGHT', 'NORMALIZER', 'PRED_LEVELS', 'SCAN', 'FILT', 'TRANSFORMS', 'RESUME', 'TRAIN_PERCENT',
-           'TOPK']
+           'LR', 'WD', 'NORMALIZER', 'PRED_LEVELS', 'SCAN', 'FILT', 'TRANSFORMS', 'RESUME', 'TRAIN_PERCENT', 'TOPK']
 
 # Cell
 from pathlib import Path
@@ -32,8 +31,7 @@ REDUCTION = 'mean'
 EPOCHS = 5
 DROPOUT= 0.5
 LR = 1e-3
-WD = 0.01
-WEIGHT = 2.
+WD = 1e-4
 NORMALIZER = None
 PRED_LEVELS = [1]
 SCAN = None
