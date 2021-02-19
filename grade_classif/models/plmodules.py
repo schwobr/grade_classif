@@ -23,8 +23,7 @@ from .utils import (
     gaussian_mask,
     get_num_features,
     get_sizes,
-    named_leaf_modules,
-    SavePredsCallback
+    named_leaf_modules
 )
 from timm.models.vision_transformer import VisionTransformer
 from sklearn.metrics import auc
@@ -633,31 +632,32 @@ class ClassifModule(BaseModule):
         savepath = self.save_path / f"lightning_logs/version_{self.version}/preds"
         if not savepath.is_dir():
             savepath.mkdir()
-        df.to_csv(savepath / f"{pl_module.current_epoch}.csv", index=False)
+        df.to_csv(savepath / f"{self.current_epoch}.csv", index=False)
 
     def log_slide_metrics(self, preds: torch.Tensor, labels: torch.Tensor):
-        items = self.trainer.datamodule.data.valid.items
-        patch_slides = np.vectorize(lambda x: x.parent.name)(items)
-        slides = np.unique(patch_slides)
-        slide_labels = []
-        slide_preds = []
-        roc = ROC(num_classes=self.hparams.n_classes, compute_on_step=False)
-        cm = ConfusionMatrix(self.hparams.n_classes, compute_on_step=False)
-        metrics = ClassifMetrics(
-            n_classes=self.hparams.n_classes, compute_on_step=False
-        )
-        for slide in slides:
-            idxs = np.argwhere(patch_slides == slide).squeeze()
-            label = labels[idxs][0]
-            pred = preds[idxs].mean(0)
-            slide_labels.append(label)
-            slide_preds.append(pred)
-        slide_labels = torch.stack(slide_labels)
-        slide_preds = torch.stack(slide_preds)
-        cm(slide_preds, slide_labels)
-        metrics(slide_preds, slide_labels)
-        roc(slide_preds, slide_labels)
-        self.log_metrics(metrics, cm, roc, suffix="slide")
+        if not self.trainer.running_sanity_check:
+            items = self.trainer.datamodule.data.valid.items
+            patch_slides = np.vectorize(lambda x: x.parent.name)(items)
+            slides = np.unique(patch_slides)
+            slide_labels = []
+            slide_preds = []
+            roc = ROC(num_classes=self.hparams.n_classes, compute_on_step=False)
+            cm = ConfusionMatrix(self.hparams.n_classes, compute_on_step=False)
+            metrics = ClassifMetrics(
+                n_classes=self.hparams.n_classes, compute_on_step=False
+            )
+            for slide in slides:
+                idxs = np.argwhere(patch_slides == slide).squeeze()
+                label = labels[idxs][0]
+                pred = preds[idxs].mean(0)
+                slide_labels.append(label)
+                slide_preds.append(pred)
+            slide_labels = torch.stack(slide_labels)
+            slide_preds = torch.stack(slide_preds)
+            cm(slide_preds, slide_labels)
+            metrics(slide_preds, slide_labels)
+            roc(slide_preds, slide_labels)
+            self.log_metrics(metrics, cm, roc, suffix="slide")
 
     def validation_epoch_end(self, outputs: List[Dict[str, torch.Tensor]]):
         # OPTIONAL

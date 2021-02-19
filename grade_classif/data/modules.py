@@ -30,6 +30,7 @@ class BaseDataModule(pl.LightningDataModule):
         concept_classes: Optional[Path] = None,
         train_percent: float = 1,
         get_id: Optional[Callable[[Any], str]] = None,
+        pacs_filt: Optional[str] = None,
         **kwargs,
     ):
         super().__init__()
@@ -43,6 +44,7 @@ class BaseDataModule(pl.LightningDataModule):
         self.transforms = transforms
         self.train_percent = train_percent
         self.get_id = get_id
+        self.pacs_filt = pacs_filt
         if transforms is not None:
             if transforms < 10:
                 tfm_func = globals()[f"get_transforms{transforms}"]
@@ -83,7 +85,7 @@ class BaseDataModule(pl.LightningDataModule):
         else:
             return None
 
-    def get_filt(self) -> Optional[Callable[[Path], bool]]:
+    """def get_filt(self) -> Optional[Callable[[Path], bool]]:
         if self.patch_classes is not None:
             patch_classes_df = pd.read_csv(self.patch_classes, index_col="patchId")
             x_type = patch_classes_df.loc[x.stem, "type"]
@@ -112,7 +114,19 @@ class BaseDataModule(pl.LightningDataModule):
 
         else:
             filt = None
-        return filt
+        return filt"""
+
+    def get_filt(self) -> Optional[Callable[[Path], bool]]:
+        if self.pacs_filt is None:
+            return None
+        else:
+            def filt(x):
+                for pacs in self.pacs_filt:
+                    if f"PACS0{pacs}" in x.name:
+                        return True
+                return False
+            return filt
+
 
     def show_some(self, n: int = 8, split: str = "train", imgsize: int = 4):
         fig, axs = plt.subplots(n, 2, figsize=(imgsize * 2, imgsize * n))
@@ -149,6 +163,8 @@ class ImageClassifDataModule(BaseDataModule):
         label_func: Callable[[Path], str],
         sample_mode: int = 0,
         max_patches_per_slide: Optional[int] = None,
+        norm_ref : Optional[str] = None,
+        norm_method : Optional[str] = None,
         **kwargs
     ):
         super().__init__(datafolder, data_csv, **kwargs)
@@ -157,6 +173,8 @@ class ImageClassifDataModule(BaseDataModule):
         self.sample_mode = sample_mode
         self.label_func = label_func
         self.max_patches_per_slide = max_patches_per_slide
+        self.norm_ref = norm_ref
+        self.norm_method = norm_method
 
     def setup(self, stage: Optional[str] = None):
         if not hasattr(self, "data"):
@@ -169,6 +187,8 @@ class ImageClassifDataModule(BaseDataModule):
                 include=self.classes,
                 filterfunc=self.filt,
                 train_percent=self.train_percent,
+                norm_ref = self.norm_ref,
+                norm_method = self.norm_method
             ).split_by_csv(self.data_csv, get_id=self.get_id)
             self.data = data.to_tensor(tfms=self.tfms, tfm_y=False)
 

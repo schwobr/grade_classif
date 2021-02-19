@@ -6,6 +6,7 @@ __all__ = ['ItemLoader', 'ImageLoader', 'MaskLoader', 'CategoryLoader', 'SlideLo
 from ..imports import *
 from skimage.color import rgb2hed
 from openslide import OpenSlide
+import staintools
 
 # Cell
 class ItemLoader:
@@ -13,16 +14,37 @@ class ItemLoader:
         raise NotImplementedError
 
 # Cell
+def _get_norm(norm_method, norm_ref):
+    if norm_method is None:
+        return None
+    assert (
+        norm_ref is not None
+    ), "Reference image is needed for staintools normalization methods."
+    if norm_method == "reinhard":
+        norm = staintools.ReinhardColorNormalizer()
+    else:
+        norm = staintools.StainNormalizer(method=norm_method)
+    target = imread(norm_ref, cv2.IMREAD_COLOR)
+    target = staintools.LuminosityStandardizer.standardize(target)
+    norm.fit(target)
+    return norm
+
+# Cell
 class ImageLoader(ItemLoader):
-    def __init__(self, div: bool = True):
-        # self.open_mode = open_mode
+    def __init__(
+        self,
+        div: bool = True,
+        norm_ref: Optional[str] = None,
+        norm_method: Optional[str] = None,
+    ):
         self.div = div
-        # self.add_tfms = ['RGB2'+self.open_mode] if self.open_mode in ['HEG', 'H', 'E'] else []
+        self.norm = _get_norm(norm_method, norm_ref)
 
     def __call__(self, item: Path) -> NDArray[(Any, Any, 3), Number]:
-        img = cv2.imread(str(item), cv2.IMREAD_COLOR)
-        if img.shape[-1] == 3:
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        img = imread(item, cv2.IMREAD_COLOR)
+        if self.norm is not None:
+            img = staintools.LuminosityStandardizer.standardize(img)
+            img = self.norm.transform(img)
         if self.div:
             img = img.astype(np.float32) / 255
         return img
