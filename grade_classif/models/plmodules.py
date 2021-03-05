@@ -188,7 +188,7 @@ class BaseModule(pl.LightningModule):
         x, y = batch
         y_hat = self(x)
         loss = self.loss(y_hat, y)
-        lr = self.sched.optimizer.param_groups[-1]["lr"]
+        lr = self.opt.param_groups[-1]["lr"]
         log = {"train_loss": loss.detach(), "learning_rate": lr}
         self.log_dict(log, on_step=True, on_epoch=False)
         return {"loss": loss}
@@ -408,6 +408,17 @@ class Normalizer(BaseModule):
         )
         self.post_init()
 
+    def on_fit_start(self):
+        x, y = next(iter(self.train_dataloader()))
+        for img in x:
+            self.logger.experiment.log_image(
+                img, image_channels="first", image_minmax=(0.0, 1.0)
+            )
+        for img in y:
+            self.logger.experiment.log_image(
+                img, image_channels="first", image_minmax=(0.0, 1.0)
+            )
+
     def on_epoch_start(self):
         for tfm in self.trainer.datamodule.data.valid.tfms:
             if "Deterministic" in str(type(tfm)):
@@ -471,15 +482,15 @@ class Normalizer(BaseModule):
     ) -> Dict[str, torch.Tensor]:
         # OPTIONAL
         ret = super().validation_step(batch, batch_nb)
-        y, y_hat = ret["labels"], ret["preds"]
+        y, y_hat = ret.pop("labels"), ret.pop("preds")
         bs = y.shape[0]
         y = rgb_to_lab(y.detach())
         y_hat = rgb_to_lab(y_hat.detach())
-        ret["mu_x"] = torch.mean(y[:, 0], axis=(1, 2))
-        ret["sigma_x"] = torch.std(y[:, 0], axis=(1, 2))
-        ret["mu_y"] = torch.mean(y_hat[:, 0], axis=(1, 2))
-        ret["sigma_y"] = torch.std(y_hat[:, 0], axis=(1, 2))
-        ret["mu_xy"] = torch.mean(y[:, 0] * y_hat[:, 0], axis=(1, 2))
+        ret["mu_x"] = torch.mean(y[:, 0], axis=(1, 2)).float()
+        ret["sigma_x"] = torch.std(y[:, 0], axis=(1, 2)).float()
+        ret["mu_y"] = torch.mean(y_hat[:, 0], axis=(1, 2)).float()
+        ret["sigma_y"] = torch.std(y_hat[:, 0], axis=(1, 2)).float()
+        ret["mu_xy"] = torch.mean(y[:, 0] * y_hat[:, 0], axis=(1, 2)).float()
         return ret
 
     def validation_epoch_end(self, outputs: List[Dict[str, torch.Tensor]]):
@@ -802,7 +813,7 @@ class RNNAttention(ClassifModule):
         # REQUIRED
         X, Y = batch
         loss, _ = self.compute_loss(X, Y)
-        lr = self.sched.optimizer.param_groups[-1]["lr"]
+        lr = self.opt.param_groups[-1]["lr"]
         log = {"train_loss": loss, "learning_rate": lr}
         self.log_dict(log)
         self.log_distribution(Y)
@@ -956,7 +967,7 @@ class RNNAggregator(ImageClassifModel):
         for x in xs:
             y_hat, state = self(x, state)
         loss = self.loss(y_hat, y)
-        lr = self.sched.optimizer.param_groups[-1]["lr"]
+        lr = self.opt.param_groups[-1]["lr"]
         log = {"train_loss": loss.detach(), "learning_rate": lr}
         self.log_dict(log, on_step=True, on_epoch=False)
         return loss
@@ -1097,7 +1108,7 @@ class CoTeachingModel(ClassifModule):
         self.manual_backward(loss2, opt2)
         self.manual_optimizer_step(opt1)
         self.manuam_optimizer_step(opt2)
-        lr = self.sched.optimizer.param_groups[-1]["lr"]
+        lr = self.opt.param_groups[-1]["lr"]
         log = {
             "train_loss1": loss1.detach(),
             "train_loss2": loss2.detach(),

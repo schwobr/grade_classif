@@ -54,6 +54,7 @@ _parser.add_argument('--auto-lr-find', action='store_true', help='specify to run
 _parser.add_argument('--pacs-filt', default=None, choices=['4', '5', '8', '45', '48', '58'], help='specify a PACS datasets to use, use all otherwise.')
 _parser.add_argument('--norm-ref', default='/data/DeepLearning/SCHWOB_Robin/CF_Normacolor_0182_41472_67392.png', help='path to reference image for staintools image normalization methods.')
 _parser.add_argument('--norm-method', default=None, choices=['reinhard', 'vahadane', 'macenko'], help='staintool normalization method to use.')
+_parser.add_argument('--num-workers', default=4, type=int, help='number of cpu workers to use for data loading.')
 
 # Cell
 hparams = _parser.parse_args()

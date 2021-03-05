@@ -31,6 +31,7 @@ class BaseDataModule(pl.LightningDataModule):
         train_percent: float = 1,
         get_id: Optional[Callable[[Any], str]] = None,
         pacs_filt: Optional[str] = None,
+        num_workers: int = 4,
         **kwargs,
     ):
         super().__init__()
@@ -45,6 +46,7 @@ class BaseDataModule(pl.LightningDataModule):
         self.train_percent = train_percent
         self.get_id = get_id
         self.pacs_filt = pacs_filt
+        self.num_workers = num_workers
         if transforms is not None:
             if transforms < 10:
                 tfm_func = globals()[f"get_transforms{transforms}"]
@@ -61,7 +63,7 @@ class BaseDataModule(pl.LightningDataModule):
             batch_size=self.batch_size,
             shuffle=True,
             drop_last=True,
-            num_workers=4,
+            num_workers=self.num_workers,
             pin_memory=True,
         )
 
@@ -79,7 +81,7 @@ class BaseDataModule(pl.LightningDataModule):
             return DataLoader(
                 self.data.test,
                 batch_size=self.batch_size,
-                num_workers=4,
+                num_workers=self.num_workers,
                 pin_memory=True,
             )
         else:
@@ -148,6 +150,7 @@ class NormDataModule(BaseDataModule):
                 self.datafolder,
                 extensions=[".png"],
                 train_percent=self.train_percent,
+                div=False,
             )
             .split_by_csv(self.data_csv, get_id=self.get_id)
             .to_tensor(tfms=self.tfms)
@@ -188,7 +191,8 @@ class ImageClassifDataModule(BaseDataModule):
                 filterfunc=self.filt,
                 train_percent=self.train_percent,
                 norm_ref = self.norm_ref,
-                norm_method = self.norm_method
+                norm_method = self.norm_method,
+                div=False
             ).split_by_csv(self.data_csv, get_id=self.get_id)
             self.data = data.to_tensor(tfms=self.tfms, tfm_y=False)
 
@@ -250,7 +254,7 @@ class ImageClassifDataModule(BaseDataModule):
             batch_size=self.batch_size,
             sampler=sampler,
             drop_last=True,
-            num_workers=4,
+            num_workers=self.num_workers,
             pin_memory=True,
         )
 

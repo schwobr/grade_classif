@@ -32,6 +32,8 @@ def rgb_to_lab(image: torch.Tensor, eps: float = 1e-12) -> torch.Tensor:
             "Input size must have a shape of (*, 3, H, W). Got {}".format(image.shape)
         )
 
+    image = image.float()
+
     # Convert from Linear RGB to sRGB
     r = image[..., 0, :, :]
     g = image[..., 1, :, :]

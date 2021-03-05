@@ -24,16 +24,17 @@ from fastcore.xtras import is_listy
 
 # Cell
 class TestDataset(Dataset):
-    def __init__(self, items):
+    def __init__(self, items, **kwargs):
         self.items = items.map(str)
+        self.loader = ImageLoader(**kwargs)
 
     def __len__(self):
         return len(self.items)
 
     def __getitem__(self, idx):
         item = self.items[idx]
-        img = imread(item).astype(np.float32)
-        return np_to_tensor(img / 255, "image")
+        img = self.loader(item)
+        return np_to_tensor(img, "image")
 
 # Cell
 class TensorDataset(Dataset):
@@ -459,6 +460,12 @@ class NormDataset(MyDataset):
         ax = show_img(
             y, ax=axs[1], hide_axis=hide_axis, cmap=cmap, figsize=figsize, **kwargs
         )
+
+    def __getitem__(self, i: int) -> Tuple[Any, Any]:
+        item = self.items[i]
+        x = self.item_loader(item)
+        y = x.copy()
+        return x, y
 
     def show_rand(
         self,

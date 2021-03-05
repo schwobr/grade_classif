@@ -11,6 +11,8 @@ from torch.utils.data import Sampler
 def np_to_tensor(x: NDArray[(Any, ...), Number], tensor_type: str) -> torch.Tensor:
     if tensor_type == "image" or tensor_type == "slide":
         x = x.transpose(2, 0, 1)
+        if x.dtype == np.uint8:
+            x = x.astype(np.float32) / 255
     x = torch.tensor(x)
     return x
 
