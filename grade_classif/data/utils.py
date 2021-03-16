@@ -6,14 +6,13 @@ __all__ = ['np_to_tensor', 'show_img', 'load_batches', 'LabelSlideBalancedRandom
 from .loaders import ImageLoader
 from ..imports import *
 from torch.utils.data import Sampler
+from torchvision.transforms.functional import to_tensor
 
 # Cell
 def np_to_tensor(x: NDArray[(Any, ...), Number], tensor_type: str) -> torch.Tensor:
     if tensor_type == "image" or tensor_type == "slide":
-        x = x.transpose(2, 0, 1)
-        if x.dtype == np.uint8:
-            x = x.astype(np.float32) / 255
-    x = torch.tensor(x)
+        x = to_tensor(x)
+    x = torch.as_tensor(x)
     return x
 
 # Cell

@@ -35,13 +35,13 @@ def get_sizes(model, input_shape=(3, 224, 224), leaf_modules=None):
     def _hook(model, input, output):
         model.k = count.k
         count.k += 1
-        return model, output
+        return model, output.shape
 
     with Hooks(leaf_modules, _hook) as hooks:
-        x = torch.rand(2, *input_shape)
+        x = torch.rand(1, *input_shape)
         model.cpu().eval()(x)
-        sizes = [list(hook.stored[1].shape) for hook in hooks]
-        mods = [hook.stored[0] for hook in hooks]
+        sizes = [list(hook.stored[1]) for hook in hooks if hook.stored is not None]
+        mods = [hook.stored[0] for hook in hooks if hook.stored is not None]
     idxs = np.argsort([mod.k for mod in mods])
     return np.array(sizes, dtype=object)[idxs], np.array(mods, dtype=object)[idxs]
 

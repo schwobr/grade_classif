@@ -3,6 +3,7 @@ import os
 import sys
 import cv2
 import timm
+import PIL.Image as Image
 import torch
 import torch.nn as nn
 import pandas as pd
@@ -68,3 +69,15 @@ def imread(fn, *args, **kwargs):
     img = cv2.imread(str(fn), *args, **kwargs)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     return img
+
+def _forward(self, x):
+    weight = self.weight
+    weight_mean = weight.mean(dim=1, keepdim=True).mean(dim=2,
+                              keepdim=True).mean(dim=3, keepdim=True)
+    weight = weight - weight_mean
+    std = weight.view(weight.size(0), -1).std(dim=1).view(-1, 1, 1, 1) + 1e-5
+    weight = weight / std.expand_as(weight)
+    return nn.functional.conv2d(x, weight, self.bias, self.stride,
+                                self.padding, self.dilation, self.groups)
+
+# nn.Conv2d.forward = _forward

@@ -419,7 +419,13 @@ def get_transforms5(
 ) -> Tuple[List[BasicTransform], List[BasicTransform]]:
     tfms = [
         RandomCrop(size, size),
-        StainAugmentor(he_ratio=0.5),
+        StainAugmentor(
+            alpha_range=0.5,
+            beta_range=0.5,
+            alpha_stain_range=0.4,
+            beta_stain_range=0.3,
+            he_ratio=0.5,
+        ),
         RandomRotate90(),
         Flip(),
         Transpose(),
@@ -427,7 +433,13 @@ def get_transforms5(
     ]
     val_tfms = [
         CenterCrop(size, size),
-        StainAugmentor(he_ratio=0.5),
+        StainAugmentor(
+            alpha_range=0.5,
+            beta_range=0.5,
+            alpha_stain_range=0.4,
+            beta_stain_range=0.3,
+            he_ratio=0.5,
+        ),
     ]
     return tfms, val_tfms
 
