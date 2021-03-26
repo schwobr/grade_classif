@@ -15,5 +15,5 @@ scikit-image>=0.17
 pillow>=7.2
 albumentations>=0.4
 kornia>=0.5
-scipy>=1.6
-comet-ml>=3.2
+scipy
+comet-ml
