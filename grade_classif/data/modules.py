@@ -170,6 +170,7 @@ class ImageClassifDataModule(BaseDataModule):
         max_patches_per_slide: Optional[int] = None,
         norm_ref : Optional[str] = None,
         norm_method : Optional[str] = None,
+        include : Optional[Sequence[str]] = None,
         **kwargs
     ):
         super().__init__(datafolder, data_csv, **kwargs)
@@ -180,6 +181,7 @@ class ImageClassifDataModule(BaseDataModule):
         self.max_patches_per_slide = max_patches_per_slide
         self.norm_ref = norm_ref
         self.norm_method = norm_method
+        self.include=include
 
     def setup(self, stage: Optional[str] = None):
         if not hasattr(self, "data"):
@@ -189,7 +191,7 @@ class ImageClassifDataModule(BaseDataModule):
                 self.label_func,
                 classes=self.classes,
                 extensions=[".png"],
-                include=self.classes,
+                include=self.include,
                 filterfunc=self.filt,
                 train_percent=self.train_percent,
                 norm_ref = self.norm_ref,

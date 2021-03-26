@@ -776,10 +776,13 @@ class DynamicUnet(nn.Module):
             encoder = globals()[splits[0]](kernel_size)
             cut = -2
         else:
+            if encoder_name[:2] != "gn":
+                norm_layer = nn.BatchNorm2d
+                encoder_name = encoder_name[2:]
             encoder = timm.create_model(
                 encoder_name,
                 pretrained=pretrained,
-                norm_layer=group_norm,
+                norm_layer=norm_layer,
                 pretrained_strict=False,
             )
             cut = -2

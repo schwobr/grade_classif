@@ -37,12 +37,10 @@ def train_normalizer(hparams: Namespace) -> Normalizer:
 def train_classifier(hparams: Namespace) -> ImageClassifModel:
     hparams = vars(hparams)
     classes = ["1", "3"]
-    dm = ImageClassifDataModule(classes=classes, label_func=lambda x: x.parts[-3], **hparams)
-    model = ImageClassifModel(
-        classes=classes,
-        n_classes=len(classes),
-        **hparams
+    dm = ImageClassifDataModule(
+        classes=classes, label_func=lambda x: x.parts[-3], include=classes, **hparams
     )
+    model = ImageClassifModel(classes=classes, n_classes=len(classes), **hparams)
     model.fit(dm, monitor="AUC_3")
     return model
 
@@ -105,17 +103,17 @@ def train_FLFH(hparams: Namespace) -> ImageClassifModel:
 # Cell
 def train_discriminator(hparams: Namespace) -> ImageClassifModel:
     classes = ["04", "05", "08"]
+
     def _label_func(x):
         for cl in classes:
             if f"PACS{cl}" in x.name:
                 return cl
+
     hparams = vars(hparams)
-    dm = ImageClassifDataModule(classes=classes, label_func=_label_func, **hparams)
-    model = ImageClassifModel(
-        classes=classes,
-        n_classes=len(classes),
-        **hparams
+    dm = ImageClassifDataModule(
+        classes=classes, label_func=_label_func, include=["1", "3"], **hparams
     )
+    model = ImageClassifModel(classes=classes, n_classes=len(classes), **hparams)
     model.fit(dm)
     return model
 

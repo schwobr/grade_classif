@@ -5,31 +5,32 @@ __all__ = ['BaseModule', 'Normalizer', 'ClassifModule', 'ImageClassifModel', 'RN
 
 # Cell
 import pytorch_lightning as pl
-from pytorch_lightning.metrics import ConfusionMatrix, ROC
+from kornia.color import rgb_to_lab
+from torchmetrics import ROC, ConfusionMatrix
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import CometLogger
 from pytorch_lightning.profiler import AdvancedProfiler, SimpleProfiler
+from pytorch_lightning.trainer.states import RunningStage
+from pytorch_lightning.tuner.lr_finder import lr_find
+from sklearn.metrics import auc
+from timm.models.layers.weight_init import trunc_normal_
+from timm.models.vision_transformer import Block
 from torch.optim import Optimizer
 from torch.optim.lr_scheduler import CosineAnnealingLR, OneCycleLR, ReduceLROnPlateau
 from torch.utils.data import Dataset
 
 from ..core import ifnone
-from ..data.color import ColorConverter, rgb_to_lab
+from ..data.color import ColorConverter
 from ..imports import *
 from .losses import BCE, FocalLoss
-from .metrics import pcc, ssim, ClassifMetrics
+from .metrics import ClassifMetrics, NormMetrics, pcc, ssim
 from .modules import *
 from .utils import (
     gaussian_mask,
     get_num_features,
     get_sizes,
-    named_leaf_modules
+    named_leaf_modules,
 )
-from timm.models.vision_transformer import Block
-from timm.models.layers.weight_init import trunc_normal_
-from sklearn.metrics import auc
-from pytorch_lightning.tuner.lr_finder import lr_find
-from pytorch_lightning.trainer.states import RunningStage
 
 # Cell
 def _get_loss(
@@ -415,6 +416,7 @@ class Normalizer(BaseModule):
             input_shape=input_shape,
             pretrained=not self.hparams.rand_weights,
         )
+        self.metrics = NormMetrics(compute_on_step=False)
         self.post_init()
 
     def on_fit_start(self):
@@ -492,30 +494,15 @@ class Normalizer(BaseModule):
         # OPTIONAL
         ret = super().validation_step(batch, batch_nb)
         y, y_hat = ret.pop("labels"), ret.pop("preds")
-        bs = y.shape[0]
-        y = rgb_to_lab(y.detach())
-        y_hat = rgb_to_lab(y_hat.detach())
-        ret["mu_x"] = torch.mean(y[:, 0], axis=(1, 2)).float()
-        ret["sigma_x"] = torch.std(y[:, 0], axis=(1, 2)).float()
-        ret["mu_y"] = torch.mean(y_hat[:, 0], axis=(1, 2)).float()
-        ret["sigma_y"] = torch.std(y_hat[:, 0], axis=(1, 2)).float()
-        ret["mu_xy"] = torch.mean(y[:, 0] * y_hat[:, 0], axis=(1, 2)).float()
+        self.metrics(y, y_hat)
         return ret
 
     def validation_epoch_end(self, outputs: List[Dict[str, torch.Tensor]]):
         # OPTIONAL
         super().validation_epoch_end(outputs)
-        log = {}
-        mu_x, sigma_x, mu_y, sigma_y, mu_xy = _get_keys_in_list_and_apply(
-            outputs, "mu_x", "sigma_x", "mu_y", "sigma_y", "mu_xy", apply_func=torch.cat
-        )
-        m_ssim = ssim(mu_x, sigma_x, mu_y, sigma_y, mu_xy)
-        m_pcc = pcc(mu_x, sigma_x, mu_y, sigma_y, mu_xy)
-        m_cd = sigma_y / mu_y - sigma_x / mu_x
-        log["ssim"] = m_ssim.mean()
-        log["pcc"] = m_pcc.mean()
-        log["cd"] = m_cd.mean()
+        log = self.metrics.compute()
         self.log_dict(log)
+        self.metrics.reset()
 
     def test_step(
         self, batch: Tuple[torch.Tensor, torch.Tensor], batch_nb: int
@@ -696,6 +683,7 @@ class ClassifModule(BaseModule):
 # Cell
 class ImageClassifModel(ClassifModule):
     """"""
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         hparams = self.hparams
@@ -730,6 +718,9 @@ class ImageClassifModel(ClassifModule):
 
     def validation_epoch_end(self, outputs: List[Dict[str, torch.Tensor]]):
         super().validation_epoch_end(outputs)
+        preds, labels = _get_keys_in_list_and_apply(
+            outputs, "preds", "labels", apply_func=torch.cat
+        )
         self.log_slide_metrics(preds, labels)
 
 # Cell
