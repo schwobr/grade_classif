@@ -17,3 +17,4 @@ albumentations>=0.4
 kornia>=0.5
 scipy
 comet-ml
+nptyping
