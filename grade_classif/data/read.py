@@ -6,6 +6,7 @@ __all__ = ['get_files', 'get_leaf_folders', 'get_items', 'get_scan', 'split', 'c
 from ..core import ifnone
 from ..imports import *
 from fastcore.foundation import L, setify
+from ordered_set import OrderedSet
 
 # Cell
 def _check_include(obj: Path, include: Sequence[str]) -> bool:
@@ -89,29 +90,23 @@ def get_leaf_folders(path, folders=None, followlinks=True):
 
 # Cell
 def get_items(
-    folder: Union[Path, str],
-    label_func: Callable[[Path], bool],
+    folder: Path,
+    label_func: Callable[[Path], Any],
     recurse: bool = True,
     extensions: Optional[Sequence[str]] = None,
     include: Optional[Sequence[str]] = None,
     exclude: Optional[Sequence[str]] = None,
     filterfunc: Optional[Callable[[Path], bool]] = None,
-) -> Tuple[List[Path], List[Path]]:
-    items = []
-    labels = []
+    accepted_files: Optional[Set[str]] = None,
+) -> Tuple[List[Path], List[Any]]:
     folder = Path(folder)
-    filterfunc = ifnone(filterfunc, lambda x: True)
-    for obj in folder.iterdir():
-        if obj.is_file():
-            if extensions is None or obj.suffix in extensions and filterfunc(obj):
-                items.append(obj)
-                labels.append(label_func(obj))
-        elif recurse and _check_valid(obj, include, exclude):
-            items_r, labels_r = get_items(
-                obj, label_func, extensions=extensions, filterfunc=filterfunc
-            )
-            items += items_r
-            labels += labels_r
+    items = get_files(folder, recurse=recurse, extensions=extensions, folders=include)
+    items = items.filter(filterfunc)
+    if accepted_files is not None:
+        names = OrderedSet(items.map(lambda x: x.stem))
+        idxs = names.index(names & accepted_files)
+        items = items[idxs]
+    labels = items.map(label_func)
     return items, labels
 
 # Cell

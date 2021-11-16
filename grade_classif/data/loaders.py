@@ -8,6 +8,7 @@ from ..core import ifnone
 from skimage.color import rgb2hed
 from openslide import OpenSlide
 import staintools
+from staintools.miscellaneous.exceptions import TissueMaskException
 
 # Cell
 class ItemLoader:
@@ -45,7 +46,10 @@ class ImageLoader(ItemLoader):
         img = imread(item, cv2.IMREAD_COLOR)
         if self.norm is not None:
             img = staintools.LuminosityStandardizer.standardize(img)
-            img = self.norm.transform(img)
+            try:
+                img = self.norm.transform(img)
+            except TissueMaskException:
+                pass
         if self.div:
             img = img.astype(np.float32) / 255
         return img

@@ -34,6 +34,8 @@ class BaseDataModule(pl.LightningDataModule):
         get_id: Optional[Callable[[Any], str]] = None,
         pacs_filt: Optional[str] = None,
         num_workers: int = 4,
+        filterfile: Optional[str] = None,
+        val_fold: Optional[int] = None,
         **kwargs,
     ):
         super().__init__()
@@ -49,6 +51,8 @@ class BaseDataModule(pl.LightningDataModule):
         self.get_id = get_id
         self.pacs_filt = pacs_filt
         self.num_workers = num_workers
+        self.filterfile = filterfile
+        self.val_fold = val_fold
         if transforms is not None:
             if transforms < 10:
                 tfm_func = globals()[f"get_transforms{transforms}"]
@@ -89,7 +93,7 @@ class BaseDataModule(pl.LightningDataModule):
         else:
             return None
 
-    """def get_filt(self) -> Optional[Callable[[Path], bool]]:
+    """def get_pacs_filt(self) -> Optional[Callable[[Path], bool]]:
         if self.patch_classes is not None:
             patch_classes_df = pd.read_csv(self.patch_classes, index_col="patchId")
             x_type = patch_classes_df.loc[x.stem, "type"]
@@ -120,7 +124,7 @@ class BaseDataModule(pl.LightningDataModule):
             filt = None
         return filt"""
 
-    def get_filt(self) -> Optional[Callable[[Path], bool]]:
+    def get_pacs_filt(self) -> Optional[Callable[[Path], bool]]:
         if self.pacs_filt is None:
             return None
         else:
@@ -131,6 +135,13 @@ class BaseDataModule(pl.LightningDataModule):
                 return False
             return filt
 
+    def get_accepted_files(self) -> Union[None, Set[str]]:
+        if self.filterfile is None:
+            return None
+        else:
+            with open(self.filterfile, "r") as f:
+                accepted_files = f.read().split("\n")
+            return set(accepted_files)
 
     def show_some(self, n: int = 8, split: str = "train", imgsize: int = 4):
         fig, axs = plt.subplots(n, 2, figsize=(imgsize * 2, imgsize * n))
@@ -154,7 +165,7 @@ class NormDataModule(BaseDataModule):
                 train_percent=self.train_percent,
                 div=False,
             )
-            .split_by_csv(self.data_csv, get_id=self.get_id)
+            .split_by_csv(self.data_csv, get_id=self.get_id, val_fold=self.val_fold)
             .to_tensor(tfms=self.tfms)
         )
 
@@ -185,7 +196,7 @@ class ImageClassifDataModule(BaseDataModule):
 
     def setup(self, stage: Optional[str] = None):
         if not hasattr(self, "data"):
-            self.filt = self.get_filt()
+            self.filt = self.get_pacs_filt()
             data = ImageClassifDataset.from_folder(
                 self.datafolder,
                 self.label_func,
@@ -193,11 +204,12 @@ class ImageClassifDataModule(BaseDataModule):
                 extensions=[".png"],
                 include=self.include,
                 filterfunc=self.filt,
+                accepted_files=self.get_accepted_files(),
                 train_percent=self.train_percent,
                 norm_ref = self.norm_ref,
                 norm_method = self.norm_method,
                 div=False
-            ).split_by_csv(self.data_csv, get_id=self.get_id)
+            ).split_by_csv(self.data_csv, get_id=self.get_id, val_fold=self.val_fold)
             self.data = data.to_tensor(tfms=self.tfms, tfm_y=False)
 
     def get_slide_weights(self) -> NDArray[(Any,), float]:
@@ -285,7 +297,7 @@ class FeaturesClassifDataModule(BaseDataModule):
 
     def setup(self, stage: Optional[str] = None):
         if not hasattr(self, "data"):
-            self.filt = self.get_filt()
+            self.filt = self.get_pacs_filt()
             data = FeaturesClassifDataset.from_folder(
                 self.datafolder,
                 self.label_func,
@@ -297,7 +309,7 @@ class FeaturesClassifDataModule(BaseDataModule):
                 size=self.size,
                 embed_dim=self.embed_dim,
                 padding_file = self.padding_file
-            ).split_by_csv(self.data_csv, get_id=self.get_id)
+            ).split_by_csv(self.data_csv, get_id=self.get_id, val_fold=self.val_fold)
             self.data = data.to_tensor()
 
     def train_dataloader(self) -> DataLoader:

@@ -349,9 +349,7 @@ def get_transforms1(
         RandomRotate90(),
         Flip(),
         Transpose(),
-        GridDistortion(distort_limit=0.05, p=0.2),
-        RandomGamma(p=0.2),
-        GaussianBlur(blur_limit=3, p=0.2),
+        RandomGamma(p=0.2)
     ]
     val_tfms = [CenterCrop(size, size)]
     return tfms, val_tfms
@@ -365,10 +363,8 @@ def get_transforms2(
         RandomRotate90(),
         Flip(),
         Transpose(),
-        GridDistortion(distort_limit=0.05, p=0.2),
-        RandomGamma(p=0.2),
-        GaussianBlur(blur_limit=3, p=0.2),
-        RGBShift(0.15, 0.15, 0.15),
+        RandomGamma(),
+        RGBShift(30, 30, 30),
     ]
     val_tfms = [CenterCrop(size, size)]
     return tfms, val_tfms
@@ -382,9 +378,7 @@ def get_transforms3(
         RandomRotate90(),
         Flip(),
         Transpose(),
-        GridDistortion(distort_limit=0.05, p=0.2),
         RandomBrightnessContrast(p=0.7),
-        GaussianBlur(blur_limit=3, p=0.2),
         RGBShift(0.2, 0.2, 0.2, p=0.8),
     ]
     val_tfms = [

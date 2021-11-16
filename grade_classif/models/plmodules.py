@@ -7,12 +7,12 @@ __all__ = ['BaseModule', 'Normalizer', 'ClassifModule', 'ImageClassifModel', 'RN
 import pytorch_lightning as pl
 from kornia.color import rgb_to_lab
 from torchmetrics import ROC, ConfusionMatrix
-from pytorch_lightning.callbacks import ModelCheckpoint
+from torchmetrics.functional import auc
+from pytorch_lightning.callbacks import ModelCheckpoint, StochasticWeightAveraging
 from pytorch_lightning.loggers import CometLogger
 from pytorch_lightning.profiler import AdvancedProfiler, SimpleProfiler
 from pytorch_lightning.trainer.states import RunningStage
 from pytorch_lightning.tuner.lr_finder import lr_find
-from sklearn.metrics import auc
 from timm.models.layers.weight_init import trunc_normal_
 from timm.models.vision_transformer import Block
 from torch.optim import Optimizer
@@ -297,6 +297,9 @@ class BaseModule(pl.LightningModule):
 
     def on_save_checkpoint(self, checkpoint: Dict[str, Any]):
         dirpath = Path(self.ckpt_callback.dirpath).parent
+        for path in dirpath.iterdir():
+            if path.suffix == ".pt" and path.stem != "best_model":
+                path.unlink()
         self.export_to_torchscript(file_path=dirpath/f"{self.current_epoch}.pt")
 
     def fit(self, dm: pl.LightningDataModule, monitor="val_loss", **kwargs):
@@ -336,6 +339,8 @@ class BaseModule(pl.LightningModule):
         dm.setup()
         precision = 16 if self.hparams.mixed_precision or self.hparams.deepspeed else 32
         plugins = "deepspeed" if self.hparams.deepspeed else None
+        if self.hparams.swa:
+            self.callbacks.append(StochasticWeightAveraging(swa_epoch_start=0.1))
         callbacks = self.callbacks + [self.ckpt_callback]
         n = len(dm.train_dataloader())
         log_every_n_steps = min(50, max(1, n // 10))
@@ -509,7 +514,7 @@ class Normalizer(BaseModule):
     ) -> Dict[str, torch.Tensor]:
         return self.validation_step(batch, batch_nb)
 
-    def test_epoch_end(self, outputs: List[Dict[str, torch.tensor]]):
+    def on_test_epoch_end(self, outputs: List[Dict[str, torch.tensor]]):
         return self.validation_epoch_end(outputs)
 
 # Cell
@@ -596,7 +601,7 @@ class ClassifModule(BaseModule):
                     c_name = f"{metric}{app}_{cl}"
                     log[c_name] = val[k]
                 log[f"{metric}{app}_mean"] = val.mean()
-        if not self.trainer.running_sanity_check:
+        if not self.trainer.sanity_checking:
             mat = cm.compute().cpu().numpy()
             self.logger.experiment.log_confusion_matrix(
                 labels=self.hparams.classes,
@@ -607,8 +612,8 @@ class ClassifModule(BaseModule):
             )
             fprs, tprs, _ = roc.compute()
             for cl, fpr, tpr in zip(self.hparams.classes[::-1], fprs[::-1], tprs[::-1]):
-                fpr = fpr.cpu().numpy()
-                tpr = tpr.cpu().numpy()
+                fpr = fpr
+                tpr = tpr
                 self.logger.experiment.log_curve(
                     f"ROC{app}_{cl}_{self.current_epoch}",
                     x=fpr.tolist(),
@@ -642,7 +647,7 @@ class ClassifModule(BaseModule):
         df.to_csv(savepath / f"{self.current_epoch}.csv", index=False)
 
     def log_slide_metrics(self, preds: torch.Tensor, labels: torch.Tensor):
-        if not self.trainer.running_sanity_check:
+        if not self.trainer.sanity_checking:
             items = self.trainer.datamodule.data.valid.items
             patch_slides = np.vectorize(lambda x: x.parent.name)(items)
             slides = np.unique(patch_slides)

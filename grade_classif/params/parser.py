@@ -58,6 +58,9 @@ _parser.add_argument('--num-workers', default=4, type=int, help='number of cpu w
 _parser.add_argument('--embed-dim', default=2048, type=int, help='size of feature vector for WSITransformer.')
 _parser.add_argument('--padding-file', default='/data/DeepLearning/SCHWOB_Robin/padding_2048_1024_1.npy', help='path to file containing feature vector to use for padding in WSITransformer.')
 _parser.add_argument('--deepspeed', action='store_true', help='specify to enable deepspeed plugin. Will also enable mixed precision by default.')
+_parser.add_argument('--swa', action='store_true', help='specify to enable stochastic weight averaging.')
+_parser.add_argument('--filterfile', help='path to file containing allowed file names.')
+_parser.add_argument('--val-fold', type=int, help='fold to use for validation when doig k-fold cross-validation.')
 
 # Cell
 hparams = _parser.parse_args()

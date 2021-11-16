@@ -13,7 +13,7 @@ from .loaders import (
     FeaturesLoader
 )
 from .utils import show_img, np_to_tensor
-from .read import get_files, get_leaf_folders
+from .read import get_items, get_leaf_folders
 from .transforms import *
 from ..core import ifnone
 from ..imports import *
@@ -22,6 +22,7 @@ from torch.utils.data import Dataset
 from openslide import OpenSlide
 from fastcore.foundation import L
 from fastcore.xtras import is_listy
+from ordered_set import OrderedSet
 
 # Cell
 class TestDataset(Dataset):
@@ -60,7 +61,10 @@ class TensorDataset(Dataset):
     def transform(self, x, y):
         if self.tfms != []:
             aug = Compose(self.tfms)
-            augmented = aug(image=x, mask=y if self.tfm_y else None)
+            if self.tfm_y:
+                augmented = aug(image=x, mask=y)
+            else:
+                augmented = aug(image=x)
             x = augmented["image"]
             if self.tfm_y:
                 y = augmented["mask"]
@@ -97,6 +101,8 @@ class TensorDataset(Dataset):
         return x, x_tfmed
 
     def __getattr__(self, name: str) -> Any:
+        if name == "_ds":
+            return None
         return getattr(self._ds, name)
 
     def __setattr__(self, name: str, value: Any):
@@ -140,7 +146,7 @@ class MyDataset(Dataset):
         labels: Sequence[Any],
         item_loader: ItemLoader,
         label_loader: ItemLoader,
-        train_percent: float = 1
+        train_percent: float = 1,
     ):
         super().__init__()
         self.items = np.array(items)
@@ -151,7 +157,7 @@ class MyDataset(Dataset):
         self.train_percent = train_percent
 
     def select_items(self, train_percent):
-        nlim = int(train_percent*len(self.items))
+        nlim = int(train_percent * len(self.items))
         idxs = np.random.choice(np.arange(len(self.items)), size=nlim, replace=False)
         idxs.sort()
         self.items = self.items[idxs]
@@ -178,21 +184,25 @@ class MyDataset(Dataset):
         include: Optional[Sequence[str]] = None,
         exclude: Optional[Sequence[str]] = None,
         filterfunc: Optional[Callable[[Path], bool]] = None,
-        train_percent: float = 1
+        accepted_files: Optional[Set[str]] = None,
+        train_percent: float = 1,
     ):
         """
         Creates a `MyDataset` object by reading files from a folder. It uses `get_item` and therefore works the same.
         """
-        folder = Path(folder)
-        items = get_files(
+        items, labels = get_items(
             folder,
+            label_func,
             recurse=recurse,
             extensions=extensions,
-            folders=include
+            include=include,
+            exclude=exclude,
+            filterfunc=filterfunc,
+            accepted_files=accepted_files,
         )
-        items = items.filter(filterfunc)
-        labels = items.map(label_func)
-        return cls(items, labels, item_loader, label_loader, train_percent=train_percent)
+        return cls(
+            items, labels, item_loader, label_loader, train_percent=train_percent
+        )
 
     def to_tensor(
         self, tfms: Optional[Sequence[BasicTransform]] = None, tfm_y: bool = True
@@ -244,8 +254,10 @@ class MyDataset(Dataset):
         self,
         csv: Union[Path, str],
         split_column: str = "split",
+        fold_column: str = "fold",
         id_column: str = "scan",
         get_id: Optional[Callable[[Any], Any]] = None,
+        val_fold: Optional[int] = None,
     ) -> SplitDataset:
         """
         Creates a `SplitDataset` by using a csv that contains an `id_column` column for identifying items
@@ -258,8 +270,14 @@ class MyDataset(Dataset):
         train = ([], [])
         valid = ([], [])
         test = ([], [])
-        train_ids = df.loc[df[split_column] == "train", id_column]
-        valid_ids = df.loc[df[split_column] == "valid", id_column]
+        if val_fold is None:
+            train_ids = df.loc[df[split_column] == "train", id_column]
+            valid_ids = df.loc[df[split_column] == "valid", id_column]
+        else:
+            train_ids = df.loc[
+                (df[fold_column] != val_fold) & (df[split_column] != "test"), id_column
+            ]
+            valid_ids = df.loc[df[fold_column] == val_fold, id_column]
         test_ids = df.loc[df[split_column] == "test", id_column]
         for item, label in zip(self.items, self.labels):
             item_id = get_id(item)
@@ -334,6 +352,7 @@ class ImageClassifDataset(ClassDataset):
         include: Optional[Sequence[str]] = None,
         exclude: Optional[Sequence[str]] = None,
         filterfunc: Optional[Callable[[Path], bool]] = None,
+        accepted_files: Optional[Set[str]] = None,
         train_percent: float = 1,
         **kwargs
     ):
@@ -341,14 +360,16 @@ class ImageClassifDataset(ClassDataset):
         Overwrites `MyDataset.from_folder`. Works basically the same but you don't need to pass loaders, but instead `n_classes`
         or `classes` arguments. Loaders are automatically created using these.
         """
-        items = get_files(
+        items, labels = get_items(
             folder,
+            label_func,
             recurse=recurse,
             extensions=extensions,
-            folders=include,
+            include=include,
+            exclude=exclude,
+            filterfunc=filterfunc,
+            accepted_files=accepted_files,
         )
-        items = items.filter(filterfunc)
-        labels = items.map(label_func)
         return cls(
             items,
             labels,
